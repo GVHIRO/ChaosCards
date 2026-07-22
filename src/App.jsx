@@ -5,6 +5,7 @@ import AuthMenu from "./pages/AuthMenu";
 import Menu from "./pages/Menu";
 import OnlineMenu from "./pages/OnlineMenu";
 import Battle from "./pages/Battle";
+import DeckBuilder from "./pages/DeckBuilder";
 
 
 function App() {
@@ -177,6 +178,13 @@ async function handleLogout() {
 }
 
 function renderScreen() {
+  if (screen === "deck-builder") {
+  return (
+    <DeckBuilder
+      onBack={() => setScreen("menu")}
+    />
+  );
+}
  if (screen === "battle") {
   return (
     <Battle
@@ -217,15 +225,16 @@ function renderScreen() {
     );
   }
 
-  return (
-    <Menu
-      onStart={() => setScreen("battle")}
-      onOnline={() => setScreen("online")}
-      openAuthMenu={() => setShowAuthMenu(true)}
-      currentUser={currentUser}
-      handleLogout={handleLogout}
-    />
-  );
+ return (
+  <Menu
+    onStart={() => setScreen("battle")}
+    onOnline={() => setScreen("online")}
+    onDeckBuilder={() => setScreen("deck-builder")}
+    openAuthMenu={() => setShowAuthMenu(true)}
+    currentUser={currentUser}
+    handleLogout={handleLogout}
+  />
+);
 }
 
 return (

@@ -10,28 +10,28 @@ function Menu({
     <div className="menu">
       <h1>Chaos Cards</h1>
 
-      <button onClick={onStart}>
+      <button type="button" onClick={onStart}>
         CPU対戦
       </button>
 
-      <button onClick={onOnline}>
+      <button type="button" onClick={onOnline}>
         オンライン対戦
       </button>
 
-      <button onClick={onDeckBuilder}>
+      <button type="button" onClick={onDeckBuilder}>
         デッキ編集
       </button>
 
       <div style={{ marginTop: "20px" }}>
         {currentUser?.is_anonymous ? (
-          <button onClick={openAuthMenu}>
+          <button type="button" onClick={openAuthMenu}>
             ログイン・アカウント登録
           </button>
         ) : (
           <>
             <p>ログイン中：{currentUser?.email}</p>
 
-            <button onClick={handleLogout}>
+            <button type="button" onClick={handleLogout}>
               ログアウト
             </button>
           </>
