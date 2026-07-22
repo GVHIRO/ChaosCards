@@ -205,13 +205,14 @@ function App() {
   }
 
   function renderScreen() {
-    if (screen === "friends") {
-      return (
-        <Friends
-          onBack={() => setScreen("menu")}
-        />
-      );
-    }
+ if (screen === "friends") {
+  return (
+    <Friends
+      onBack={() => setScreen("menu")}
+      onMatchStart={startOnlineBattle}
+    />
+  );
+}
 
     if (screen === "deck-builder") {
       return (

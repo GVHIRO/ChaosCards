@@ -5,10 +5,34 @@ import { useState, useEffect, useRef } from "react";
 import "../App.css";
 import cards from "../data/cards";
 
-function randomCard() {
-  return cards[Math.floor(Math.random() * cards.length)];
-}
+const INITIAL_HP = 40;
+const MAX_HP = 40;
 
+const INITIAL_ENERGY = 3;
+const MAX_ENERGY = 5;
+const ENERGY_PER_TURN = 3;
+
+const INITIAL_HAND_SIZE = 5;
+const MAX_HAND_SIZE = 7;
+
+function randomCard() {
+  return cards[
+    Math.floor(Math.random() * cards.length)
+  ];
+}
+function getHpColor(currentHp, maxHp) {
+  const rate = currentHp / maxHp;
+
+  if (rate > 0.6) {
+    return "#32d74b";
+  }
+
+  if (rate > 0.3) {
+    return "#ffcc00";
+  }
+
+  return "#ff453a";
+}
 export default function Battle({
   mode = "cpu",
   roomId,
@@ -17,22 +41,47 @@ export default function Battle({
   restartGame,
   goToMenu,
 }) {
+  const [playerHP, setPlayerHP] =
+    useState(INITIAL_HP);
 
-  const [playerHP, setPlayerHP] = useState(30);
-  const [enemyHP, setEnemyHP] = useState(30);
-  const [drawnIndex, setDrawnIndex] = useState(null);
-  const [isCpuTurn, setIsCpuTurn] = useState(false);
-  const [playerEffect, setPlayerEffect] = useState(null);
-const [enemyEffect, setEnemyEffect] = useState(null);
-const [playerShield, setPlayerShield] = useState(false);
-const [enemyShield, setEnemyShield] = useState(false);
-const MAX_ENERGY = 3;
+  const [enemyHP, setEnemyHP] =
+    useState(INITIAL_HP);
 
-const [energy, setEnergy] = useState(MAX_ENERGY);
-const [selectedCards, setSelectedCards] = useState([]);
-const [turnNumber, setTurnNumber] = useState(1);
-const [playerFinished, setPlayerFinished] = useState(false);
-const [opponentFinished, setOpponentFinished] = useState(false);
+  const [drawnIndex, setDrawnIndex] =
+    useState(null);
+
+  const [isCpuTurn, setIsCpuTurn] =
+    useState(false);
+
+  const [playerEffect, setPlayerEffect] =
+    useState(null);
+
+  const [enemyEffect, setEnemyEffect] =
+    useState(null);
+
+  const [playerShield, setPlayerShield] =
+    useState(false);
+
+  const [enemyShield, setEnemyShield] =
+    useState(false);
+
+  const [energy, setEnergy] =
+    useState(INITIAL_ENERGY);
+
+  const [cpuEnergy, setCpuEnergy] =
+    useState(INITIAL_ENERGY);
+
+  const [selectedCards, setSelectedCards] =
+    useState([]);
+
+  const [turnNumber, setTurnNumber] =
+    useState(1);
+
+  const [playerFinished, setPlayerFinished] =
+    useState(false);
+
+  const [opponentFinished, setOpponentFinished] =
+    useState(false);
 
  const [deck, setDeck] = useState(() => {
   const savedDeck = localStorage.getItem("chaosCardsDeck");
@@ -112,21 +161,42 @@ useEffect(() => {
   }
 }, [playerHP, enemyHP, mode]);
   useEffect(() => {
-  if (hand.length === 0 && deck.length > 0) {
-    setHand(drawCards(5));
+  if (
+    hand.length === 0 &&
+    deck.length > 0
+  ) {
+    setHand(
+      drawCards(INITIAL_HAND_SIZE)
+    );
   }
 }, []);
 
-  function drawCards(count) {
+ function drawCards(count) {
   const newDeck = [...deck];
   const drawn = [];
 
-  for (let i = 0; i < count; i++) {
+  const availableSlots = Math.max(
+    0,
+    MAX_HAND_SIZE - hand.length
+  );
+
+  const actualDrawCount = Math.min(
+    count,
+    availableSlots
+  );
+
+  for (let i = 0; i < actualDrawCount; i++) {
     if (newDeck.length === 0) break;
-    drawn.push(newDeck.shift());
+
+    const card = newDeck.shift();
+
+    if (card) {
+      drawn.push(card);
+    }
   }
 
   setDeck(newDeck);
+
   return drawn;
 }
 const wait = (ms) => {
@@ -134,7 +204,14 @@ const wait = (ms) => {
     setTimeout(resolve, ms);
   });
 };
-
+function recoverTurnEnergy() {
+  setEnergy((currentEnergy) =>
+    Math.min(
+      MAX_ENERGY,
+      currentEnergy + ENERGY_PER_TURN
+    )
+  );
+}
 function playCard(index) {
   if (isCpuTurn || winner) return;
 
@@ -200,13 +277,14 @@ function cancelSelectedCard(selectedIndex) {
     [`↩️ ${card.name}の選択を取り消した`, ...prev].slice(0, 8)
   );
 }
-function chooseCpuCards() {
-  let remainingEnergy = MAX_ENERGY;
+function chooseCpuCards(availableEnergy) {
+  let remainingEnergy = availableEnergy;
   const chosenCards = [];
 
   while (remainingEnergy > 0) {
     const affordableCards = cards.filter(
-      (card) => card.cost <= remainingEnergy
+      (card) =>
+        Number(card.cost) <= remainingEnergy
     );
 
     if (affordableCards.length === 0) {
@@ -215,14 +293,22 @@ function chooseCpuCards() {
 
     const chosenCard =
       affordableCards[
-        Math.floor(Math.random() * affordableCards.length)
+        Math.floor(
+          Math.random() *
+            affordableCards.length
+        )
       ];
 
     chosenCards.push(chosenCard);
-    remainingEnergy -= chosenCard.cost;
+    remainingEnergy -= Number(
+      chosenCard.cost
+    );
   }
 
-  return chosenCards;
+  return {
+    chosenCards,
+    remainingEnergy,
+  };
 }
 function resolveTurn(playerCards, opponentCards) {
   let newPlayerHP = playerHP;
@@ -458,7 +544,10 @@ async function cpuTurn() {
 
   await wait(1000);
 
-  const cpuCards = chooseCpuCards();
+  const {
+    chosenCards: cpuCards,
+    remainingEnergy: cpuRemainingEnergy,
+  } = chooseCpuCards(cpuEnergy);
 
   const {
     newPlayerHP,
@@ -483,7 +572,11 @@ async function cpuTurn() {
   setEnemyHP(newEnemyHP);
 
   setLogs((prev) =>
-    [cpuLog, ...turnLogs, ...prev].slice(0, 10)
+    [
+      cpuLog,
+      ...turnLogs,
+      ...prev,
+    ].slice(0, 10)
   );
 
   await wait(1000);
@@ -491,7 +584,24 @@ async function cpuTurn() {
   replaceUsedCards();
 
   setSelectedCards([]);
-  setEnergy(MAX_ENERGY);
+
+  // プレイヤーの残りエネルギーに3加算
+  setEnergy((currentEnergy) =>
+    Math.min(
+      MAX_ENERGY,
+      currentEnergy +
+        ENERGY_PER_TURN
+    )
+  );
+
+  // CPUの残りエネルギーに3加算
+  setCpuEnergy(
+    Math.min(
+      MAX_ENERGY,
+      cpuRemainingEnergy +
+        ENERGY_PER_TURN
+    )
+  );
 
   if (newWinner) {
     setWinner(newWinner);
@@ -613,9 +723,9 @@ if (match.turn_number > turnNumber) {
 
     replaceUsedCards();
 
-    setSelectedCards([]);
-    setEnergy(MAX_ENERGY);
-    setTurnNumber(match.turn_number);
+setSelectedCards([]);
+recoverTurnEnergy();
+setTurnNumber(match.turn_number);
     setIsCpuTurn(false);
 
     setLogs((prev) =>
@@ -737,11 +847,11 @@ if (match.phase === "finished" && match.winner) {
     playerRole
   );
 
-  replaceUsedCards();
+ replaceUsedCards();
 
-  setSelectedCards([]);
-  setEnergy(MAX_ENERGY);
-  setTurnNumber(match.turn_number);
+setSelectedCards([]);
+recoverTurnEnergy();
+setTurnNumber(match.turn_number);
   setIsCpuTurn(false);
 
   setLogs((prev) =>
@@ -1071,60 +1181,58 @@ if (winner) {
       <h1>CHAOS CARDS</h1>
 
       <div className="battle">
-        <div className="player character-area">
+      <div className="player character-area">
   <h2>
-  {mode === "online" ? "🌐 OPPONENT" : "🤖 CPU"}
-</h2>
-  {enemyShield && (
-  <div className="shield-status">
-    🛡️ シールド中
-  </div>
-)}
+    {mode === "online" ? "🌐 OPPONENT" : "🤖 CPU"}
+  </h2>
 
-  {enemyEffect && (
-    <div
-      key={enemyEffect.id}
-      className={`battle-effect ${enemyEffect.type}`}
-    >
-      {enemyEffect.text}
-    </div>
-  )}
+  <div className="hp-text">
+    ❤️ {enemyHP}
+  </div>
 
   <div className="hp-bar">
-    <div
-      className="hp-fill"
-      style={{ width: `${(enemyHP / 30) * 100}%` }}
-    ></div>
-  </div>
-
-  <p>{enemyHP} / 30</p>
+  <div
+    className="hp-fill"
+    style={{
+      width: `${Math.max(
+        0,
+        Math.min(
+          100,
+          (enemyHP / MAX_HP) * 100
+        )
+      )}%`,
+      background: getHpColor(enemyHP, MAX_HP),
+    }}
+  />
+</div>
 </div>
 
-        <div className="player character-area">
+     <div className="player character-area">
   <h2>😀 YOU</h2>
-  {playerShield && (
-  <div className="shield-status">
-    🛡️ シールド中
-  </div>
-)}
 
-  {playerEffect && (
-    <div
-      key={playerEffect.id}
-      className={`battle-effect ${playerEffect.type}`}
-    >
-      {playerEffect.text}
-    </div>
-  )}
-
-  <div className="hp-bar">
-    <div
-      className="hp-fill"
-      style={{ width: `${(playerHP / 30) * 100}%` }}
-    ></div>
+  <div className="hp-text">
+    ❤️ {playerHP}
   </div>
 
-  <p>{playerHP} / 30</p>
+<div className="hp-bar">
+  <div
+    className="hp-fill"
+    style={{
+      width: `${Math.max(
+        0,
+        Math.min(
+          100,
+          (playerHP / MAX_HP) * 100
+        )
+      )}%`,
+      background: getHpColor(playerHP, MAX_HP),
+    }}
+  />
+</div>
+
+  <div className="energy-text">
+    ⚡ {energy}/{MAX_ENERGY}
+  </div>
 </div>
       </div>
 <div
@@ -1154,9 +1262,7 @@ if (winner) {
     ? "🤖 CPUが考えています…"
     : "⚡ あなたのターン"}
 </div>
-<div className="energy-bar">
-    ⚡ エネルギー {energy}/{MAX_ENERGY}
-</div>
+
 <h3>手札</h3>
 
 <p className="deck-info">

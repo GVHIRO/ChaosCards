@@ -1197,3 +1197,102 @@ textarea {
   font-size: 20px;
   line-height: 1;
 }
+
+.hp-text {
+  margin-top: 8px;
+  margin-bottom: 6px;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+.energy-text {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffd54a;
+}
+
+.hp-bar {
+  width: 240px;
+  height: 18px;
+  background: #444;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hp-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #24c84d,
+    #42ff7a
+  );
+  transition: width .3s;
+}
+
+.hp-text {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+}
+
+.hp-bar {
+  width: 240px;
+  height: 18px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #3a4353;
+  border-radius: 999px;
+}
+
+.hp-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition:
+    width 0.35s ease,
+    background 0.35s ease;
+}
+
+.energy-text {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd54a;
+  text-align: center;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.delete-friend-button {
+  background: #c62828;
+  color: white;
+  border: none;
+}
+
+.delete-friend-button:hover {
+  background: #e53935;
+}
+
+.friend-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.delete-friend-button {
+  background: #b4232d;
+  color: white;
+  border: 1px solid #e25560;
+}
+
+.delete-friend-button:hover {
+  background: #d32f3d;
+  transform: translateY(-1px);
+}
