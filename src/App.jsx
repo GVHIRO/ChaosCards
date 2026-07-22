@@ -138,6 +138,14 @@ if (!authReady) {
   );
 }
 function startOnlineBattle(roomId, role, matchId) {
+  if (!hasValidDeck()) {
+    alert("先に20枚のデッキを作成してください！");
+
+    setOnlineRoom(null);
+    setScreen("deck-builder");
+    return;
+  }
+
   setOnlineRoom({
     roomId,
     role,
@@ -167,7 +175,44 @@ async function handleLogout() {
     );
   }
 }
+function hasValidDeck() {
+  const savedDeck = localStorage.getItem("chaosCardsDeck");
 
+  if (!savedDeck) {
+    return false;
+  }
+
+  try {
+    const parsedDeck = JSON.parse(savedDeck);
+
+    return (
+      Array.isArray(parsedDeck) &&
+      parsedDeck.length === 20
+    );
+  } catch (error) {
+    console.error("デッキ確認エラー:", error);
+    return false;
+  }
+}
+function startCpuBattle() {
+  if (!hasValidDeck()) {
+    alert("先に20枚のデッキを作成してください！");
+    setScreen("deck-builder");
+    return;
+  }
+
+  setScreen("battle");
+}
+
+function openOnlineMenu() {
+  if (!hasValidDeck()) {
+    alert("先に20枚のデッキを作成してください！");
+    setScreen("deck-builder");
+    return;
+  }
+
+  setScreen("online");
+}
 function renderScreen() {
   if (screen === "deck-builder") {
   return (
@@ -218,13 +263,13 @@ function renderScreen() {
 
  return (
   <Menu
-    onStart={() => setScreen("battle")}
-    onOnline={() => setScreen("online")}
-    onDeckBuilder={() => setScreen("deck-builder")}
-    openAuthMenu={() => setShowAuthMenu(true)}
-    currentUser={currentUser}
-    handleLogout={handleLogout}
-  />
+  onStart={startCpuBattle}
+  onOnline={openOnlineMenu}
+  onDeckBuilder={() => setScreen("deck-builder")}
+  openAuthMenu={() => setShowAuthMenu(true)}
+  currentUser={currentUser}
+  handleLogout={handleLogout}
+/>
 );
 }
 

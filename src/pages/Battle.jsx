@@ -34,28 +34,38 @@ const [turnNumber, setTurnNumber] = useState(1);
 const [playerFinished, setPlayerFinished] = useState(false);
 const [opponentFinished, setOpponentFinished] = useState(false);
 
-  const [deck, setDeck] = useState(() => {
+ const [deck, setDeck] = useState(() => {
+  const savedDeck = localStorage.getItem("chaosCardsDeck");
+
+  if (savedDeck) {
+    try {
+      return JSON.parse(savedDeck).sort(
+        () => Math.random() - 0.5
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // 保存デッキが無い場合だけ今までのデッキを使う
   const newDeck = [];
 
   cards.forEach((card) => {
     let copies = 1;
 
     switch (card.rarity) {
-case "Common":
-  copies = 3;
-  break;
+      case "Common":
+        copies = 3;
+        break;
 
-case "Rare":
-  copies = 2;
-  break;
+      case "Rare":
+        copies = 2;
+        break;
 
-case "Epic":
-  copies = 1;
-  break;
-
-case "Legend":
-  copies = 1;
-  break;
+      case "Epic":
+      case "Legend":
+        copies = 1;
+        break;
     }
 
     for (let i = 0; i < copies; i++) {
@@ -65,7 +75,6 @@ case "Legend":
 
   return newDeck.sort(() => Math.random() - 0.5);
 });
-
   const [hand, setHand] = useState([]);
   const [discardPile, setDiscardPile] = useState([]);
 
