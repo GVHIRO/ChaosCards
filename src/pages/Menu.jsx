@@ -1,4 +1,10 @@
-function Menu({ onStart, onOnline }) {
+function Menu({
+  onStart,
+  onOnline,
+  openAuthMenu,
+  currentUser,
+  handleLogout,
+}) {
   return (
     <div className="menu">
       <h1>Chaos Cards</h1>
@@ -10,6 +16,24 @@ function Menu({ onStart, onOnline }) {
       <button onClick={onOnline}>
         オンライン対戦
       </button>
+
+      <div style={{ marginTop: "20px" }}>
+        {currentUser?.is_anonymous ? (
+          <button onClick={openAuthMenu}>
+            ログイン・アカウント登録
+          </button>
+        ) : (
+          <>
+            <p>
+              ログイン中：{currentUser?.email}
+            </p>
+
+            <button onClick={handleLogout}>
+              ログアウト
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
