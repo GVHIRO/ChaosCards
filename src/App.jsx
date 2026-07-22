@@ -11,6 +11,7 @@ function App() {
     const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState("");
   const [screen, setScreen] = useState("menu");
+  const [battleKey, setBattleKey] = useState(0);
   const [onlineRoom, setOnlineRoom] = useState(null);
   const [showAuthMenu, setShowAuthMenu] =
   useState(false);
@@ -176,26 +177,36 @@ async function handleLogout() {
 }
 
 function renderScreen() {
-  if (screen === "battle") {
-    return (
-      <Battle
-        mode="cpu"
-        onBack={() => setScreen("menu")}
-      />
-    );
-  }
-
+ if (screen === "battle") {
+  return (
+    <Battle
+      key={battleKey}
+      mode="cpu"
+      restartGame={() => {
+        setBattleKey((prev) => prev + 1);
+      }}
+      goToMenu={() => setScreen("menu")}
+    />
+  );
+}
   if (screen === "online-battle") {
-    return (
-      <Battle
-        mode="online"
-        roomId={onlineRoom?.roomId}
-        matchId={onlineRoom?.matchId}
-        playerRole={onlineRoom?.role}
-        onBack={() => setScreen("menu")}
-      />
-    );
-  }
+  return (
+    <Battle
+      mode="online"
+      roomId={onlineRoom?.roomId}
+      matchId={onlineRoom?.matchId}
+      playerRole={onlineRoom?.role}
+      restartGame={() => {
+        setOnlineRoom(null);
+        setScreen("online");
+      }}
+      goToMenu={() => {
+        setOnlineRoom(null);
+        setScreen("menu");
+      }}
+    />
+  );
+}
 
   if (screen === "online") {
     return (

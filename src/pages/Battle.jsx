@@ -1044,17 +1044,11 @@ if (winner) {
         </p>
 
         <div className="result-buttons">
-          <button
-            className="result-button"
-            onClick={restartGame}
-          >
+          <button type="button" onClick={restartGame}>
             🔄 もう一回
           </button>
 
-          <button
-            className="result-button"
-            onClick={goToMenu}
-          >
+          <button type="button" onClick={goToMenu}>
             🏠 メニューへ戻る
           </button>
         </div>
