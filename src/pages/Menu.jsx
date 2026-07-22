@@ -1,6 +1,7 @@
 function Menu({
   onStart,
   onOnline,
+  onDeckBuilder,
   openAuthMenu,
   currentUser,
   handleLogout,
@@ -17,6 +18,10 @@ function Menu({
         オンライン対戦
       </button>
 
+      <button onClick={onDeckBuilder}>
+        デッキ編集
+      </button>
+
       <div style={{ marginTop: "20px" }}>
         {currentUser?.is_anonymous ? (
           <button onClick={openAuthMenu}>
@@ -24,9 +29,7 @@ function Menu({
           </button>
         ) : (
           <>
-            <p>
-              ログイン中：{currentUser?.email}
-            </p>
+            <p>ログイン中：{currentUser?.email}</p>
 
             <button onClick={handleLogout}>
               ログアウト
