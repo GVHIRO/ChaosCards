@@ -600,3 +600,65 @@ h1 {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+
+.deck-builder {
+  width: min(1100px, 94%);
+  margin: 0 auto;
+  padding: 30px 0;
+}
+
+.deck-builder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.deck-message {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.deck-card-list {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(170px, 1fr)
+  );
+  gap: 12px;
+}
+
+.deck-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+  padding: 14px;
+}
+
+.selected-deck-list {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(190px, 1fr)
+  );
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.selected-deck-list button {
+  text-align: left;
+}
+
+.save-deck-button {
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.save-deck-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
