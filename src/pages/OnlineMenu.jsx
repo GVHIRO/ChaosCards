@@ -3,176 +3,186 @@ import { supabase } from "../lib/supabase";
 
 function OnlineMenu({ onBack, onMatchStart }) {
   const [roomCode, setRoomCode] = useState("");
-const [createdCode, setCreatedCode] = useState("");
-const [message, setMessage] = useState("");
-const [isWaiting, setIsWaiting] = useState(false);
-const [roomId, setRoomId] = useState(null);
-const [playerRole, setPlayerRole] = useState(null);
+  const [createdCode, setCreatedCode] = useState("");
+  const [message, setMessage] = useState("");
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [roomId, setRoomId] = useState(null);
+  const [playerRole, setPlayerRole] = useState(null);
 
-  // このブラウザ専用のプレイヤーIDを作る
   function getPlayerId() {
-    let playerId = localStorage.getItem("chaos-cards-player-id");
+    let playerId = localStorage.getItem(
+      "chaos-cards-player-id"
+    );
 
     if (!playerId) {
       playerId = crypto.randomUUID();
-      localStorage.setItem("chaos-cards-player-id", playerId);
+
+      localStorage.setItem(
+        "chaos-cards-player-id",
+        playerId
+      );
     }
 
     return playerId;
   }
-useEffect(() => {
-  if (!roomId || !playerRole || !supabase) {
-    return;
-  }
 
-  let isProcessing = false;
-
-  const intervalId = setInterval(async () => {
-    if (isProcessing) {
+  useEffect(() => {
+    if (!roomId || !playerRole) {
       return;
     }
 
-    isProcessing = true;
+    let isProcessing = false;
 
-    try {
-      const { data: room, error: roomError } = await supabase
-        .from("rooms")
-        .select("*")
-        .eq("id", roomId)
-        .single();
-
-      if (roomError) {
-        console.error("部屋確認エラー:", roomError);
+    const intervalId = window.setInterval(async () => {
+      if (isProcessing) {
         return;
       }
 
-      /*
-       * ホストだけが試合を作成する
-       */
-      if (
-        playerRole === "host" &&
-        room.status === "ready" &&
-        room.guest_id &&
-        !room.match_id
-      ) {
-        setMessage("試合を準備しています…");
+      isProcessing = true;
 
-        const { data: match, error: matchError } =
+      try {
+        const { data: room, error: roomError } =
           await supabase
-            .from("matches")
-            .upsert(
-              {
-                room_id: room.id,
-                host_hp: 30,
-                guest_hp: 30,
-                host_energy: 3,
-                guest_energy: 3,
-                turn_number: 1,
-                phase: "selecting",
-              },
-              {
-                onConflict: "room_id",
-                ignoreDuplicates: true,
-              }
-            )
-            .select()
-            .maybeSingle();
+            .from("rooms")
+            .select("*")
+            .eq("id", roomId)
+            .single();
 
-        if (matchError) {
-          console.error("試合作成エラー:", matchError);
-          setMessage(`試合作成エラー：${matchError.message}`);
+        if (roomError) {
+          console.error("部屋確認エラー:", roomError);
           return;
         }
 
-        /*
-         * 重複防止によってdataがnullなら、
-         * すでに存在する試合を取得する
-         */
-        let matchId = match?.id;
+        // ホストだけが試合を作成する
+        if (
+          playerRole === "host" &&
+          room.status === "ready" &&
+          room.guest_id &&
+          !room.match_id
+        ) {
+          setMessage("試合を準備しています…");
 
-        if (!matchId) {
-          const {
-            data: existingMatch,
-            error: existingMatchError,
-          } = await supabase
-            .from("matches")
-            .select("id")
-            .eq("room_id", room.id)
-            .single();
+          const { data: match, error: matchError } =
+            await supabase
+              .from("matches")
+              .upsert(
+                {
+                  room_id: room.id,
+                  host_hp: 30,
+                  guest_hp: 30,
+                  host_energy: 3,
+                  guest_energy: 3,
+                  turn_number: 1,
+                  phase: "selecting",
+                },
+                {
+                  onConflict: "room_id",
+                  ignoreDuplicates: true,
+                }
+              )
+              .select()
+              .maybeSingle();
 
-          if (existingMatchError) {
+          if (matchError) {
             console.error(
-              "既存試合取得エラー:",
-              existingMatchError
+              "試合作成エラー:",
+              matchError
+            );
+
+            setMessage(
+              `試合作成エラー：${matchError.message}`
             );
             return;
           }
 
-          matchId = existingMatch.id;
-        }
+          let matchId = match?.id;
 
-        const { error: updateRoomError } = await supabase
-          .from("rooms")
-          .update({
-            match_id: matchId,
-            status: "playing",
-          })
-          .eq("id", room.id);
+          if (!matchId) {
+            const {
+              data: existingMatch,
+              error: existingMatchError,
+            } = await supabase
+              .from("matches")
+              .select("id")
+              .eq("room_id", room.id)
+              .single();
 
-        if (updateRoomError) {
-          console.error(
-            "部屋更新エラー:",
-            updateRoomError
-          );
-          setMessage(
-            `部屋更新エラー：${updateRoomError.message}`
-          );
+            if (existingMatchError) {
+              console.error(
+                "既存試合取得エラー:",
+                existingMatchError
+              );
+              return;
+            }
+
+            matchId = existingMatch.id;
+          }
+
+          const { error: updateRoomError } =
+            await supabase
+              .from("rooms")
+              .update({
+                match_id: matchId,
+                status: "playing",
+              })
+              .eq("id", room.id);
+
+          if (updateRoomError) {
+            console.error(
+              "部屋更新エラー:",
+              updateRoomError
+            );
+
+            setMessage(
+              `部屋更新エラー：${updateRoomError.message}`
+            );
+            return;
+          }
+
+          window.clearInterval(intervalId);
+          onMatchStart(room.id, "host", matchId);
           return;
         }
 
-        clearInterval(intervalId);
-        onMatchStart(room.id, "host", matchId);
-        return;
-      }
+        // match_idが保存されたらゲストも対戦開始
+        if (room.match_id) {
+          window.clearInterval(intervalId);
 
-      /*
-       * match_idが保存されたら両者とも対戦開始
-       */
-      if (room.match_id) {
-        clearInterval(intervalId);
+          setMessage("対戦を開始します！");
 
-        setMessage("対戦を開始します！");
+          onMatchStart(
+            room.id,
+            playerRole,
+            room.match_id
+          );
+        }
+      } catch (error) {
+        console.error("待機処理エラー:", error);
 
-        onMatchStart(
-          room.id,
-          playerRole,
-          room.match_id
+        setMessage(
+          `待機処理エラー：${
+            error instanceof Error
+              ? error.message
+              : String(error)
+          }`
         );
+      } finally {
+        isProcessing = false;
       }
-    } catch (error) {
-      console.error("待機処理エラー:", error);
+    }, 1000);
 
-      setMessage(
-        `待機処理エラー：${
-          error instanceof Error
-            ? error.message
-            : String(error)
-        }`
-      );
-    } finally {
-      isProcessing = false;
-    }
-  }, 1000);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [roomId, playerRole, onMatchStart]);
 
-  return () => {
-    clearInterval(intervalId);
-  };
-}, [roomId, playerRole, onMatchStart]);
   function generateRoomCode() {
-    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const characters =
+      "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
     let code = "";
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i += 1) {
       const randomIndex = Math.floor(
         Math.random() * characters.length
       );
@@ -184,58 +194,62 @@ useEffect(() => {
   }
 
   async function createRoom() {
-    if (!supabase) {
+    const {
+      data: { user: currentUser },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !currentUser) {
+      console.error(
+        "ユーザー取得エラー:",
+        userError
+      );
+
       setMessage(
-        "Supabaseの接続設定が読み込まれていません"
+        "ログイン情報を取得できませんでした"
       );
       return;
     }
 
-    setMessage("部屋を作っています…");
-
-    const code = generateRoomCode();
-    const playerId = getPlayerId();
+    const newRoomCode = generateRoomCode();
 
     const { data, error } = await supabase
   .from("rooms")
-  .insert([
-    {
-      room_code: code,
-      host_id: playerId,
-      guest_id: null,
-      status: "waiting",
-    },
-  ])
+  .insert({
+    room_code: newRoomCode,
+    host_id: currentUser.id,
+    status: "waiting",
+  })
   .select()
   .single();
 
     if (error) {
-  console.error(error);
-  setMessage(`部屋作成エラー：${error.message}`);
-  return;
-}
+      console.error("部屋作成エラー:", error);
 
-setRoomId(data.id);
-setPlayerRole("host");
-setCreatedCode(code);
-setIsWaiting(true);
-setMessage("参加者を待っています！");
-  }
-
-  async function joinRoom() {
-    if (!supabase) {
       setMessage(
-        "Supabaseの接続設定が読み込まれていません"
+        `部屋を作成できませんでした：${error.message}`
       );
       return;
     }
 
+    console.log("作成した部屋:", data);
+
+    setRoomId(data.id);
+    setPlayerRole("host");
+    setCreatedCode(newRoomCode);
+    setIsWaiting(true);
+    setMessage("参加者を待っています！");
+  }
+
+  async function joinRoom() {
     const normalizedCode = roomCode
       .trim()
       .toUpperCase();
 
     if (normalizedCode.length !== 6) {
-      setMessage("6文字のルームコードを入力してください");
+      setMessage(
+        "6文字のルームコードを入力してください"
+      );
       return;
     }
 
@@ -249,8 +263,11 @@ setMessage("参加者を待っています！");
         .maybeSingle();
 
     if (searchError) {
-      console.error(searchError);
-      setMessage(`検索エラー：${searchError.message}`);
+      console.error("部屋検索エラー:", searchError);
+
+      setMessage(
+        `検索エラー：${searchError.message}`
+      );
       return;
     }
 
@@ -265,48 +282,67 @@ setMessage("参加者を待っています！");
     }
 
     if (room.guest_id) {
-      setMessage("この部屋にはすでに参加者がいます");
+      setMessage(
+        "この部屋にはすでに参加者がいます"
+      );
+      return;
+    }
+
+    const {
+      data: { user: currentUser },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !currentUser) {
+      setMessage(
+        "ログイン情報を取得できませんでした"
+      );
+      return;
+    }
+
+    if (room.host_id === currentUser.id) {
+      setMessage(
+        "自分で作成した部屋には参加できません"
+      );
       return;
     }
 
     const playerId = getPlayerId();
 
-    if (room.host_id === playerId) {
+    const { data: updatedRoom, error: updateError } =
+      await supabase
+        .from("rooms")
+        .update({
+          guest_id: playerId,
+          status: "ready",
+        })
+        .eq("id", room.id)
+        .is("guest_id", null)
+        .select()
+        .maybeSingle();
+
+    if (updateError) {
+      console.error("参加エラー:", updateError);
+
       setMessage(
-        "同じブラウザから自分の部屋には参加できません"
+        `参加エラー：${updateError.message}`
       );
       return;
     }
 
-    const { error: updateError } = await supabase
-  .from("rooms")
-  .update({
-    guest_id: playerId,
-    status: "ready",
-  })
-  .eq("id", room.id)
-  .is("guest_id", null);
+    if (!updatedRoom) {
+      setMessage(
+        "ほかの参加者が先に入室しました"
+      );
+      return;
+    }
 
-if (updateError) {
-  console.error(updateError);
-  setMessage(`参加エラー：${updateError.message}`);
-  return;
-}
-
-setRoomId(room.id);
-setPlayerRole("guest");
-setIsWaiting(true);
-setMessage("ホストが試合を準備しています…");
-
-if (matchError) {
-  console.error(matchError);
-  setMessage(`試合作成エラー：${matchError.message}`);
-  return;
-}
-
-setMessage("部屋に参加しました！対戦を開始します");
-
-onMatchStart(room.id, "guest", match.id);
+    setRoomId(room.id);
+    setPlayerRole("guest");
+    setIsWaiting(true);
+    setMessage(
+      "部屋に参加しました。ホストを待っています…"
+    );
   }
 
   return (
@@ -315,7 +351,7 @@ onMatchStart(room.id, "guest", match.id);
 
       {!isWaiting && (
         <>
-          <button onClick={createRoom}>
+          <button type="button" onClick={createRoom}>
             部屋を作る
           </button>
 
@@ -332,7 +368,10 @@ onMatchStart(room.id, "guest", match.id);
               }
             />
 
-            <button onClick={joinRoom}>
+            <button
+              type="button"
+              onClick={joinRoom}
+            >
               部屋に参加
             </button>
           </div>
@@ -347,9 +386,13 @@ onMatchStart(room.id, "guest", match.id);
         </div>
       )}
 
-      {message && <p className="online-message">{message}</p>}
+      {message && (
+        <p className="online-message">
+          {message}
+        </p>
+      )}
 
-      <button onClick={onBack}>
+      <button type="button" onClick={onBack}>
         戻る
       </button>
     </div>

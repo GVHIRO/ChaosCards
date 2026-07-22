@@ -1,7 +1,8 @@
-function Menu({
+export default function Menu({
   onStart,
   onOnline,
   onDeckBuilder,
+  onFriends,
   openAuthMenu,
   currentUser,
   handleLogout,
@@ -17,6 +18,15 @@ function Menu({
       <button type="button" onClick={onOnline}>
         オンライン対戦
       </button>
+      <button
+  type="button"
+  onClick={() => {
+    console.log("フレンドボタンが押された");
+    onFriends();
+  }}
+>
+  👥 フレンド
+</button>
 
       <button type="button" onClick={onDeckBuilder}>
         デッキ編集
@@ -40,5 +50,3 @@ function Menu({
     </div>
   );
 }
-
-export default Menu;

@@ -842,3 +842,358 @@ textarea {
   font-size: 12px;
   opacity: 0.8;
 }
+
+.friends-page {
+  width: min(92%, 760px);
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  box-sizing: border-box;
+}
+
+.friends-page > h1 {
+  text-align: center;
+  margin: 10px 0 32px;
+}
+
+.friends-page > button:first-child {
+  display: block;
+  width: fit-content;
+  min-width: 220px;
+  margin-bottom: 24px;
+}
+
+.friends-page h2 {
+  margin-top: 0;
+}
+
+.friends-page input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.friends-page section,
+.friends-page > div {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.friends-page .friends-section {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.friend-request-form {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.friend-request-form input {
+  flex: 1;
+}
+
+.friend-request-form button {
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.friends-page button {
+  min-height: 48px;
+}
+
+.friend-code-box {
+  margin-top: 18px;
+  padding: 16px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.friend-code-box strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 28px;
+  letter-spacing: 4px;
+}
+
+.friend-list {
+  display: grid;
+  gap: 12px;
+}
+
+.friend-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.friend-list-item small {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.75;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .friends-page {
+    width: 100%;
+    padding: 18px 14px 40px;
+  }
+
+  .friends-page > button:first-child {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .friend-request-form {
+    flex-direction: column;
+  }
+
+  .friend-request-form button {
+    width: 100%;
+  }
+
+  .friend-list-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .friend-actions {
+    width: 100%;
+  }
+
+  .friend-actions button {
+    flex: 1;
+  }
+}
+
+/* ===== フレンド画面専用 ===== */
+
+.friends-page {
+  display: block !important;
+  width: 100% !important;
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.friends-page .friends-container {
+  display: block !important;
+  width: calc(100% - 40px) !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  padding: 28px 0 60px !important;
+  box-sizing: border-box;
+}
+
+.friends-page .friends-container > h1 {
+  width: 100% !important;
+  margin: 16px 0 32px !important;
+  text-align: center !important;
+}
+
+.friends-page .friends-back-button {
+  display: block !important;
+  width: auto !important;
+  min-width: 210px !important;
+  margin: 0 0 24px !important;
+  position: static !important;
+  transform: none !important;
+}
+
+.friends-page .friends-section {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 0 24px !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.friends-page .friends-section h2 {
+  margin: 0 0 14px !important;
+}
+
+.friends-page .friends-section input {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px;
+  margin: 12px 0 !important;
+  padding: 10px 14px !important;
+  box-sizing: border-box !important;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.friends-page .friends-section button {
+  position: static !important;
+  transform: none !important;
+  margin: 8px 0 !important;
+}
+
+.friends-page .friend-request-form {
+  display: flex !important;
+  width: 100% !important;
+  gap: 12px;
+  align-items: center;
+}
+
+.friends-page .friend-request-form input {
+  flex: 1;
+  margin: 0 !important;
+}
+
+.friends-page .friend-request-form button {
+  flex-shrink: 0;
+  min-width: 130px;
+  margin: 0 !important;
+}
+
+.friends-page .friend-code-box {
+  width: 100%;
+  margin-top: 18px;
+  padding: 18px;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.friends-page .friend-code-box strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 28px;
+  letter-spacing: 4px;
+}
+
+.friends-page .friend-list {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+}
+
+.friends-page .friend-list-item {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.friends-page .friend-list-item small {
+  display: block;
+  margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+  .friends-page .friends-container {
+    width: calc(100% - 24px) !important;
+    padding-top: 16px !important;
+  }
+
+  .friends-page .friends-back-button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .friends-page .friends-section {
+    padding: 18px !important;
+  }
+
+  .friends-page .friend-request-form {
+    flex-direction: column;
+  }
+
+  .friends-page .friend-request-form button {
+    width: 100% !important;
+  }
+
+  .friends-page .friend-list-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.friends-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 340px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #162344;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: friends-notification-in 0.3s ease;
+}
+
+@keyframes friends-notification-in {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .friends-notification {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+}
+
+.friends-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: white;
+  color: #162344;
+  font-weight: 700;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.friends-notification button {
+  width: 32px !important;
+  height: 32px;
+  min-width: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+}
