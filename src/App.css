@@ -623,33 +623,43 @@ h1 {
 
 .deck-card-list {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(170px, 1fr)
-  );
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .deck-card-item {
+  width: 100%;
+  min-height: 140px;
+
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 110px;
-  padding: 14px;
+  justify-content: space-between;
+
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .selected-deck-list {
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
-    minmax(190px, 1fr)
+    minmax(220px, 1fr)
   );
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .selected-deck-list button {
+  width: 100%;
+  min-width: 0;
+  padding: 14px 16px;
+  box-sizing: border-box;
+
   text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  position: static;
 }
 
 .save-deck-button {
@@ -661,4 +671,140 @@ h1 {
 .save-deck-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.selected-deck-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+
+  padding: 14px 16px;
+  box-sizing: border-box;
+
+  position: static;
+  transform: none;
+
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* 画面全体 */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ボタンは指で押しやすくする */
+button {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+/* デッキ編集画面 */
+.deck-builder {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  box-sizing: border-box;
+}
+
+.deck-card-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.deck-card-item {
+  width: 100%;
+  min-width: 0;
+  min-height: 160px;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.selected-deck-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.selected-deck-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  box-sizing: border-box;
+}
+
+/* iPad縦向き・小さめ画面 */
+@media (max-width: 900px) {
+  .deck-card-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .selected-deck-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .deck-builder-header {
+    flex-wrap: wrap;
+  }
+}
+
+/* スマホにも対応 */
+@media (max-width: 600px) {
+  .deck-builder {
+    width: min(100% - 20px, 1200px);
+  }
+
+  .deck-card-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .selected-deck-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .deck-card-item {
+    min-height: 145px;
+    padding: 10px;
+  }
+
+  .deck-card-name {
+    font-size: 16px;
+  }
+
+  .deck-card-effect {
+    font-size: 12px;
+  }
+}
+
+.hand {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hand .card {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
 }

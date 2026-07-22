@@ -147,15 +147,6 @@ function startOnlineBattle(roomId, role, matchId) {
   setScreen("online-battle");
 }
 
- function startOnlineBattle(roomId, role, matchId) {
-  setOnlineRoom({
-    roomId,
-    role,
-    matchId,
-  });
-
-  setScreen("online-battle");
-}
 
 async function handleLogout() {
   const { error } = await supabase.auth.signOut();
