@@ -610,9 +610,6 @@ async function cpuTurn() {
   setIsCpuTurn(false);
 }
 async function onlineTurn() {
-  alert(
-    `onlineTurn開始\nmode: ${mode}\nrole: ${playerRole}\nmatchId: ${matchId}`
-  );
 
   // 以下は今の処理
   if (!supabase) {
@@ -654,12 +651,6 @@ async function onlineTurn() {
     (selected) => selected.card.id
   );
 
-  console.log("ターン送信開始", {
-    matchId,
-    turnNumber,
-    playerRole,
-    cardIds,
-  });
 
   const {
     data: turnData,
