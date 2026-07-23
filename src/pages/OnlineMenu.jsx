@@ -68,8 +68,8 @@ function OnlineMenu({ onBack, onMatchStart }) {
               .upsert(
                 {
                   room_id: room.id,
-                  host_hp: 30,
-                  guest_hp: 30,
+                  host_hp: 40,
+guest_hp: 40,
                   host_energy: 3,
                   guest_energy: 3,
                   turn_number: 1,
@@ -213,11 +213,12 @@ function OnlineMenu({ onBack, onMatchStart }) {
 
     const newRoomCode = generateRoomCode();
 
-    const { data, error } = await supabase
+    const { data: room, error } = await supabase
   .from("rooms")
   .insert({
     room_code: newRoomCode,
     host_id: currentUser.id,
+    guest_id: null,
     status: "waiting",
   })
   .select()
@@ -232,9 +233,9 @@ function OnlineMenu({ onBack, onMatchStart }) {
       return;
     }
 
-    console.log("作成した部屋:", data);
+    console.log("作成した部屋:", room);
 
-    setRoomId(data.id);
+setRoomId(room.id);
     setPlayerRole("host");
     setCreatedCode(newRoomCode);
     setIsWaiting(true);
@@ -307,42 +308,54 @@ function OnlineMenu({ onBack, onMatchStart }) {
       return;
     }
 
-    const playerId = getPlayerId();
 
-    const { data: updatedRoom, error: updateError } =
-      await supabase
-        .from("rooms")
-        .update({
-          guest_id: playerId,
-          status: "ready",
-        })
-        .eq("id", room.id)
-        .is("guest_id", null)
-        .select()
-        .maybeSingle();
+    const {
+  data: joinedRoom,
+  error: joinError,
+} = await supabase
+  .from("rooms")
+  .update({
+    guest_id: currentUser.id,
+    status: "ready",
+  })
+  .eq("id", room.id)
+  .eq("status", "waiting")
+  .is("guest_id", null)
+  .select("*")
+  .maybeSingle();
 
-    if (updateError) {
-      console.error("参加エラー:", updateError);
+console.log("入室処理の確認", {
+  roomId: room.id,
+  hostId: room.host_id,
+  guestIdBefore: room.guest_id,
+  currentUserId: currentUser.id,
+  joinedRoom,
+  joinError,
+});
 
-      setMessage(
-        `参加エラー：${updateError.message}`
-      );
-      return;
-    }
+if (joinError) {
+  console.error("入室エラー:", joinError);
 
-    if (!updatedRoom) {
-      setMessage(
-        "ほかの参加者が先に入室しました"
-      );
-      return;
-    }
+  setMessage(
+    `入室エラー：${joinError.message}`
+  );
+  return;
+}
 
-    setRoomId(room.id);
-    setPlayerRole("guest");
-    setIsWaiting(true);
-    setMessage(
-      "部屋に参加しました。ホストを待っています…"
-    );
+if (!joinedRoom) {
+  setMessage(
+    "この部屋には入室できませんでした。新しい部屋を作成して、もう一度試してください"
+  );
+  return;
+}
+
+setRoomId(joinedRoom.id);
+setPlayerRole("guest");
+setIsWaiting(true);
+
+setMessage(
+  "部屋に参加しました。ホストを待っています…"
+);
   }
 
   return (
