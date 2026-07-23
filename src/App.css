@@ -7399,3 +7399,228 @@ filter:brightness(1);
     max-width: 270px;
   }
 }
+
+/* =========================================================
+   CHAOS CARDS — BATTLE RESULT SCREEN
+========================================================= */
+
+.result-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: min(680px, calc(100% - 32px));
+  min-height: min(620px, calc(100dvh - 48px));
+  margin: 24px auto;
+  padding: 48px 32px;
+
+  color: #f5f9ff;
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      rgba(55, 184, 255, 0.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(17, 43, 75, 0.88),
+      rgba(7, 22, 45, 0.96)
+    );
+
+  border: 1px solid rgba(76, 157, 217, 0.38);
+  border-radius: 28px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 60px rgba(0, 0, 0, 0.32),
+    0 0 46px rgba(53, 174, 238, 0.08);
+
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+}
+
+.result-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      rgba(79, 162, 220, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(79, 162, 220, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
+}
+
+.result-screen > * {
+  position: relative;
+  z-index: 1;
+}
+
+.result-icon {
+  margin-bottom: 12px;
+  font-size: clamp(64px, 10vw, 96px);
+  line-height: 1;
+
+  filter:
+    drop-shadow(0 12px 20px rgba(0, 0, 0, 0.28))
+    drop-shadow(0 0 18px rgba(255, 193, 52, 0.28));
+
+  animation: result-icon-float 2.2s ease-in-out infinite;
+}
+
+.result-screen h1 {
+  margin: 0;
+
+  color: #f8fcff;
+  font-size: clamp(48px, 8vw, 88px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+
+  text-shadow:
+    0 0 14px rgba(89, 198, 255, 0.55),
+    0 0 34px rgba(89, 198, 255, 0.24);
+}
+
+.result-screen p {
+  margin: 22px 0 30px;
+
+  color: #b4c8de;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.result-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+
+  width: min(460px, 100%);
+}
+
+.result-buttons button {
+  min-height: 58px;
+  padding: 0 22px;
+
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+
+  border-radius: 15px;
+  cursor: pointer;
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.result-buttons button:first-child {
+  background: linear-gradient(
+    135deg,
+    #168fdc,
+    #43bcf2
+  );
+
+  border: 1px solid rgba(118, 214, 255, 0.48);
+
+  box-shadow:
+    0 12px 28px rgba(26, 157, 224, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.result-buttons button:first-child:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 16px 34px rgba(26, 168, 232, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.result-buttons button:last-child {
+  color: #dce9f8;
+
+  background: rgba(8, 24, 48, 0.72);
+  border: 1px solid rgba(84, 154, 207, 0.34);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.result-buttons button:last-child:hover {
+  color: #ffffff;
+  background: rgba(19, 51, 86, 0.9);
+  border-color: rgba(79, 190, 250, 0.58);
+  transform: translateY(-2px);
+}
+
+.result-buttons button:active {
+  transform: translateY(0);
+}
+
+@keyframes result-icon-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* スマホ */
+@media (max-width: 600px) {
+  .result-screen {
+    width: calc(100% - 24px);
+    min-height: calc(100dvh - 24px);
+
+    margin: 12px auto;
+    padding:
+      max(34px, env(safe-area-inset-top))
+      20px
+      calc(28px + env(safe-area-inset-bottom));
+
+    border-radius: 22px;
+  }
+
+  .result-screen h1 {
+    font-size: clamp(44px, 16vw, 66px);
+  }
+
+  .result-screen p {
+    margin: 18px 0 26px;
+    font-size: 15px;
+  }
+
+  .result-buttons {
+    grid-template-columns: 1fr;
+    width: min(320px, 100%);
+  }
+
+  .result-buttons button {
+    width: 100%;
+    min-height: 56px;
+  }
+}
