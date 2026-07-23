@@ -609,7 +609,7 @@ async function cpuTurn() {
 
   setIsCpuTurn(false);
 }
-
+async function onlineTurn() {
   if (!supabase) {
     setLogs((prev) =>
       ["❌ Supabaseに接続できていません", ...prev].slice(0, 10)
@@ -641,31 +641,31 @@ async function cpuTurn() {
   data: turnData,
   error: turnError,
 } = await supabase
-  .from("turns")
-  .upsert(
-    {
-      match_id: matchId,
-      turn_number: turnNumber,
-      player_role: playerRole,
-      selected_cards: cardIds,
-      finished: true,
-    },
-    {
-      onConflict: "match_id,turn_number,player_role",
-    }
-  )
-  .select();
+    .from("turns")
+    .upsert(
+      {
+        match_id: matchId,
+        turn_number: turnNumber,
+        player_role: playerRole,
+        selected_cards: cardIds,
+        finished: true,
+      },
+      {
+        onConflict: "match_id,turn_number,player_role",
+      }
+    );
 
-console.log("turn保存結果", {
-  playerRole,
-  matchId,
-  turnNumber,
-  turnData,
-  turnError,
-});
+  if (turnError) {
+  console.error("ターン保存エラー:", turnError);
 
-if (turnError) {
-  console.error(turnError);
+  setLogs((prev) =>
+    [
+      `❌ ターン保存エラー：${turnError.message}`,
+      ...prev,
+    ].slice(0, 10)
+  );
+
+  setIsCpuTurn(false);
   return;
 }
 setPlayerFinished(true);
