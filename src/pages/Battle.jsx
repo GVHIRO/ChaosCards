@@ -1,3 +1,8 @@
+import {
+  playSound,
+  startBattleBgm,
+  stopBattleBgm,
+} from "../lib/sound";
 import { updateStatus } from "../lib/status";
 import BattleStatus from "../components/BattleStatus";
 import BattleField from "../components/BattleField";
@@ -219,6 +224,24 @@ export default function Battle({
   useEffect(() => {
     selectedRef.current = selectedCards;
   }, [selectedCards]);
+  useEffect(() => {
+  startBattleBgm();
+
+  return () => {
+    stopBattleBgm();
+  };
+}, []);
+useEffect(() => {
+  if (!winner) return;
+
+  stopBattleBgm();
+
+  if (winner === "player") {
+    playSound("victory");
+  } else if (winner === "enemy") {
+    playSound("defeat");
+  }
+}, [winner]);
 
   const isMyTurn = useMemo(() => {
     if (mode === "cpu") return currentPlayer === "player";
@@ -442,6 +465,7 @@ if (
     Number(next.turn_number) >
       Number(previous.turn_number)
   ) {
+    playSound("turn");
     try {
       const usedCards =
         getCardsFromBattleLogs(
@@ -659,7 +683,7 @@ useEffect(() => {
       addLogs(["⚡ エネルギーが足りない！"]);
       return;
     }
-
+playSound("card");
     setEnergy((value) => value - Number(card.cost));
     setSelectedCards((previous) => [...previous, { card, handIndex: index }]);
     addLogs([`✅ ${card.name}を選択`]);
@@ -720,6 +744,8 @@ await new Promise((resolve) => {
 
     if (damaged.blocked > 0) turnLogs.push(`🛡️ YOUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
+  playSound("damage");
+
   setScreenShake(true);
   setTimeout(() => setScreenShake(false), 300);
 
@@ -729,11 +755,16 @@ await new Promise((resolve) => {
     if (summary.heal > 0) {
       const actual = healedEnemy - enemyHP;
       if (actual > 0) {
-        turnLogs.push(`💚 CPUが${actual}回復`);
-        showEnemyEffect(`+${actual}`, "heal");
-      }
+  playSound("heal");
+
+  turnLogs.push(`💚 CPUが${actual}回復`);
+  showEnemyEffect(`+${actual}`, "heal");
+}
     }
-    if (summary.shield > 0) turnLogs.push(`🛡️ CPUがシールド${summary.shield}獲得`);
+    if (summary.shield > 0) {
+  playSound("shield");
+  turnLogs.push(`🛡️ CPUがシールド${summary.shield}獲得`);
+}
 
     addLogs(turnLogs);
 
@@ -746,7 +777,7 @@ await new Promise((resolve) => {
     const isPlayerFirstTurn =
   firstPlayer === "cpu" &&
   turnNumber === 1;
-
+playSound("turn");
 setTurnNumber((value) => value + 1);
 setCurrentPlayer("player");
 
@@ -816,6 +847,7 @@ setIsProcessing(false);
 
     if (damaged.blocked > 0) turnLogs.push(`🛡️ CPUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
+      playSound("damage");
   setScreenShake(true);
   setTimeout(() => setScreenShake(false), 300);
 
@@ -825,11 +857,16 @@ setIsProcessing(false);
     if (summary.heal > 0) {
       const actual = healedPlayer - playerHP;
       if (actual > 0) {
-        turnLogs.push(`💚 YOUが${actual}回復`);
-        showPlayerEffect(`+${actual}`, "heal");
-      }
+  playSound("heal");
+
+  turnLogs.push(`💚 YOUが${actual}回復`);
+  showPlayerEffect(`+${actual}`, "heal");
+}
     }
-    if (summary.shield > 0) turnLogs.push(`🛡️ YOUがシールド${summary.shield}獲得`);
+    if (summary.shield > 0) {
+  playSound("shield");
+  turnLogs.push(`🛡️ YOUがシールド${summary.shield}獲得`);
+}
 
     addLogs(turnLogs);
     consumeSelectedCards();
@@ -839,7 +876,7 @@ setIsProcessing(false);
       setWinner("player");
       return;
     }
-
+playSound("turn");
     setTurnNumber((value) => value + 1);
     setCurrentPlayer("cpu");
     setCpuEnergy((value) => Math.min(MAX_ENERGY, value + ENERGY_PER_TURN));
@@ -904,13 +941,21 @@ const isSecondPlayerFirstTurn =
       turnLogs.push(`🛡️ ${followingPlayer}の盾が${damageResult.blocked}ダメージ防御`);
     }
     if (damageResult.hpDamage > 0) {
+       playSound("damage");
       setScreenShake(true);
 setTimeout(() => setScreenShake(false), 300);
       turnLogs.push(`⚔️ ${followingPlayer}に${damageResult.hpDamage}ダメージ`);
     }
     const actualHeal = healedHp - myHp;
-    if (actualHeal > 0) turnLogs.push(`💚 ${playerRole}が${actualHeal}回復`);
-    if (summary.shield > 0) turnLogs.push(`🛡️ ${playerRole}がシールド${summary.shield}獲得`);
+
+if (actualHeal > 0) {
+  playSound("heal");
+  turnLogs.push(`💚 ${playerRole}が${actualHeal}回復`);
+}
+    if (summary.shield > 0) {
+  playSound("shield");
+  turnLogs.push(`🛡️ ${playerRole}がシールド${summary.shield}獲得`);
+}
 
     let matchWinner = null;
     if (damageResult.hp <= 0) matchWinner = playerRole;
