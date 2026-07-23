@@ -665,7 +665,10 @@ if (error) {
     (selected) => selected.card.id
   );
 
-  const { data, error: turnError } = await supabase
+  const {
+  data: turnData,
+  error: turnError,
+} = await supabase
     .from("turns")
     .upsert(
       {
