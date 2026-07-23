@@ -610,6 +610,11 @@ async function cpuTurn() {
   setIsCpuTurn(false);
 }
 async function onlineTurn() {
+  alert(
+    `onlineTurn開始\nmode: ${mode}\nrole: ${playerRole}\nmatchId: ${matchId}`
+  );
+
+  // 以下は今の処理
   if (!supabase) {
     setLogs((prev) =>
       [
@@ -731,8 +736,10 @@ async function onlineTurn() {
   );
 }
 async function endTurn() {
+  alert(`ボタン反応\nmode: ${mode}`);
+
   if (mode === "cpu") {
-    cpuTurn();
+    await cpuTurn();
     return;
   }
 
