@@ -386,110 +386,169 @@ export default function DeckBuilder({ onBack }) {
   }
 
   return (
-    <div className="deck-builder">
-      <div className="deck-builder-header">
+    <main className="deck-builder deck-builder-v2">
+      <header className="deck-topbar">
         <button
           type="button"
+          className="deck-back-button"
           onClick={onBack}
         >
-          ← メニューに戻る
+          <span aria-hidden="true">←</span>
+          メニュー
         </button>
 
-        <h1>デッキ編集</h1>
+        <div className="deck-title-block">
+          <span className="deck-kicker">CHAOS CARDS</span>
+          <h1 className="deck-page-title">デッキ編集</h1>
+        </div>
 
-        <p>
-          {deck.length} / {DECK_SIZE}枚
-        </p>
+        <button
+          type="button"
+          className="deck-save-top"
+          onClick={saveDeck}
+          disabled={deck.length !== DECK_SIZE}
+        >
+          保存
+        </button>
+      </header>
 
-        <small>
-          Common同名3枚・Rare同名2枚・Epic同名1枚（合計4枚まで）・Legend同名1枚（合計2枚まで）
-        </small>
-      </div>
+      <section className="deck-status-panel">
+        <div className="deck-count-area">
+          <div className="deck-count-number">
+            <strong>{deck.length}</strong>
+            <span>/ {DECK_SIZE}</span>
+          </div>
+          <div className="deck-progress-track" aria-label={`デッキ ${deck.length}/${DECK_SIZE}枚`}>
+            <span
+              className="deck-progress-fill"
+              style={{ width: `${(deck.length / DECK_SIZE) * 100}%` }}
+            />
+          </div>
+          <p>
+            {deck.length === DECK_SIZE
+              ? "デッキ完成！保存できます"
+              : `あと${DECK_SIZE - deck.length}枚選択`}
+          </p>
+        </div>
+
+        <div className="deck-rarity-rules">
+          <div className="rarity-rule rarity-rule-common">
+            <span>Common</span><strong>同名 ×3</strong>
+          </div>
+          <div className="rarity-rule rarity-rule-rare">
+            <span>Rare</span><strong>同名 ×2</strong>
+          </div>
+          <div className="rarity-rule rarity-rule-epic">
+            <span>Epic</span><strong>同名 ×1・合計4</strong>
+          </div>
+          <div className="rarity-rule rarity-rule-legend">
+            <span>Legend</span><strong>同名 ×1・合計2</strong>
+          </div>
+        </div>
+      </section>
 
       {message && (
-        <p className="deck-message">
+        <div className="deck-message deck-toast" role="status">
           {message}
-        </p>
+        </div>
       )}
 
-      <section>
-        <h2>カード一覧</h2>
+      <section className="selected-deck-panel">
+        <div className="deck-section-heading">
+          <div>
+            <span className="deck-section-label">YOUR DECK</span>
+            <h2>選択中のカード</h2>
+          </div>
+          <button
+            type="button"
+            className="deck-clear-button"
+            onClick={clearDeck}
+            disabled={deck.length === 0}
+          >
+            すべて外す
+          </button>
+        </div>
 
-        <div className="deck-filters">
-          <input
-            type="search"
-            value={searchText}
-            placeholder="カード名や効果を検索"
-            onChange={(event) =>
-              setSearchText(
-                event.target.value
-              )
-            }
-          />
+        {deck.length === 0 ? (
+          <div className="deck-empty-state">
+            <span aria-hidden="true">🃏</span>
+            <strong>まだカードがありません</strong>
+            <p>下のカード一覧からタップして追加しよう</p>
+          </div>
+        ) : (
+          <div className="selected-deck-strip">
+            {deck.map((card, index) => (
+              <button
+                type="button"
+                className={`selected-deck-chip rarity-${card.rarity.toLowerCase()}`}
+                key={`${card.id}-${index}`}
+                onClick={() => removeCard(index)}
+                title="タップして外す"
+              >
+                <span className="selected-chip-number">{index + 1}</span>
+                <span className="selected-chip-emoji">{card.emoji || "🃏"}</span>
+                <span className="selected-chip-info">
+                  <strong>{card.name}</strong>
+                  <small>⚡{card.cost}・{card.rarity}</small>
+                </span>
+                <span className="selected-chip-remove">×</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="card-catalog-panel">
+        <div className="deck-section-heading catalog-heading">
+          <div>
+            <span className="deck-section-label">CARD LIBRARY</span>
+            <h2>カード一覧</h2>
+          </div>
+          <span className="catalog-count">{filteredCards.length}枚</span>
+        </div>
+
+        <div className="deck-filters deck-filters-v2">
+          <label className="deck-search-box">
+            <span aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              value={searchText}
+              placeholder="カード名・能力を検索"
+              onChange={(event) => setSearchText(event.target.value)}
+            />
+          </label>
 
           <select
             value={rarityFilter}
-            onChange={(event) =>
-              setRarityFilter(
-                event.target.value
-              )
-            }
+            onChange={(event) => setRarityFilter(event.target.value)}
+            aria-label="レアリティで絞り込み"
           >
-            <option value="All">
-              全レアリティ
-            </option>
-            <option value="Common">
-              Common
-            </option>
-            <option value="Rare">
-              Rare
-            </option>
-            <option value="Epic">
-              Epic
-            </option>
-            <option value="Legend">
-              Legend
-            </option>
+            <option value="All">全レアリティ</option>
+            <option value="Common">Common</option>
+            <option value="Rare">Rare</option>
+            <option value="Epic">Epic</option>
+            <option value="Legend">Legend</option>
           </select>
 
           <select
             value={typeFilter}
-            onChange={(event) =>
-              setTypeFilter(
-                event.target.value
-              )
-            }
+            onChange={(event) => setTypeFilter(event.target.value)}
+            aria-label="タイプで絞り込み"
           >
-            <option value="All">
-              全タイプ
-            </option>
-
+            <option value="All">全タイプ</option>
             {cardTypes.map((type) => (
-              <option
-                key={type}
-                value={type}
-              >
-                {CARD_TYPE_LABELS[type] ||
-                  type}
+              <option key={type} value={type}>
+                {CARD_TYPE_LABELS[type] || type}
               </option>
             ))}
           </select>
         </div>
 
-        <p>
-          表示中：
-          {filteredCards.length}枚
-        </p>
-
-        <div className="deck-card-list">
+        <div className="deck-card-list deck-card-grid-v2">
           {filteredCards.map((card) => {
-            const copies = countCard(
-              card.id
-            );
-
+            const copies = countCard(card.id);
             const rule = getRarityRule(card);
             const rarityCount = countRarity(card.rarity);
-
             const cannotAdd =
               deck.length >= DECK_SIZE ||
               copies >= rule.maxCopies ||
@@ -498,38 +557,20 @@ export default function DeckBuilder({ onBack }) {
             return (
               <button
                 type="button"
-                className={`deck-card-item rarity-${card.rarity.toLowerCase()}`}
+                className={`deck-card-item deck-card-v2 rarity-${card.rarity.toLowerCase()}`}
                 key={card.id}
-                onClick={() =>
-                  addCard(card)
-                }
+                onClick={() => addCard(card)}
                 disabled={cannotAdd}
               >
-                <strong className="deck-card-name">
-                  <span>
-                    {card.emoji || "🃏"}
-                  </span>{" "}
-                  {card.name}
-                </strong>
-
-                <span className="deck-card-meta">
-                  ⚡ コスト：{card.cost}
-                  　⭐ {card.rarity}
-                </span>
-
-                <span className="deck-card-type">
-                  {getCardTypeLabel(card)}
-                </span>
-
-                <span className="deck-card-effect">
-                  {getCardEffectText(card)}
-                </span>
-
-                <span>
-                  同名：{copies}/{rule.maxCopies}枚
-                  {Number.isFinite(rule.deckLimit)
-                    ? `　${card.rarity}合計：${rarityCount}/${rule.deckLimit}枚`
-                    : ""}
+                <span className="deck-card-cost">⚡{card.cost}</span>
+                <span className="deck-card-rarity">{card.rarity}</span>
+                <span className="deck-card-emoji">{card.emoji || "🃏"}</span>
+                <strong className="deck-card-name">{card.name}</strong>
+                <span className="deck-card-type">{getCardTypeLabel(card)}</span>
+                <span className="deck-card-effect">{getCardEffectText(card)}</span>
+                <span className="deck-card-footer">
+                  <span>同名 {copies}/{rule.maxCopies}</span>
+                  <span>{cannotAdd ? "追加不可" : "+ 追加"}</span>
                 </span>
               </button>
             );
@@ -537,76 +578,19 @@ export default function DeckBuilder({ onBack }) {
         </div>
       </section>
 
-      <section>
-        <div className="selected-deck-header">
-          <h2>選択中のデッキ</h2>
-
-          <button
-            type="button"
-            onClick={clearDeck}
-            disabled={
-              deck.length === 0
-            }
-          >
-            全て外す
-          </button>
+      <div className="deck-mobile-savebar">
+        <div>
+          <strong>{deck.length}/{DECK_SIZE}</strong>
+          <span>{deck.length === DECK_SIZE ? "完成" : `あと${DECK_SIZE - deck.length}枚`}</span>
         </div>
-
-        {deck.length === 0 ? (
-          <p>
-            上のカードをタップして追加してください。
-          </p>
-        ) : (
-          <div className="selected-deck-list">
-            {deck.map(
-              (card, index) => (
-                <button
-                  type="button"
-                  className="selected-deck-card"
-                  key={`${card.id}-${index}`}
-                  onClick={() =>
-                    removeCard(index)
-                  }
-                >
-                  <strong>
-                    {index + 1}.{" "}
-                    {card.emoji || "🃏"}{" "}
-                    {card.name}
-                  </strong>
-
-                  <small>
-                    ⚡{card.cost}・
-                    {getCardTypeLabel(
-                      card
-                    )}
-                  </small>
-
-                  <small>
-                    {getCardEffectText(
-                      card
-                    )}
-                  </small>
-
-                  <span>
-                    タップで外す ×
-                  </span>
-                </button>
-              )
-            )}
-          </div>
-        )}
-
         <button
           type="button"
-          className="save-deck-button"
           onClick={saveDeck}
-          disabled={
-            deck.length !== DECK_SIZE
-          }
+          disabled={deck.length !== DECK_SIZE}
         >
           デッキを保存
         </button>
-      </section>
-    </div>
+      </div>
+    </main>
   );
 }
