@@ -731,7 +731,10 @@ await new Promise((resolve) => {
     const newMyShield = currentMyShield + summary.shield;
     const followingPlayer = nextRole(playerRole);
     const nextTurn = Number(match.turn_number) + 1;
-
+// 先攻の第1ターン終了後に来る、後攻の初回ターンか
+const isSecondPlayerFirstTurn =
+  Number(match.turn_number) === 1 &&
+  match.current_player === match.first_player;
     const turnLogs = [
       selectedRef.current.length > 0
         ? `🎴 ${playerRole}：${summary.names.join("、")}`
@@ -761,25 +764,45 @@ setTimeout(() => setScreenShake(false), 300);
       winner: matchWinner,
     };
 
-    if (actingIsHost) {
-      updates.host_hp = healedHp;
-      updates.host_shield = newMyShield;
-      updates.host_energy = energy;
-      updates.guest_hp = damageResult.hp;
-      updates.guest_shield = matchWinner ? damageResult.shield : 0;
-      updates.guest_energy = matchWinner
-        ? match.guest_energy
-        : Math.min(MAX_ENERGY, Number(match.guest_energy) + ENERGY_PER_TURN);
-    } else {
-      updates.guest_hp = healedHp;
-      updates.guest_shield = newMyShield;
-      updates.guest_energy = energy;
-      updates.host_hp = damageResult.hp;
-      updates.host_shield = matchWinner ? damageResult.shield : 0;
-      updates.host_energy = matchWinner
-        ? match.host_energy
-        : Math.min(MAX_ENERGY, Number(match.host_energy) + ENERGY_PER_TURN);
-    }
+   if (actingIsHost) {
+  updates.host_hp = healedHp;
+  updates.host_shield = newMyShield;
+  updates.host_energy = energy;
+
+  updates.guest_hp = damageResult.hp;
+  updates.guest_shield = matchWinner
+    ? damageResult.shield
+    : 0;
+
+  updates.guest_energy = matchWinner
+    ? match.guest_energy
+    : isSecondPlayerFirstTurn
+      ? Number(match.guest_energy)
+      : Math.min(
+          MAX_ENERGY,
+          Number(match.guest_energy) +
+            ENERGY_PER_TURN
+        );
+} else {
+  updates.guest_hp = healedHp;
+  updates.guest_shield = newMyShield;
+  updates.guest_energy = energy;
+
+  updates.host_hp = damageResult.hp;
+  updates.host_shield = matchWinner
+    ? damageResult.shield
+    : 0;
+
+  updates.host_energy = matchWinner
+    ? match.host_energy
+    : isSecondPlayerFirstTurn
+      ? Number(match.host_energy)
+      : Math.min(
+          MAX_ENERGY,
+          Number(match.host_energy) +
+            ENERGY_PER_TURN
+        );
+}
 
     const { data: updatedMatch, error } = await supabase
       .from("matches")
