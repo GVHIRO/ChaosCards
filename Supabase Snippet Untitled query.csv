@@ -1,0 +1,47 @@
+table_name,column_name,data_type,is_nullable
+friend_requests,id,bigint,NO
+friend_requests,sender_id,uuid,NO
+friend_requests,receiver_id,uuid,NO
+friend_requests,status,text,NO
+friend_requests,created_at,timestamp with time zone,NO
+friends,id,bigint,NO
+friends,user_id,uuid,NO
+friends,friend_id,uuid,NO
+friends,created_at,timestamp with time zone,NO
+match_invites,id,uuid,NO
+match_invites,sender_id,uuid,NO
+match_invites,receiver_id,uuid,NO
+match_invites,status,text,NO
+match_invites,room_id,text,YES
+match_invites,created_at,timestamp with time zone,NO
+match_invites,updated_at,timestamp with time zone,NO
+matches,id,bigint,NO
+matches,room_id,bigint,NO
+matches,host_hp,integer,NO
+matches,guest_hp,integer,NO
+matches,host_energy,integer,NO
+matches,guest_energy,integer,NO
+matches,turn_number,integer,NO
+matches,phase,text,NO
+matches,created_at,timestamp with time zone,NO
+matches,battle_logs,jsonb,NO
+matches,winner,text,YES
+matches,battle_state,jsonb,YES
+profiles,id,uuid,NO
+profiles,nickname,text,NO
+profiles,friend_code,text,NO
+profiles,created_at,timestamp with time zone,NO
+rooms,id,bigint,NO
+rooms,room_code,text,NO
+rooms,status,text,NO
+rooms,created_at,timestamp with time zone,NO
+rooms,host_id,text,YES
+rooms,guest_id,text,YES
+rooms,match_id,bigint,YES
+turns,id,bigint,NO
+turns,match_id,bigint,NO
+turns,turn_number,integer,NO
+turns,player_role,text,NO
+turns,selected_cards,jsonb,NO
+turns,finished,boolean,NO
+turns,created_at,timestamp with time zone,NO
