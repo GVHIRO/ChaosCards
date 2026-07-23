@@ -140,6 +140,28 @@ function getCardsFromBattleLogs(battleLogs) {
     )
     .filter(Boolean);
 }
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => {
+    return window.matchMedia(query).matches;
+  });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+
+    const handleChange = (event) => {
+      setMatches(event.matches);
+    };
+
+    setMatches(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, [query]);
+
+  return matches;
+}
 export default function Battle({
   mode = "cpu",
   matchId,
@@ -172,6 +194,7 @@ export default function Battle({
   const [battleEffect, setBattleEffect] = useState(null);
   const [playedCards, setPlayedCards] = useState([]);
   const [screenShake, setScreenShake] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
@@ -914,7 +937,12 @@ setTimeout(() => setScreenShake(false), 300);
       <h3>手札</h3>
       <p className="deck-info">🃏 山札：{deck.length}枚　🗑️ 捨て札：{discardPile.length}枚</p>
          
-      <div className="hand">
+     <div
+  className={`hand ${
+    isMobile ? "hand-mobile" : "hand-desktop"
+  }`}
+  aria-label="手札"
+>
   {hand.map((card, index) => {
     const isSelected = selectedCards.some(
       (item) => item.handIndex === index
@@ -923,11 +951,18 @@ setTimeout(() => setScreenShake(false), 300);
     const disabled =
       !isMyTurn ||
       isProcessing ||
-      (!isSelected && energy < Number(card.cost));
+      (!isSelected &&
+        energy < Number(card.cost));
 
     const center = (hand.length - 1) / 2;
-    const angle = (index - center) * 6;
-    const offsetY = Math.abs(index - center) * 10;
+
+    const angle = isMobile
+      ? 0
+      : (index - center) * 6;
+
+    const offsetY = isMobile
+      ? 0
+      : Math.abs(index - center) * 10;
 
     return (
       <div
@@ -946,7 +981,7 @@ setTimeout(() => setScreenShake(false), 300);
           isDrawn={drawnIndex === index}
           disabled={disabled}
           onPlay={() => playCard(index)}
-           isPlayed={playedCards.includes(index)}
+          isPlayed={playedCards.includes(index)}
         />
 
         {isSelected && (
