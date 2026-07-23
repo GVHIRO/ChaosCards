@@ -6928,3 +6928,213 @@ filter:brightness(1);
     min-height: 225px;
   }
 }
+
+/* =========================================================
+   Battle UI — Mobile responsive fix
+========================================================= */
+
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .battle-screen,
+  .battle-page,
+  .battle-container,
+  .game-board,
+  .battle-layout {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  /* バトル全体 */
+  .battle-screen,
+  .battle-page {
+    min-height: 100dvh;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      calc(100px + env(safe-area-inset-bottom));
+  }
+
+  /* プレイヤー情報 */
+  .player-panel,
+  .enemy-panel,
+  .player-status,
+  .enemy-status {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 中央のバトルフィールド */
+  .battlefield,
+  .battle-field,
+  .battle-center,
+  .center-battlefield {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 220px !important;
+    height: auto !important;
+    margin: 14px 0 !important;
+    padding: 18px 12px !important;
+  }
+
+  .battlefield-title,
+  .battle-field-title {
+    font-size: clamp(28px, 9vw, 44px) !important;
+  }
+
+  /* ターン表示 */
+  .turn-info,
+  .turn-indicator,
+  .battle-turn-info {
+    width: 100%;
+    margin: 12px 0 18px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  /* 手札エリア */
+  .hand-section,
+  .player-hand-section,
+  .hand-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .hand-title {
+    margin-bottom: 12px;
+    font-size: 24px;
+    text-align: center;
+  }
+
+  /* 山札・捨て札 */
+  .deck-counts,
+  .pile-counts,
+  .hand-meta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    width: 100%;
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+
+  /* PCの扇形配置を解除 */
+  .hand-cards,
+  .player-hand,
+  .cards-hand,
+  .battle-hand {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 12px 10px 20px !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 10px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 各カード */
+  .hand-card,
+  .battle-card,
+  .player-card,
+  .card-in-hand {
+    position: relative !important;
+    inset: auto !important;
+
+    flex: 0 0 min(72vw, 260px) !important;
+    width: min(72vw, 260px) !important;
+    min-width: min(72vw, 260px) !important;
+    max-width: min(72vw, 260px) !important;
+
+    height: 360px !important;
+    min-height: 360px !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+    rotate: none !important;
+
+    scroll-snap-align: center;
+    touch-action: manipulation;
+  }
+
+  /* インラインtransform対策 */
+  .hand-cards > *,
+  .player-hand > *,
+  .cards-hand > *,
+  .battle-hand > * {
+    transform: none !important;
+  }
+
+  .hand-card:hover,
+  .battle-card:hover,
+  .player-card:hover,
+  .card-in-hand:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  /* カード内部 */
+  .hand-card .card-name,
+  .battle-card .card-name,
+  .player-card .card-name {
+    font-size: 20px !important;
+  }
+
+  .hand-card .card-emoji,
+  .battle-card .card-emoji,
+  .player-card .card-emoji {
+    font-size: 70px !important;
+  }
+
+  .hand-card .card-description,
+  .battle-card .card-description,
+  .player-card .card-description {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* ターン終了 */
+  .end-turn-button,
+  .turn-end-button {
+    display: block;
+    width: min(280px, calc(100% - 32px));
+    min-height: 56px;
+    margin: 20px auto;
+    font-size: 18px;
+  }
+
+  /* バトルログ */
+  .battle-log,
+  .battle-log-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 18px !important;
+    padding: 16px !important;
+  }
+}
