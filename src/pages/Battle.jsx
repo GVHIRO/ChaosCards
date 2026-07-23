@@ -612,21 +612,33 @@ async function cpuTurn() {
 async function onlineTurn() {
   if (!supabase) {
     setLogs((prev) =>
-      ["❌ Supabaseに接続できていません", ...prev].slice(0, 10)
+      [
+        "❌ Supabaseに接続できていません",
+        ...prev,
+      ].slice(0, 10)
     );
     return;
   }
 
   if (!matchId) {
     setLogs((prev) =>
-      ["❌ matchIdがありません", ...prev].slice(0, 10)
+      [
+        "❌ matchIdがありません",
+        ...prev,
+      ].slice(0, 10)
     );
     return;
   }
 
-  if (playerRole !== "host" && playerRole !== "guest") {
+  if (
+    playerRole !== "host" &&
+    playerRole !== "guest"
+  ) {
     setLogs((prev) =>
-      ["❌ プレイヤー情報が正しくありません", ...prev].slice(0, 10)
+      [
+        `❌ playerRoleが不正です：${playerRole}`,
+        ...prev,
+      ].slice(0, 10)
     );
     return;
   }
@@ -637,10 +649,17 @@ async function onlineTurn() {
     (selected) => selected.card.id
   );
 
+  console.log("ターン送信開始", {
+    matchId,
+    turnNumber,
+    playerRole,
+    cardIds,
+  });
+
   const {
-  data: turnData,
-  error: turnError,
-} = await supabase
+    data: turnData,
+    error: turnError,
+  } = await supabase
     .from("turns")
     .upsert(
       {
@@ -651,27 +670,61 @@ async function onlineTurn() {
         finished: true,
       },
       {
-        onConflict: "match_id,turn_number,player_role",
+        onConflict:
+          "match_id,turn_number,player_role",
       }
-    );
+    )
+    .select();
+
+  console.log("ターン保存結果", {
+    turnData,
+    turnError,
+    matchId,
+    turnNumber,
+    playerRole,
+  });
 
   if (turnError) {
-  console.error("ターン保存エラー:", turnError);
+    console.error(
+      "ターン保存エラー:",
+      turnError
+    );
 
-  setLogs((prev) =>
-    [
-      `❌ ターン保存エラー：${turnError.message}`,
-      ...prev,
-    ].slice(0, 10)
-  );
+    setLogs((prev) =>
+      [
+        `❌ ターン保存エラー：${turnError.message}`,
+        `役割：${playerRole}`,
+        ...prev,
+      ].slice(0, 10)
+    );
 
-  setIsCpuTurn(false);
-  return;
-}
-setPlayerFinished(true);
+    alert(
+      `ターン保存エラー\n役割: ${playerRole}\n${turnError.message}`
+    );
+
+    setIsCpuTurn(false);
+    return;
+  }
+
+  if (!turnData || turnData.length === 0) {
+    setLogs((prev) =>
+      [
+        "❌ 保存処理は完了しましたが、行を確認できませんでした",
+        `役割：${playerRole}`,
+        ...prev,
+      ].slice(0, 10)
+    );
+
+    setIsCpuTurn(false);
+    return;
+  }
+
+  setPlayerFinished(true);
+
   setLogs((prev) =>
     [
       `✅ ターン${turnNumber}の入力完了`,
+      `役割：${playerRole}`,
       "⏳ 相手を待っています…",
       ...prev,
     ].slice(0, 10)
