@@ -131,7 +131,76 @@ export default function Friends({
       supabase.removeChannel(channel);
     };
   }, [user?.id, profile]);
+// フレンド一覧のリアルタイム監視
+useEffect(() => {
+  if (!user?.id) {
+    return undefined;
+  }
 
+  const channel = supabase
+    .channel(`friends-list-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "friends",
+      },
+      async (payload) => {
+        console.log(
+          "🔥 friends INSERTイベント:",
+          payload
+        );
+
+        const addedFriendship = payload.new;
+
+        // 自分が関係する行だけ処理
+        if (
+          addedFriendship.user_id !== user.id &&
+          addedFriendship.friend_id !== user.id
+        ) {
+          return;
+        }
+
+        await loadFriends(user.id);
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "DELETE",
+        schema: "public",
+        table: "friends",
+      },
+      async (payload) => {
+        console.log(
+          "🔥 friends DELETEイベント:",
+          payload
+        );
+
+        // DELETEはpayloadの情報が少ないことがあるため、
+        // イベントが来たら一覧を再取得する
+        await loadFriends(user.id);
+      }
+    )
+    .subscribe((status, error) => {
+      console.log(
+        "フレンド一覧Realtime:",
+        status
+      );
+
+      if (error) {
+        console.error(
+          "フレンド一覧Realtimeエラー:",
+          error
+        );
+      }
+    });
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [user?.id]);
   // 自分宛ての対戦招待を監視
   useEffect(() => {
     if (!user?.id || !profile) return undefined;
@@ -799,41 +868,16 @@ async function deleteFriend(friend) {
 
   setMessage("");
 
-  const { error: firstDeleteError } = await supabase
+  const { error } = await supabase
     .from("friends")
     .delete()
-    .eq("user_id", user.id)
-    .eq("friend_id", friend.id);
-
-  if (firstDeleteError) {
-    console.error(
-      "自分側のフレンド削除エラー:",
-      firstDeleteError
+    .or(
+      `and(user_id.eq.${user.id},friend_id.eq.${friend.id}),and(user_id.eq.${friend.id},friend_id.eq.${user.id})`
     );
 
-    setMessage(
-      `削除エラー：${firstDeleteError.message}`
-    );
-    return;
-  }
-
-  const { error: secondDeleteError } = await supabase
-    .from("friends")
-    .delete()
-    .eq("user_id", friend.id)
-    .eq("friend_id", user.id);
-
-  if (secondDeleteError) {
-    console.error(
-      "相手側のフレンド削除エラー:",
-      secondDeleteError
-    );
-
-    setMessage(
-      `削除エラー：${secondDeleteError.message}`
-    );
-
-    await loadFriends(user.id);
+  if (error) {
+    console.error("フレンド削除エラー:", error);
+    setMessage(`削除エラー：${error.message}`);
     return;
   }
 
