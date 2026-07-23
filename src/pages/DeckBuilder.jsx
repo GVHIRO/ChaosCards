@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import cards from "../data/cards";
 
 const DECK_SIZE = 20;
-const MAX_COPIES = 2;
+const RARITY_RULES = {
+  Common: { maxCopies: 3, deckLimit: Infinity },
+  Rare: { maxCopies: 2, deckLimit: Infinity },
+  Epic: { maxCopies: 1, deckLimit: 4 },
+  Legend: { maxCopies: 1, deckLimit: 2 },
+};
 
 const RARITY_ORDER = {
   Common: 1,
@@ -299,6 +304,19 @@ export default function DeckBuilder({ onBack }) {
     ).length;
   }
 
+  function countRarity(rarity) {
+    return deck.filter(
+      (card) => card.rarity === rarity
+    ).length;
+  }
+
+  function getRarityRule(card) {
+    return RARITY_RULES[card.rarity] ?? {
+      maxCopies: 1,
+      deckLimit: Infinity,
+    };
+  }
+
   function addCard(card) {
     setMessage("");
 
@@ -309,11 +327,18 @@ export default function DeckBuilder({ onBack }) {
       return;
     }
 
-    if (
-      countCard(card.id) >= MAX_COPIES
-    ) {
+    const rule = getRarityRule(card);
+
+    if (countCard(card.id) >= rule.maxCopies) {
       setMessage(
-        `同じカードは${MAX_COPIES}枚までです`
+        `${card.rarity}の同じカードは${rule.maxCopies}枚までです`
+      );
+      return;
+    }
+
+    if (countRarity(card.rarity) >= rule.deckLimit) {
+      setMessage(
+        `${card.rarity}カードはデッキに${rule.deckLimit}枚までです`
       );
       return;
     }
@@ -375,6 +400,10 @@ export default function DeckBuilder({ onBack }) {
         <p>
           {deck.length} / {DECK_SIZE}枚
         </p>
+
+        <small>
+          Common同名3枚・Rare同名2枚・Epic同名1枚（合計4枚まで）・Legend同名1枚（合計2枚まで）
+        </small>
       </div>
 
       {message && (
@@ -458,9 +487,13 @@ export default function DeckBuilder({ onBack }) {
               card.id
             );
 
+            const rule = getRarityRule(card);
+            const rarityCount = countRarity(card.rarity);
+
             const cannotAdd =
               deck.length >= DECK_SIZE ||
-              copies >= MAX_COPIES;
+              copies >= rule.maxCopies ||
+              rarityCount >= rule.deckLimit;
 
             return (
               <button
@@ -493,8 +526,10 @@ export default function DeckBuilder({ onBack }) {
                 </span>
 
                 <span>
-                  デッキ内：{copies}/
-                  {MAX_COPIES}枚
+                  同名：{copies}/{rule.maxCopies}枚
+                  {Number.isFinite(rule.deckLimit)
+                    ? `　${card.rarity}合計：${rarityCount}/${rule.deckLimit}枚`
+                    : ""}
                 </span>
               </button>
             );
