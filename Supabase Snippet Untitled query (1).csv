@@ -1,0 +1,38 @@
+schemaname,tablename,policyname,cmd,qual,with_check
+public,friend_requests,Receivers can update friend requests,UPDATE,(( SELECT auth.uid() AS uid) = receiver_id),(( SELECT auth.uid() AS uid) = receiver_id)
+public,friend_requests,Sender can resend requests,UPDATE,(auth.uid() = sender_id),((auth.uid() = sender_id) AND (sender_id <> receiver_id))
+public,friend_requests,Users can read related requests,SELECT,((( SELECT auth.uid() AS uid) = sender_id) OR (( SELECT auth.uid() AS uid) = receiver_id)),null
+public,friend_requests,Users can send friend requests,INSERT,null,((( SELECT auth.uid() AS uid) = sender_id) AND (sender_id <> receiver_id))
+public,friend_requests,Users can view related friend requests,SELECT,((auth.uid() = sender_id) OR (auth.uid() = receiver_id)),null
+public,friends,Users can add their own friendship rows,INSERT,null,(( SELECT auth.uid() AS uid) = user_id)
+public,friends,Users can create accepted friendships,INSERT,null,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM friend_requests
+  WHERE ((friend_requests.status = 'pending'::text) AND (friend_requests.receiver_id = auth.uid()) AND (friend_requests.sender_id = friends.user_id) AND (friends.friend_id = friend_requests.receiver_id)))))"
+public,friends,Users can read their friendships,SELECT,((( SELECT auth.uid() AS uid) = user_id) OR (( SELECT auth.uid() AS uid) = friend_id)),null
+public,friends,Users can remove their own friendship rows,DELETE,(( SELECT auth.uid() AS uid) = user_id),null
+public,match_invites,Users can read their match invites,SELECT,((sender_id = auth.uid()) OR (receiver_id = auth.uid())),null
+public,match_invites,Users can send match invites,INSERT,null,((sender_id = auth.uid()) AND (receiver_id <> auth.uid()) AND (status = 'pending'::text))
+public,match_invites,Users can update their match invites,UPDATE,((sender_id = auth.uid()) OR (receiver_id = auth.uid())),((sender_id = auth.uid()) OR (receiver_id = auth.uid()))
+public,profiles,Profiles are readable by authenticated users,SELECT,true,null
+public,profiles,Users can create their own profile,INSERT,null,(( SELECT auth.uid() AS uid) = id)
+public,profiles,Users can update their own profile,UPDATE,(( SELECT auth.uid() AS uid) = id),(( SELECT auth.uid() AS uid) = id)
+public,rooms,Authenticated users can join waiting rooms,UPDATE,((status = 'waiting'::text) AND (guest_id IS NULL) AND ((auth.uid())::text <> host_id)),"((guest_id = (auth.uid())::text) AND ((auth.uid())::text <> host_id) AND (status = ANY (ARRAY['ready'::text, 'waiting'::text])))"
+public,rooms,Authenticated users can read rooms,SELECT,true,null
+public,rooms,Room members can read rooms,SELECT,(((auth.uid())::text = host_id) OR ((auth.uid())::text = guest_id)),null
+public,rooms,Room members can update rooms,UPDATE,(((auth.uid())::text = host_id) OR ((auth.uid())::text = guest_id)),(((auth.uid())::text = host_id) OR ((auth.uid())::text = guest_id))
+public,rooms,Room participants can create rooms,INSERT,null,(((auth.uid())::text = host_id) OR ((auth.uid())::text = guest_id))
+public,turns,Players can insert turns,INSERT,null,"(EXISTS ( SELECT 1
+   FROM (matches m
+     JOIN rooms r ON ((r.id = m.room_id)))
+  WHERE ((m.id = turns.match_id) AND (((auth.uid())::text = r.host_id) OR ((auth.uid())::text = r.guest_id)))))"
+public,turns,Players can read turns,SELECT,"(EXISTS ( SELECT 1
+   FROM (matches m
+     JOIN rooms r ON ((r.id = m.room_id)))
+  WHERE ((m.id = turns.match_id) AND (((auth.uid())::text = r.host_id) OR ((auth.uid())::text = r.guest_id)))))",null
+public,turns,Players can update turns,UPDATE,"(EXISTS ( SELECT 1
+   FROM (matches m
+     JOIN rooms r ON ((r.id = m.room_id)))
+  WHERE ((m.id = turns.match_id) AND (((auth.uid())::text = r.host_id) OR ((auth.uid())::text = r.guest_id)))))","(EXISTS ( SELECT 1
+   FROM (matches m
+     JOIN rooms r ON ((r.id = m.room_id)))
+  WHERE ((m.id = turns.match_id) AND (((auth.uid())::text = r.host_id) OR ((auth.uid())::text = r.guest_id)))))"

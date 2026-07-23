@@ -1,0 +1,16 @@
+Chaos Cards 完成版
+
+1. このフォルダ内に package.json があることを確認してください。
+2. START_WINDOWS.cmd をダブルクリックすると、npm install と npm run dev を実行します。
+3. PowerShellでnpm.ps1のエラーが出る場合は npm.cmd を使ってください。
+
+手動実行:
+  cd ChaosCards_COMPLETE
+  npm.cmd install
+  npm.cmd run dev
+
+本番ビルド:
+  npm.cmd run build
+
+必要なSupabase変更は supabase_setup.sql にまとめています。
+.env.local は安全のため同梱していません。.env.exampleをコピーして値を設定してください。
