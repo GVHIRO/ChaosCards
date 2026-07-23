@@ -610,6 +610,34 @@ async function cpuTurn() {
   setIsCpuTurn(false);
 }
 async function onlineTurn() {
+  const { data, error } = await supabase
+  .from("turns")
+  .upsert(
+    {
+      match_id: matchId,
+      turn_number: turnNumber,
+      player_role: playerRole,
+      selected_cards: cardIds,
+      finished: true,
+    },
+    {
+      onConflict: "match_id,turn_number,player_role",
+    }
+  )
+  .select();
+
+console.log("turn保存結果", {
+  playerRole,
+  matchId,
+  turnNumber,
+  data,
+  error,
+});
+
+if (error) {
+  alert(`ターン保存エラー: ${error.message}`);
+  return;
+}
   if (!supabase) {
     setLogs((prev) =>
       ["❌ Supabaseに接続できていません", ...prev].slice(0, 10)
