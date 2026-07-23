@@ -15,6 +15,8 @@ const MAX_ENERGY = 5;
 const ENERGY_PER_TURN = 3;
 const INITIAL_HAND_SIZE = 5;
 const MAX_HAND_SIZE = 7;
+const HEARTBEAT_INTERVAL = 5000;
+const DISCONNECT_TIMEOUT = 20000;
 
 function getHpColor(currentHp, maxHp) {
   const rate = currentHp / maxHp;
@@ -185,6 +187,7 @@ export default function Battle({
   const [playerEffect, setPlayerEffect] = useState(null);
   const [enemyEffect, setEnemyEffect] = useState(null);
   const [winner, setWinner] = useState(null);
+  const [match, setMatch] = useState(null);
   const [logs, setLogs] = useState([]);
   const [selectedCards, setSelectedCards] = useState([]);
   const [deck, setDeck] = useState(loadDeck);
@@ -348,6 +351,7 @@ useEffect(() => {
   const syncMatchToView = useCallback(
     (match) => {
       matchRef.current = match;
+      setMatch(match);
       setTurnNumber(Number(match.turn_number || 1));
       setCurrentPlayer(match.current_player);
       setFirstPlayer(match.first_player);
@@ -423,7 +427,16 @@ useEffect(() => {
 
   // 最優先で試合状態を同期する
   syncMatchToView(next);
-
+if (
+  next.phase === "finished" &&
+  next.finish_reason === "disconnect"
+) {
+  addLogs([
+    next.winner === playerRole
+      ? "🏆 相手が切断しました"
+      : "❌ 接続が切断されました",
+  ]);
+}
   if (
     previous &&
     Number(next.turn_number) >
@@ -478,7 +491,153 @@ useEffect(() => {
       supabase.removeChannel(channel);
     };
   }, [addLogs, matchId, mode, playerRole, syncMatchToView]);
+// 自分が対戦画面を開いていることを5秒ごとに通知
+useEffect(() => {
+  if (
+    !matchId ||
+    !playerRole ||
+    match?.phase !== "playing"
+  ) {
+    return undefined;
+  }
 
+  const lastSeenColumn =
+    playerRole === "host"
+      ? "host_last_seen"
+      : "guest_last_seen";
+
+  async function sendHeartbeat() {
+    const { error } = await supabase
+      .from("matches")
+      .update({
+        [lastSeenColumn]:
+          new Date().toISOString(),
+      })
+      .eq("id", matchId)
+      .eq("phase", "playing");
+
+    if (error) {
+      console.error(
+        "生存確認の送信エラー:",
+        error
+      );
+    }
+  }
+
+  sendHeartbeat();
+
+  const intervalId = window.setInterval(
+    sendHeartbeat,
+    HEARTBEAT_INTERVAL
+  );
+
+  return () => {
+    window.clearInterval(intervalId);
+  };
+}, [
+  matchId,
+  playerRole,
+  match?.phase,
+]);
+// 相手の生存確認が20秒止まったら切断勝利
+useEffect(() => {
+  if (
+    !matchId ||
+    !playerRole ||
+    match?.phase !== "playing"
+  ) {
+    return undefined;
+  }
+
+  let isChecking = false;
+
+  async function checkOpponentConnection() {
+    if (isChecking) return;
+
+    isChecking = true;
+
+    try {
+      const { data: latestMatch, error } =
+        await supabase
+          .from("matches")
+          .select(`
+            id,
+            phase,
+            winner,
+            host_last_seen,
+            guest_last_seen
+          `)
+          .eq("id", matchId)
+          .maybeSingle();
+
+      if (error || !latestMatch) {
+        console.error(
+          "接続状態取得エラー:",
+          error
+        );
+        return;
+      }
+
+      if (
+        latestMatch.phase !== "playing" ||
+        latestMatch.winner
+      ) {
+        return;
+      }
+
+      const opponentLastSeen =
+        playerRole === "host"
+          ? latestMatch.guest_last_seen
+          : latestMatch.host_last_seen;
+
+      if (!opponentLastSeen) {
+        return;
+      }
+
+      const elapsed =
+        Date.now() -
+        new Date(opponentLastSeen).getTime();
+
+      if (elapsed < DISCONNECT_TIMEOUT) {
+        return;
+      }
+
+      const { error: finishError } =
+        await supabase
+          .from("matches")
+          .update({
+            winner: playerRole,
+            phase: "finished",
+            finish_reason: "disconnect",
+          })
+          .eq("id", matchId)
+          .eq("phase", "playing")
+          .is("winner", null);
+
+      if (finishError) {
+        console.error(
+          "切断勝利処理エラー:",
+          finishError
+        );
+      }
+    } finally {
+      isChecking = false;
+    }
+  }
+
+  const intervalId = window.setInterval(
+    checkOpponentConnection,
+    5000
+  );
+
+  return () => {
+    window.clearInterval(intervalId);
+  };
+}, [
+  matchId,
+  playerRole,
+  match?.phase,
+]);
   function playCard(index) {
     if (!isMyTurn || isProcessing || winner) return;
 
@@ -859,7 +1018,17 @@ setTimeout(() => setScreenShake(false), 300);
         <div className="result-screen">
           <div className="result-icon">{isDraw ? "🤝" : playerWon ? "🏆" : "💀"}</div>
           <h1>{isDraw ? "DRAW!" : playerWon ? "YOU WIN!" : "YOU LOSE..."}</h1>
-          <p>{isDraw ? "引き分け！" : playerWon ? "勝利した！" : "次の戦いで取り返そう！"}</p>
+          <p>
+  {match?.finish_reason === "disconnect"
+    ? playerWon
+      ? "相手が切断したため勝利しました"
+      : "接続が切断されたため敗北しました"
+    : isDraw
+    ? "引き分け！"
+    : playerWon
+    ? "勝利した！"
+    : "次の戦いで取り返そう！"}
+</p>
           <div className="result-buttons">
            <button
   type="button"

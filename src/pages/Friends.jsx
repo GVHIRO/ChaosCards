@@ -147,10 +147,6 @@ useEffect(() => {
         table: "friends",
       },
       async (payload) => {
-        console.log(
-          "🔥 friends INSERTイベント:",
-          payload
-        );
 
         const addedFriendship = payload.new;
 
@@ -173,10 +169,6 @@ useEffect(() => {
         table: "friends",
       },
       async (payload) => {
-        console.log(
-          "🔥 friends DELETEイベント:",
-          payload
-        );
 
         // DELETEはpayloadの情報が少ないことがあるため、
         // イベントが来たら一覧を再取得する
@@ -994,28 +986,35 @@ async function deleteFriend(friend) {
     // 2. コイントスを行って交互ターン制の試合を作成
     const firstPlayer =
       Math.random() < 0.5 ? "host" : "guest";
-    const { data: match, error: matchError } =
-      await supabase
-        .from("matches")
-        .insert({
-          room_id: room.id,
-          host_hp: 40,
-          guest_hp: 40,
-          host_energy: 3,
-          guest_energy: 3,
-          host_shield: 0,
-          guest_shield: 0,
-          turn_number: 1,
-          phase: "playing",
-          first_player: firstPlayer,
-          current_player: firstPlayer,
-          winner: null,
-          battle_logs: [
-            `🪙 ${firstPlayer}が先攻`,
-          ],
-        })
-        .select()
-        .single();
+    const now = new Date().toISOString();
+
+const { data: match, error: matchError } =
+  await supabase
+    .from("matches")
+    .insert({
+      room_id: room.id,
+      host_hp: 40,
+      guest_hp: 40,
+      host_energy: 3,
+      guest_energy: 3,
+      host_shield: 0,
+      guest_shield: 0,
+      turn_number: 1,
+      phase: "playing",
+      first_player: firstPlayer,
+      current_player: firstPlayer,
+      winner: null,
+
+      host_last_seen: now,
+      guest_last_seen: now,
+      finish_reason: null,
+
+      battle_logs: [
+        `🪙 ${firstPlayer}が先攻`,
+      ],
+    })
+    .select()
+    .single();
 
     if (matchError) {
       throw new Error(
