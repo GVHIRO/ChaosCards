@@ -727,7 +727,6 @@ async function onlineTurn() {
   );
 }
 async function endTurn() {
-  alert(`ボタン反応\nmode: ${mode}`);
 
   if (mode === "cpu") {
     await cpuTurn();
