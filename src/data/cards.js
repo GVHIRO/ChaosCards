@@ -71,6 +71,7 @@ const cards = [
     rarity: "Common",
     cost: 1,
     description: "シールドを5得る"
+
   },
   {
     id: 8,

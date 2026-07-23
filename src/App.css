@@ -1295,7 +1295,6 @@ textarea {
 .delete-friend-button:hover {
   background: #d32f3d;
   transform: translateY(-1px);
-}
 /* ===== 交互ターン制バトル ===== */
 .coin-toss-overlay {
   position: fixed;
@@ -1370,4 +1369,206 @@ textarea {
   0% { opacity: 0; transform: translate(-50%, 10px) scale(.65); }
   25% { opacity: 1; transform: translate(-50%, -8px) scale(1.25); }
   100% { opacity: 0; transform: translate(-50%, -54px) scale(1); }
+}
+}
+
+.card-use-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 2000;
+  width: min(90vw, 720px);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.card-use-overlay.player {
+  animation:
+    player-card-use-in 0.35s ease-out,
+    card-use-out 0.35s ease-in 1.2s forwards;
+}
+
+.card-use-overlay.enemy {
+  animation:
+    enemy-card-use-in 0.35s ease-out,
+    card-use-out 0.35s ease-in 1.2s forwards;
+}
+
+.card-use-label {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 7px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  background: rgba(8, 12, 28, 0.92);
+  color: white;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  box-shadow:
+    0 0 24px rgba(93, 170, 255, 0.45);
+}
+
+.card-use-overlay.enemy .card-use-label {
+  box-shadow:
+    0 0 24px rgba(255, 86, 86, 0.5);
+}
+
+.used-card-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.used-card {
+  width: 116px;
+  min-height: 150px;
+  padding: 15px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(35, 46, 75, 0.98),
+      rgba(10, 15, 31, 0.98)
+    );
+  color: white;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.55);
+  animation:
+    used-card-pop 0.45s
+    cubic-bezier(0.18, 0.89, 0.32, 1.28)
+    both;
+}
+
+.used-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.used-card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.used-card:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.used-card-emoji {
+  margin-bottom: 9px;
+  font-size: 43px;
+}
+
+.used-card strong {
+  display: block;
+  font-size: 15px;
+}
+
+.used-card small {
+  display: block;
+  margin-top: 8px;
+  color: #ffd761;
+  font-weight: 800;
+}
+
+.used-card-common {
+  border-color: #b8c0cc;
+}
+
+.used-card-rare {
+  border-color: #47a8ff;
+  box-shadow:
+    0 0 28px rgba(71, 168, 255, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.used-card-epic {
+  border-color: #c16cff;
+  box-shadow:
+    0 0 30px rgba(193, 108, 255, 0.5),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.used-card-legend {
+  border-color: #ffc83d;
+  box-shadow:
+    0 0 34px rgba(255, 200, 61, 0.55),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes player-card-use-in {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, 35%)
+      scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+@keyframes enemy-card-use-in {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, -135%)
+      scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+@keyframes used-card-pop {
+  from {
+    opacity: 0;
+    transform:
+      translateY(30px)
+      rotate(-6deg)
+      scale(0.65);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      rotate(0)
+      scale(1);
+  }
+}
+
+@keyframes card-use-out {
+  to {
+    opacity: 0;
+    transform:
+      translate(-50%, -60%)
+      scale(0.92);
+  }
+}
+
+@media (max-width: 600px) {
+  .used-card {
+    width: 88px;
+    min-height: 120px;
+    padding: 10px 7px;
+  }
+
+  .used-card-emoji {
+    font-size: 32px;
+  }
+
+  .used-card strong {
+    font-size: 12px;
+  }
 }

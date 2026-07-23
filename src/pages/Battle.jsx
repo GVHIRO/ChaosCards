@@ -129,7 +129,9 @@ export default function Battle({
   const [deck, setDeck] = useState(loadDeck);
   const [hand, setHand] = useState([]);
   const [discardPile, setDiscardPile] = useState([]);
+  const [cardAnimation, setCardAnimation] = useState(null);
 
+  const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
   const deckRef = useRef(deck);
   const discardRef = useRef(discardPile);
@@ -166,6 +168,43 @@ export default function Battle({
     window.setTimeout(() => setPlayerEffect(null), 900);
   }, []);
 
+  const showCardAnimation = useCallback(
+  (side, usedCards) => {
+    if (
+      !Array.isArray(usedCards) ||
+      usedCards.length === 0
+    ) {
+      return;
+    }
+
+    if (cardAnimationTimerRef.current) {
+      window.clearTimeout(
+        cardAnimationTimerRef.current
+      );
+    }
+
+    setCardAnimation({
+      side,
+      cards: usedCards,
+      id: Date.now(),
+    });
+
+    cardAnimationTimerRef.current =
+      window.setTimeout(() => {
+        setCardAnimation(null);
+      }, 1600);
+  },
+  []
+);
+useEffect(() => {
+  return () => {
+    if (cardAnimationTimerRef.current) {
+      window.clearTimeout(
+        cardAnimationTimerRef.current
+      );
+    }
+  };
+}, []);
   const showEnemyEffect = useCallback((text, type) => {
     setEnemyEffect({ text, type, id: Date.now() });
     window.setTimeout(() => setEnemyEffect(null), 900);
@@ -312,10 +351,32 @@ export default function Battle({
           filter: `id=eq.${matchId}`,
         },
         (payload) => {
-          const previous = matchRef.current;
-          const next = payload.new;
-          syncMatchToView(next);
+  const previous = matchRef.current;
+  const next = payload.new;
 
+  if (
+    previous &&
+    Number(next.turn_number) >
+      Number(previous.turn_number)
+  ) {
+    const usedCards =
+      getCardsFromBattleLogs(
+        next.battle_logs
+      );
+
+    if (
+      previous.current_player !==
+      playerRole &&
+      usedCards.length > 0
+    ) {
+      showCardAnimation(
+        "enemy",
+        usedCards
+      );
+    }
+  }
+
+  syncMatchToView(next);
           if (previous && Number(next.turn_number) > Number(previous.turn_number)) {
             const battleLogs = Array.isArray(next.battle_logs) ? next.battle_logs : [];
             addLogs([
@@ -392,6 +453,11 @@ export default function Battle({
     await new Promise((resolve) => window.setTimeout(resolve, 850));
 
     const { chosen, remaining } = chooseCpuCards(cpuEnergy);
+    showCardAnimation("enemy", chosen);
+
+await new Promise((resolve) => {
+  window.setTimeout(resolve, 650);
+});
     const summary = summarizeCards(chosen);
     const damaged = applyDamage(playerHP, playerShield, summary.damage);
     const healedEnemy = Math.min(MAX_HP, enemyHP + summary.heal);
@@ -439,14 +505,31 @@ export default function Battle({
   }
 
   useEffect(() => {
-    if (mode === "cpu" && currentPlayer === "cpu" && !winner) {
+    if (
+      mode === "cpu" &&
+      currentPlayer === "cpu" &&
+      !winner &&
+      !isProcessing
+    ) {
       executeCpuTurn();
     }
-    // executeCpuTurnは現在値を使うため、ターン変更時だけ起動
+    // プレイヤーのターン終了処理が完了して isProcessing が false に戻った後、
+    // CPUターンを確実に開始する。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPlayer, mode, winner]);
+  }, [currentPlayer, mode, winner, isProcessing]);
 
   async function endCpuPlayerTurn() {
+    showCardAnimation(
+    "player",
+    selectedCards.map(
+      (selected) => selected.card
+    )
+  );
+
+  await new Promise((resolve) => {
+    window.setTimeout(resolve, 650);
+  });
+
     const summary = summarizeCards(selectedCards);
     const damaged = applyDamage(enemyHP, enemyShield, summary.damage);
     const healedPlayer = Math.min(MAX_HP, playerHP + summary.heal);
@@ -512,6 +595,16 @@ export default function Battle({
       ? Number(match.guest_shield || 0)
       : Number(match.host_shield || 0);
 
+      showCardAnimation(
+  "player",
+  selectedRef.current.map(
+    (selected) => selected.card
+  )
+);
+
+await new Promise((resolve) => {
+  window.setTimeout(resolve, 650);
+});
     const summary = summarizeCards(selectedRef.current);
     const damageResult = applyDamage(opponentHp, opponentShield, summary.damage);
     const healedHp = Math.min(MAX_HP, myHp + summary.heal);
@@ -640,7 +733,41 @@ export default function Battle({
   return (
     <div className="app">
       <h1>CHAOS CARDS</h1>
+{cardAnimation && (
+  <div
+    key={cardAnimation.id}
+    className={`card-use-overlay ${
+      cardAnimation.side
+    }`}
+  >
+    <div className="card-use-label">
+      {cardAnimation.side === "player"
+        ? "YOU USED"
+        : "OPPONENT USED"}
+    </div>
 
+    <div className="used-card-list">
+      {cardAnimation.cards.map(
+        (card, index) => (
+          <div
+            className={`used-card used-card-${card.rarity?.toLowerCase()}`}
+            key={`${card.id}-${index}`}
+          >
+            <div className="used-card-emoji">
+              {card.emoji}
+            </div>
+
+            <strong>{card.name}</strong>
+
+            <small>
+              ⚡{card.cost}
+            </small>
+          </div>
+        )
+      )}
+    </div>
+  </div>
+)}
       {coinVisible && firstPlayer && (
         <div className="coin-toss-overlay">
           <div className="coin">🪙</div>

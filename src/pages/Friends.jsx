@@ -932,7 +932,6 @@ async function deleteFriend(friend) {
     // 2. コイントスを行って交互ターン制の試合を作成
     const firstPlayer =
       Math.random() < 0.5 ? "host" : "guest";
-
     const { data: match, error: matchError } =
       await supabase
         .from("matches")

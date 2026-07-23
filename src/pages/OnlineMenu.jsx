@@ -9,6 +9,7 @@ function OnlineMenu({ onBack, onMatchStart }) {
   const [roomId, setRoomId] = useState(null);
   const [playerRole, setPlayerRole] = useState(null);
 
+
   useEffect(() => {
     if (!roomId || !playerRole) {
       return;
@@ -45,7 +46,7 @@ function OnlineMenu({ onBack, onMatchStart }) {
         ) {
           setMessage("試合を準備しています…");
 
-          // コイントスはホスト端末だけで行い、結果をDBへ保存する
+         // コイントスはホスト端末だけで行い、結果をDBへ保存する
           const firstPlayer =
             Math.random() < 0.5 ? "host" : "guest";
 
