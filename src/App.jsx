@@ -161,25 +161,101 @@ function App() {
     setScreen("online");
   }
 
-  function startOnlineBattle(
-    roomId,
-    role,
-    matchId
-  ) {
-    if (!hasValidDeck()) {
-      setOnlineRoom(null);
-      moveToDeckBuilder();
-      return;
+  async function startOnlineBattle(
+  roomId,
+  receivedRole,
+  matchId
+) {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error(
+        userError?.message ||
+          "ユーザー情報を取得できませんでした"
+      );
     }
+
+    const {
+      data: room,
+      error: roomError,
+    } = await supabase
+      .from("rooms")
+      .select(
+        "id, host_id, guest_id, match_id"
+      )
+      .eq("id", roomId)
+      .single();
+
+    if (roomError || !room) {
+      throw new Error(
+        roomError?.message ||
+          "対戦部屋を取得できませんでした"
+      );
+    }
+
+    let actualRole = null;
+
+    if (
+      String(room.host_id) ===
+      String(user.id)
+    ) {
+      actualRole = "host";
+    } else if (
+      String(room.guest_id) ===
+      String(user.id)
+    ) {
+      actualRole = "guest";
+    }
+
+    if (!actualRole) {
+      throw new Error(
+        "この対戦部屋の参加者ではありません"
+      );
+    }
+
+    const actualMatchId =
+      matchId || room.match_id;
+
+    if (!actualMatchId) {
+      throw new Error(
+        "試合IDを取得できませんでした"
+      );
+    }
+
+    console.log("対戦開始・役割確認", {
+      userId: user.id,
+      roomId,
+      hostId: room.host_id,
+      guestId: room.guest_id,
+      receivedRole,
+      actualRole,
+      matchId: actualMatchId,
+    });
 
     setOnlineRoom({
       roomId,
-      role,
-      matchId,
+      role: actualRole,
+      matchId: actualMatchId,
     });
 
     setScreen("online-battle");
+  } catch (error) {
+    console.error(
+      "オンライン対戦開始エラー:",
+      error
+    );
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : String(error)
+    );
   }
+}
 
   async function handleLogout() {
     const { error } =

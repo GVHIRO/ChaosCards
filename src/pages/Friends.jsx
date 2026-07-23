@@ -267,11 +267,7 @@ if (!room?.match_id) {
           }
 
           // 招待を送った側はguest
-          onMatchStart(
-            room.id,
-            "guest",
-            room.match_id
-          );
+          onMatchStart(room.id, "host", room.match_id);
         } catch (error) {
           console.error(
             "送信側の対戦開始エラー:",
@@ -918,12 +914,12 @@ async function deleteFriend(friend) {
     const { data: room, error: roomError } =
       await supabase
         .from("rooms")
-        .insert({
-          room_code: newRoomCode,
-          host_id: user.id,
-          guest_id: invite.sender_id,
-          status: "ready",
-        })
+.insert({
+  room_code: newRoomCode,
+  host_id: invite.sender_id,
+  guest_id: user.id,
+  status: "ready",
+})
         .select()
         .single();
 
@@ -1034,11 +1030,7 @@ console.log("更新後の部屋:", updatedRoom);
 
     // 5. 承諾側をすぐ対戦画面へ移動
     if (typeof onMatchStart === "function") {
-      onMatchStart(
-  room.id,
-  "guest",
-  match.id
-);
+     onMatchStart(room.id, "guest", match.id);
     } else {
       throw new Error(
         "対戦開始処理が設定されていません"
