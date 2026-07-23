@@ -7,46 +7,158 @@ export default function Menu({
   currentUser,
   handleLogout,
 }) {
+  const isAnonymous = currentUser?.is_anonymous;
+
   return (
-    <div className="menu">
-      <h1>Chaos Cards</h1>
+    <main className="home-page">
+      <div className="home-background-glow home-glow-one" />
+      <div className="home-background-glow home-glow-two" />
 
-      <button type="button" onClick={onStart}>
-        CPU対戦
-      </button>
+      <section className="home-shell">
+        <header className="home-header">
+          <div className="home-brand">
+            <span className="home-brand-kicker">
+              TURN BASED CARD BATTLE
+            </span>
 
-      <button type="button" onClick={onOnline}>
-        オンライン対戦
-      </button>
-      <button
-  type="button"
-  onClick={() => {
-    console.log("フレンドボタンが押された");
-    onFriends();
-  }}
->
-  👥 フレンド
-</button>
+            <h1 className="home-title">
+              <span>CHAOS</span>
+              <strong>CARDS</strong>
+            </h1>
 
-      <button type="button" onClick={onDeckBuilder}>
-        デッキ編集
-      </button>
+            <p className="home-subtitle">
+              戦略と混沌がぶつかるカードバトル
+            </p>
+          </div>
 
-      <div style={{ marginTop: "20px" }}>
-        {currentUser?.is_anonymous ? (
-          <button type="button" onClick={openAuthMenu}>
-            ログイン・アカウント登録
+          <div className="home-account-panel">
+            <span className="home-account-label">
+              PLAYER
+            </span>
+
+            <strong className="home-account-name">
+              {isAnonymous
+                ? "GUEST PLAYER"
+                : currentUser?.email || "PLAYER"}
+            </strong>
+
+            <span
+              className={`home-account-status ${
+                isAnonymous ? "guest" : "online"
+              }`}
+            >
+              <i />
+              {isAnonymous
+                ? "ゲストプレイ中"
+                : "ログイン中"}
+            </span>
+          </div>
+        </header>
+
+        <section className="home-menu-grid">
+          <button
+            type="button"
+            className="home-mode-card home-mode-main"
+            onClick={onStart}
+          >
+            <span className="home-mode-icon">⚔️</span>
+
+            <span className="home-mode-content">
+              <small>SOLO BATTLE</small>
+              <strong>CPU対戦</strong>
+              <span>
+                CPUを相手にデッキを試す
+              </span>
+            </span>
+
+            <span className="home-mode-arrow">›</span>
           </button>
-        ) : (
-          <>
-            <p>ログイン中：{currentUser?.email}</p>
 
-            <button type="button" onClick={handleLogout}>
-              ログアウト
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+          <button
+            type="button"
+            className="home-mode-card"
+            onClick={onOnline}
+          >
+            <span className="home-mode-icon">🌐</span>
+
+            <span className="home-mode-content">
+              <small>ONLINE MATCH</small>
+              <strong>オンライン対戦</strong>
+              <span>
+                世界のプレイヤーと戦う
+              </span>
+            </span>
+
+            <span className="home-mode-arrow">›</span>
+          </button>
+
+          <button
+            type="button"
+            className="home-mode-card"
+            onClick={onFriends}
+          >
+            <span className="home-mode-icon">👥</span>
+
+            <span className="home-mode-content">
+              <small>FRIENDS</small>
+              <strong>フレンド</strong>
+              <span>
+                フレンド管理・対戦招待
+              </span>
+            </span>
+
+            <span className="home-mode-arrow">›</span>
+          </button>
+
+          <button
+            type="button"
+            className="home-mode-card"
+            onClick={onDeckBuilder}
+          >
+            <span className="home-mode-icon">🃏</span>
+
+            <span className="home-mode-content">
+              <small>DECK BUILDER</small>
+              <strong>デッキ編集</strong>
+              <span>
+                20枚のデッキを構築する
+              </span>
+            </span>
+
+            <span className="home-mode-arrow">›</span>
+          </button>
+        </section>
+
+        <footer className="home-footer">
+          <div className="home-tip">
+            <span>⚡</span>
+            <p>
+              レアリティとコストのバランスを考えて、
+              自分だけのデッキを作ろう。
+            </p>
+          </div>
+
+          <div className="home-account-actions">
+            {isAnonymous ? (
+              <button
+                type="button"
+                className="home-secondary-button"
+                onClick={openAuthMenu}
+              >
+                ログイン・アカウント登録
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="home-secondary-button danger"
+                onClick={handleLogout}
+              >
+                ログアウト
+              </button>
+            )}
+          </div>
+        </footer>
+      </section>
+    </main>
   );
 }

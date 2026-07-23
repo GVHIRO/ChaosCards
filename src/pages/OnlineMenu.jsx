@@ -355,57 +355,286 @@ setMessage(
   }
 
   return (
-    <div className="online-menu">
-      <h1>オンライン対戦</h1>
+  <main className="online-page">
+    <div className="online-background-glow online-glow-left" />
+    <div className="online-background-glow online-glow-right" />
 
-      {!isWaiting && (
-        <>
-          <button type="button" onClick={createRoom}>
-            部屋を作る
+    <header className="online-header">
+      <button
+        type="button"
+        className="online-back-button"
+        onClick={onBack}
+      >
+        <span>←</span>
+        メニューへ戻る
+      </button>
+
+      <div className="online-header-title">
+        <small>NETWORK BATTLE</small>
+        <h1>オンライン対戦</h1>
+        <p>
+          ルームを作成するか、コードを入力して対戦に参加
+        </p>
+      </div>
+
+      <div className="online-connection-status">
+        <span className="online-status-dot" />
+
+        <div>
+          <small>SERVER STATUS</small>
+          <strong>ONLINE</strong>
+        </div>
+      </div>
+    </header>
+
+    {!isWaiting ? (
+      <section className="online-lobby-grid">
+        <article className="online-mode-card online-create-card">
+          <div className="online-card-decoration" />
+
+          <div className="online-card-icon">⚔️</div>
+
+          <div className="online-card-content">
+            <small className="online-card-kicker">
+              CREATE PRIVATE ROOM
+            </small>
+
+            <h2>ルームを作成</h2>
+
+            <p>
+              専用のルームコードを発行して、
+              フレンドを対戦に招待します。
+            </p>
+
+            <div className="online-feature-list">
+              <span>✓ 6文字の専用コード</span>
+              <span>✓ 1対1のプライベート対戦</span>
+              <span>✓ 先攻・後攻はランダム</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="online-primary-button"
+            onClick={createRoom}
+          >
+            <span>ルームを作る</span>
+            <strong>＋</strong>
           </button>
+        </article>
 
-          <div className="join-room">
+        <article className="online-mode-card online-join-card">
+          <div className="online-card-icon">⌨️</div>
+
+          <div className="online-card-content">
+            <small className="online-card-kicker">
+              JOIN PRIVATE ROOM
+            </small>
+
+            <h2>ルームに参加</h2>
+
+            <p>
+              相手から受け取った6文字のコードを入力してください。
+            </p>
+          </div>
+
+          <div className="online-code-form">
+            <label htmlFor="room-code">
+              ROOM CODE
+            </label>
+
             <input
+              id="room-code"
               type="text"
-              placeholder="ルームコード"
+              className="online-code-input"
+              placeholder="ABC123"
               value={roomCode}
               maxLength={6}
+              autoComplete="off"
+              spellCheck={false}
               onChange={(event) =>
                 setRoomCode(
-                  event.target.value.toUpperCase()
+                  event.target.value
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "")
                 )
               }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  joinRoom();
+                }
+              }}
             />
+
+            <div className="online-code-length">
+              <span
+                style={{
+                  width: `${(roomCode.length / 6) * 100}%`,
+                }}
+              />
+            </div>
+
+            <small>
+              {roomCode.length} / 6 CHARACTERS
+            </small>
+          </div>
+
+          <button
+            type="button"
+            className="online-secondary-button"
+            onClick={joinRoom}
+            disabled={roomCode.length !== 6}
+          >
+            <span>部屋に参加する</span>
+            <strong>→</strong>
+          </button>
+        </article>
+
+        <aside className="online-info-panel">
+          <div className="online-info-heading">
+            <span>i</span>
+
+            <div>
+              <small>MATCH GUIDE</small>
+              <h3>対戦の流れ</h3>
+            </div>
+          </div>
+
+          <ol className="online-steps">
+            <li>
+              <span>01</span>
+
+              <div>
+                <strong>ルームを準備</strong>
+                <p>
+                  作成またはコード入力でルームに入室
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span>02</span>
+
+              <div>
+                <strong>相手を待機</strong>
+                <p>
+                  2人がそろうと自動で試合を準備
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span>03</span>
+
+              <div>
+                <strong>バトル開始</strong>
+                <p>
+                  先攻を決定して対戦画面へ移動
+                </p>
+              </div>
+            </li>
+          </ol>
+        </aside>
+      </section>
+    ) : (
+      <section className="online-waiting">
+        <div className="online-waiting-radar">
+          <div className="online-radar-ring ring-one" />
+          <div className="online-radar-ring ring-two" />
+          <div className="online-radar-ring ring-three" />
+
+          <div className="online-radar-center">
+            {playerRole === "host" ? "⚔️" : "✓"}
+          </div>
+        </div>
+
+        <small className="online-waiting-kicker">
+          {playerRole === "host"
+            ? "WAITING FOR OPPONENT"
+            : "CONNECTED TO ROOM"}
+        </small>
+
+        <h2>
+          {playerRole === "host"
+            ? "対戦相手を待っています"
+            : "ホストが試合を準備しています"}
+        </h2>
+
+        <p className="online-waiting-description">
+          この画面を開いたままお待ちください。
+          対戦の準備ができると自動的に開始します。
+        </p>
+
+        {createdCode && (
+          <div className="online-created-room">
+            <small>ROOM CODE</small>
+
+            <strong>{createdCode}</strong>
+
+            <p>
+              このコードを対戦相手に伝えてください
+            </p>
 
             <button
               type="button"
-              onClick={joinRoom}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    createdCode
+                  );
+
+                  setMessage(
+                    "ルームコードをコピーしました"
+                  );
+                } catch (error) {
+                  console.error(
+                    "コピーエラー:",
+                    error
+                  );
+
+                  setMessage(
+                    "コードをコピーできませんでした"
+                  );
+                }
+              }}
             >
-              部屋に参加
+              コードをコピー
             </button>
           </div>
-        </>
-      )}
+        )}
 
-      {createdCode && (
-        <div className="created-room">
-          <p>ルームコード</p>
-          <strong>{createdCode}</strong>
-          <p>このコードを相手に伝えてください</p>
+        <div className="online-waiting-dots">
+          <span />
+          <span />
+          <span />
         </div>
-      )}
+      </section>
+    )}
 
-      {message && (
-        <p className="online-message">
-          {message}
-        </p>
-      )}
+    {message && (
+      <div
+        className={[
+          "online-message",
+          message.includes("エラー") ||
+          message.includes("できません") ||
+          message.includes("見つかりません")
+            ? "online-message-error"
+            : "",
+        ].join(" ")}
+      >
+        <span>
+          {message.includes("エラー") ||
+          message.includes("できません") ||
+          message.includes("見つかりません")
+            ? "!"
+            : "✓"}
+        </span>
 
-      <button type="button" onClick={onBack}>
-        戻る
-      </button>
-    </div>
-  );
+        <p>{message}</p>
+      </div>
+    )}
+  </main>
+);
 }
 
 export default OnlineMenu;

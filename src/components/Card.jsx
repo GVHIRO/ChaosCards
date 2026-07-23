@@ -1,11 +1,19 @@
 import "./Card.css";
 
-export default function Card({ card, onPlay,  isDrawn, disabled,}) {
+export default function Card({
+  card,
+  onPlay,
+  isDrawn,
+  disabled,
+  isPlayed,
+}) {
   return (
     <div
-  className={`card ${card.type} rarity-${card.rarity.toLowerCase()} ${
-    isDrawn ? "card-draw" : ""
-  } ${disabled ? "card-disabled" : ""}`}
+ className={`card ${card.type} rarity-${card.rarity.toLowerCase()} ${
+  isDrawn ? "card-draw" : ""
+} ${disabled ? "card-disabled" : ""} ${
+  isPlayed ? "card-played" : ""
+}`}
   onClick={disabled ? undefined : onPlay}
 >
       <div className="card-header">

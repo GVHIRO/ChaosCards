@@ -1,0 +1,33 @@
+:root{
+
+  --bg:#08111F;
+
+  --panel:rgba(24,34,58,.82);
+
+  --panel2:#101827;
+
+  --primary:#58B9FF;
+
+  --primary-dark:#2D84FF;
+
+  --text:#F4F8FF;
+
+  --text2:#AEBBD3;
+
+  --common:#C9D2DD;
+
+  --rare:#5AB7FF;
+
+  --epic:#BF6DFF;
+
+  --legend:#FFD54F;
+
+  --radius:18px;
+
+  --shadow:
+    0 10px 40px rgba(0,0,0,.35);
+
+  --glow:
+    0 0 25px rgba(88,185,255,.35);
+
+}

@@ -1,3 +1,6 @@
+import { updateStatus } from "../lib/status";
+import BattleStatus from "../components/BattleStatus";
+import BattleField from "../components/BattleField";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import BattleLog from "../components/BattleLog";
@@ -100,7 +103,43 @@ function nextRole(role) {
 function roleLabel(role, myRole) {
   return role === myRole ? "YOU" : "相手";
 }
+function getCardsFromBattleLogs(battleLogs) {
+  if (!Array.isArray(battleLogs)) {
+    return [];
+  }
 
+  const playLog = battleLogs.find((log) =>
+    typeof log === "string" &&
+    log.startsWith("🎴")
+  );
+
+  if (!playLog) {
+    return [];
+  }
+
+  const separatorIndex = playLog.indexOf("：");
+
+  if (separatorIndex === -1) {
+    return [];
+  }
+
+  const namesText = playLog.slice(separatorIndex + 1);
+
+  if (!namesText) {
+    return [];
+  }
+
+  const cardNames = namesText
+    .split("、")
+    .map((name) => name.trim())
+    .filter(Boolean);
+
+  return cardNames
+    .map((name) =>
+      cards.find((card) => card.name === name)
+    )
+    .filter(Boolean);
+}
 export default function Battle({
   mode = "cpu",
   matchId,
@@ -130,6 +169,9 @@ export default function Battle({
   const [hand, setHand] = useState([]);
   const [discardPile, setDiscardPile] = useState([]);
   const [cardAnimation, setCardAnimation] = useState(null);
+  const [battleEffect, setBattleEffect] = useState(null);
+  const [playedCards, setPlayedCards] = useState([]);
+  const [screenShake, setScreenShake] = useState(false);
 
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
@@ -351,42 +393,62 @@ useEffect(() => {
           filter: `id=eq.${matchId}`,
         },
         (payload) => {
+  console.log("Realtime UPDATE", payload);
+
   const previous = matchRef.current;
   const next = payload.new;
+
+  // 最優先で試合状態を同期する
+  syncMatchToView(next);
 
   if (
     previous &&
     Number(next.turn_number) >
       Number(previous.turn_number)
   ) {
-    const usedCards =
-      getCardsFromBattleLogs(
-        next.battle_logs
-      );
+    try {
+      const usedCards =
+        getCardsFromBattleLogs(
+          next.battle_logs
+        );
 
-    if (
-      previous.current_player !==
-      playerRole &&
-      usedCards.length > 0
-    ) {
-      showCardAnimation(
-        "enemy",
-        usedCards
+      if (
+        previous.current_player !==
+          playerRole &&
+        usedCards.length > 0
+      ) {
+        showCardAnimation(
+          "enemy",
+          usedCards
+        );
+      }
+    } catch (error) {
+      console.error(
+        "相手カード演出エラー:",
+        error
       );
     }
-  }
 
-  syncMatchToView(next);
-          if (previous && Number(next.turn_number) > Number(previous.turn_number)) {
-            const battleLogs = Array.isArray(next.battle_logs) ? next.battle_logs : [];
-            addLogs([
-              `🔄 ターン${next.turn_number}：${roleLabel(next.current_player, playerRole)}の番`,
-              ...battleLogs,
-            ]);
-          }
-        }
+    const battleLogs =
+      Array.isArray(next.battle_logs)
+        ? next.battle_logs
+        : [];
+
+    addLogs([
+      `🔄 ターン${next.turn_number}：${
+        roleLabel(
+          next.current_player,
+          playerRole
+        )
+      }の番`,
+      ...battleLogs,
+    ]);
+  }
+}
       )
-      .subscribe();
+      .subscribe((status) => {
+  console.log("Realtime status:", status);
+});
 
     return () => {
       mounted = false;
@@ -476,9 +538,12 @@ await new Promise((resolve) => {
 
     if (damaged.blocked > 0) turnLogs.push(`🛡️ YOUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
-      turnLogs.push(`⚔️ YOUに${damaged.hpDamage}ダメージ`);
-      showPlayerEffect(`-${damaged.hpDamage}`, "damage");
-    }
+  setScreenShake(true);
+  setTimeout(() => setScreenShake(false), 300);
+
+  turnLogs.push(`⚔️ YOUに${damaged.hpDamage}ダメージ`);
+  showPlayerEffect(`-${damaged.hpDamage}`, "damage");
+}
     if (summary.heal > 0) {
       const actual = healedEnemy - enemyHP;
       if (actual > 0) {
@@ -496,29 +561,51 @@ await new Promise((resolve) => {
       return;
     }
 
-    setTurnNumber((value) => value + 1);
-    setCurrentPlayer("player");
-    setEnergy((value) => Math.min(MAX_ENERGY, value + ENERGY_PER_TURN));
-    // 自分のターン開始時、前の自分のターンから残った盾は消える
-    setPlayerShield(0);
-    setIsProcessing(false);
+    const isPlayerFirstTurn =
+  firstPlayer === "cpu" &&
+  turnNumber === 1;
+
+setTurnNumber((value) => value + 1);
+setCurrentPlayer("player");
+
+// CPU先攻後のプレイヤー初回ターンは初期値3のまま
+if (!isPlayerFirstTurn) {
+  setEnergy((value) =>
+    Math.min(
+      MAX_ENERGY,
+      value + ENERGY_PER_TURN
+    )
+  );
+}
+
+setPlayerShield(0);
+setIsProcessing(false);
   }
 
   useEffect(() => {
-    if (
-      mode === "cpu" &&
-      currentPlayer === "cpu" &&
-      !winner &&
-      !isProcessing
-    ) {
-      executeCpuTurn();
-    }
-    // プレイヤーのターン終了処理が完了して isProcessing が false に戻った後、
-    // CPUターンを確実に開始する。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPlayer, mode, winner, isProcessing]);
+  if (
+    mode === "cpu" &&
+    currentPlayer === "cpu" &&
+    !winner &&
+    !isProcessing &&
+    !coinVisible
+  ) {
+    executeCpuTurn();
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [
+  currentPlayer,
+  mode,
+  winner,
+  isProcessing,
+  coinVisible,
+]);
 
   async function endCpuPlayerTurn() {
+    setPlayedCards(
+  selectedCards.map((selected) => selected.handIndex)
+);
     showCardAnimation(
     "player",
     selectedCards.map(
@@ -547,9 +634,12 @@ await new Promise((resolve) => {
 
     if (damaged.blocked > 0) turnLogs.push(`🛡️ CPUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
-      turnLogs.push(`⚔️ CPUに${damaged.hpDamage}ダメージ`);
-      showEnemyEffect(`-${damaged.hpDamage}`, "damage");
-    }
+  setScreenShake(true);
+  setTimeout(() => setScreenShake(false), 300);
+
+  turnLogs.push(`⚔️ CPUに${damaged.hpDamage}ダメージ`);
+  showEnemyEffect(`-${damaged.hpDamage}`, "damage");
+}
     if (summary.heal > 0) {
       const actual = healedPlayer - playerHP;
       if (actual > 0) {
@@ -561,6 +651,7 @@ await new Promise((resolve) => {
 
     addLogs(turnLogs);
     consumeSelectedCards();
+    setPlayedCards([]);
 
     if (damaged.hp <= 0) {
       setWinner("player");
@@ -595,6 +686,9 @@ await new Promise((resolve) => {
       ? Number(match.guest_shield || 0)
       : Number(match.host_shield || 0);
 
+      setPlayedCards(
+  selectedRef.current.map((selected) => selected.handIndex)
+);
       showCardAnimation(
   "player",
   selectedRef.current.map(
@@ -625,6 +719,8 @@ await new Promise((resolve) => {
       turnLogs.push(`🛡️ ${followingPlayer}の盾が${damageResult.blocked}ダメージ防御`);
     }
     if (damageResult.hpDamage > 0) {
+      setScreenShake(true);
+setTimeout(() => setScreenShake(false), 300);
       turnLogs.push(`⚔️ ${followingPlayer}に${damageResult.hpDamage}ダメージ`);
     }
     const actualHeal = healedHp - myHp;
@@ -686,6 +782,7 @@ await new Promise((resolve) => {
     }
 
     consumeSelectedCards();
+    setPlayedCards([]);
     syncMatchToView(updatedMatch);
     addLogs(turnLogs);
 
@@ -718,8 +815,39 @@ await new Promise((resolve) => {
           <h1>{isDraw ? "DRAW!" : playerWon ? "YOU WIN!" : "YOU LOSE..."}</h1>
           <p>{isDraw ? "引き分け！" : playerWon ? "勝利した！" : "次の戦いで取り返そう！"}</p>
           <div className="result-buttons">
-            <button type="button" onClick={restartGame}>🔄 もう一回</button>
-            <button type="button" onClick={goToMenu}>🏠 メニューへ戻る</button>
+           <button
+  type="button"
+  onClick={async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await updateStatus(user.id, "online");
+    }
+
+    restartGame();
+  }}
+>
+  🔄 もう一回
+</button>
+
+<button
+  type="button"
+  onClick={async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await updateStatus(user.id, "online");
+    }
+
+    goToMenu();
+  }}
+>
+  🏠 メニューへ戻る
+</button>
           </div>
         </div>
       </div>
@@ -731,43 +859,12 @@ await new Promise((resolve) => {
   }
 
   return (
-    <div className="app">
+    <div
+  className={`app ${
+    screenShake ? "screen-shake" : ""
+  }`}
+>
       <h1>CHAOS CARDS</h1>
-{cardAnimation && (
-  <div
-    key={cardAnimation.id}
-    className={`card-use-overlay ${
-      cardAnimation.side
-    }`}
-  >
-    <div className="card-use-label">
-      {cardAnimation.side === "player"
-        ? "YOU USED"
-        : "OPPONENT USED"}
-    </div>
-
-    <div className="used-card-list">
-      {cardAnimation.cards.map(
-        (card, index) => (
-          <div
-            className={`used-card used-card-${card.rarity?.toLowerCase()}`}
-            key={`${card.id}-${index}`}
-          >
-            <div className="used-card-emoji">
-              {card.emoji}
-            </div>
-
-            <strong>{card.name}</strong>
-
-            <small>
-              ⚡{card.cost}
-            </small>
-          </div>
-        )
-      )}
-    </div>
-  </div>
-)}
       {coinVisible && firstPlayer && (
         <div className="coin-toss-overlay">
           <div className="coin">🪙</div>
@@ -779,28 +876,35 @@ await new Promise((resolve) => {
         </div>
       )}
 
-      <div className="battle">
-        <div className={`player character-area ${!isMyTurn ? "active-turn" : ""}`}>
-          <h2>{mode === "online" ? "🌐 OPPONENT" : "🤖 CPU"}</h2>
-          {enemyEffect && <div className={`battle-effect ${enemyEffect.type}`}>{enemyEffect.text}</div>}
-          <div className="hp-text">❤️ {enemyHP}</div>
-          <div className="hp-bar">
-            <div className="hp-fill" style={{ width: `${Math.max(0, (enemyHP / MAX_HP) * 100)}%`, background: getHpColor(enemyHP, MAX_HP) }} />
-          </div>
-          <div className="shield-text">🛡️ {enemyShield}</div>
-        </div>
+      <div className="battle-status-grid">
+  <BattleStatus
+    name={mode === "online" ? "OPPONENT" : "CPU"}
+    icon={mode === "online" ? "🌐" : "🤖"}
+    hp={enemyHP}
+    maxHp={MAX_HP}
+    shield={enemyShield}
+    active={!isMyTurn}
+    effect={enemyEffect}
+    enemy
+  />
 
-        <div className={`player character-area ${isMyTurn ? "active-turn" : ""}`}>
-          <h2>😀 YOU</h2>
-          {playerEffect && <div className={`battle-effect ${playerEffect.type}`}>{playerEffect.text}</div>}
-          <div className="hp-text">❤️ {playerHP}</div>
-          <div className="hp-bar">
-            <div className="hp-fill" style={{ width: `${Math.max(0, (playerHP / MAX_HP) * 100)}%`, background: getHpColor(playerHP, MAX_HP) }} />
-          </div>
-          <div className="shield-text">🛡️ {playerShield}</div>
-          <div className="energy-text">⚡ {energy}/{MAX_ENERGY}</div>
-        </div>
-      </div>
+  <BattleStatus
+    name="YOU"
+    icon="😀"
+    hp={playerHP}
+    maxHp={MAX_HP}
+    shield={playerShield}
+    energy={energy}
+    maxEnergy={MAX_ENERGY}
+    active={isMyTurn}
+    effect={playerEffect}
+  />
+</div>
+
+<BattleField
+  isMyTurn={isMyTurn}
+  cardAnimation={cardAnimation}
+/>
 
       <div className={`turn-display ${isMyTurn ? "player-turn" : "cpu-turn"}`}>
         <strong>ターン {turnNumber}</strong>
@@ -809,20 +913,51 @@ await new Promise((resolve) => {
 
       <h3>手札</h3>
       <p className="deck-info">🃏 山札：{deck.length}枚　🗑️ 捨て札：{discardPile.length}枚</p>
-
+         
       <div className="hand">
-        {hand.map((card, index) => {
-          const isSelected = selectedCards.some((item) => item.handIndex === index);
-          const disabled = !isMyTurn || isProcessing || (!isSelected && energy < Number(card.cost));
+  {hand.map((card, index) => {
+    const isSelected = selectedCards.some(
+      (item) => item.handIndex === index
+    );
 
-          return (
-            <div className={`hand-card-wrapper ${isSelected ? "card-selected" : ""}`} key={`${card.id}-${index}`}>
-              <Card card={card} index={index} isDrawn={drawnIndex === index} disabled={disabled} onPlay={() => playCard(index)} />
-              {isSelected && <div className="selected-overlay"><span>選択中</span><small>もう一度押すと解除</small></div>}
-            </div>
-          );
-        })}
+    const disabled =
+      !isMyTurn ||
+      isProcessing ||
+      (!isSelected && energy < Number(card.cost));
+
+    const center = (hand.length - 1) / 2;
+    const angle = (index - center) * 6;
+    const offsetY = Math.abs(index - center) * 10;
+
+    return (
+      <div
+        key={`${card.id}-${index}`}
+        className={`hand-card-wrapper ${
+          isSelected ? "card-selected" : ""
+        }`}
+        style={{
+          "--card-angle": `${angle}deg`,
+          "--card-offset-y": `${offsetY}px`,
+        }}
+      >
+        <Card
+          card={card}
+          index={index}
+          isDrawn={drawnIndex === index}
+          disabled={disabled}
+          onPlay={() => playCard(index)}
+           isPlayed={playedCards.includes(index)}
+        />
+
+        {isSelected && (
+          <div className="selected-overlay">
+            ✓
+          </div>
+        )}
       </div>
+    );
+  })}
+</div>
 
       <button className="end-turn-button" onClick={endTurn} disabled={!isMyTurn || isProcessing}>
         {isProcessing ? "処理中…" : isMyTurn ? "ターン終了" : "相手のターンです"}

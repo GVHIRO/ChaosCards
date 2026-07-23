@@ -223,3 +223,25 @@
     0 0 8px #facc15,
     0 0 16px rgba(250, 204, 21, 0.9);
 }
+
+.card-played {
+  pointer-events: none;
+  animation: card-fly-to-field 0.65s ease-in forwards;
+}
+
+@keyframes card-fly-to-field {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  35% {
+    opacity: 1;
+    transform: translateY(-45px) scale(1.1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-260px) scale(0.72);
+  }
+}

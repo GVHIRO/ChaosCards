@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { updateStatus } from "../lib/status";
 import "../App.css";
 
 function createFriendCode() {
@@ -221,7 +222,7 @@ useEffect(() => {
         showNotification(
           "🎮 対戦招待が承認されました！"
         );
-
+await updateStatus(user.id, "battle");
         setMessage("対戦を開始しています…");
 
         try {
@@ -265,8 +266,9 @@ if (!room?.match_id) {
               "対戦開始処理が設定されていません"
             );
           }
-
+          await updateStatus(user.id, "battle");
           // 招待を送った側はguest
+          await updateStatus(user.id, "battle");
           onMatchStart(room.id, "host", room.match_id);
         } catch (error) {
           console.error(
@@ -315,7 +317,22 @@ if (!room?.match_id) {
       }
     };
   }, []);
+useEffect(() => {
+  if (!user) return;
 
+  const handleUnload = async () => {
+    await updateStatus(user.id, "offline");
+  };
+
+  window.addEventListener("beforeunload", handleUnload);
+
+  return () => {
+    window.removeEventListener(
+      "beforeunload",
+      handleUnload
+    );
+  };
+}, [user]);
   async function initializeFriends() {
     setLoading(true);
     setMessage("");
@@ -346,7 +363,7 @@ if (!room?.match_id) {
     if (currentProfile) {
       setProfile(currentProfile);
       setNickname(currentProfile.nickname);
-
+await updateStatus(currentUser.id, "online");
       await Promise.all([
         loadReceivedRequests(currentUser.id),
         loadFriends(currentUser.id),
@@ -710,10 +727,11 @@ if (!room?.match_id) {
       .select(`
         friend_id,
         friend:profiles!friends_friend_id_fkey (
-          id,
-          nickname,
-          friend_code
-        )
+  id,
+  nickname,
+  friend_code,
+  status
+)
       `)
       .eq("user_id", userId);
 
@@ -1035,12 +1053,14 @@ console.log("更新後の部屋:", updatedRoom);
     );
 
     showNotification(
-      "🎮 対戦招待を承認しました！"
-    );
+  "🎮 対戦招待を承認しました！"
+);
 
-    // 5. 承諾側をすぐ対戦画面へ移動
-    if (typeof onMatchStart === "function") {
-     onMatchStart(room.id, "guest", match.id);
+await updateStatus(user.id, "battle");
+
+// 5. 承諾側をすぐ対戦画面へ移動
+ if (typeof onMatchStart === "function") {
+      onMatchStart(room.id, "guest", match.id);
     } else {
       throw new Error(
         "対戦開始処理が設定されていません"
@@ -1101,10 +1121,13 @@ console.log("更新後の部屋:", updatedRoom);
     );
   }
 
-  if (loading) {
+    if (loading) {
     return (
       <div className="friends-page">
-        <p>読み込み中…</p>
+        <div className="friends-loading">
+          <div className="friends-loading-spinner" />
+          <p>FRIENDS DATA LOADING...</p>
+        </div>
       </div>
     );
   }
@@ -1112,41 +1135,51 @@ console.log("更新後の部屋:", updatedRoom);
   if (!profile) {
     return (
       <div className="friends-page">
-        <div className="friends-container">
+        <div className="friends-profile-create-card">
           <button
             className="friends-back-button"
             type="button"
             onClick={onBack}
           >
-            ← メニューに戻る
+            ← BACK
           </button>
 
-          <h1>フレンド</h1>
+          <div className="friends-create-icon">
+            👤
+          </div>
 
-          <section className="friends-section">
-            <h2>プロフィール作成</h2>
+          <p className="friends-eyebrow">
+            CHAOS CARDS
+          </p>
 
-            <p>
-              最初にゲーム内で使う名前を決めてください。
-            </p>
+          <h1>CREATE PROFILE</h1>
 
+          <p className="friends-create-description">
+            フレンド機能で使用する
+            ニックネームを設定してください。
+          </p>
+
+          <label className="friends-input-label">
+            NICKNAME
             <input
+              className="friends-input"
               type="text"
               value={nickname}
               maxLength={16}
-              placeholder="ニックネーム"
+              placeholder="1〜16文字"
               onChange={(event) =>
                 setNickname(event.target.value)
               }
             />
+          </label>
 
-            <button
-              type="button"
-              onClick={createProfile}
-            >
-              プロフィールを作成
-            </button>
-          </section>
+          <button
+            className="friends-primary-button"
+            type="button"
+            onClick={createProfile}
+          >
+            プロフィールを作成
+          </button>
 
           {message && (
             <p className="friends-message">
@@ -1175,16 +1208,26 @@ console.log("更新後の部屋:", updatedRoom);
         </div>
       )}
 
-      <div className="friends-container">
-        <button
-          className="friends-back-button"
-          type="button"
-          onClick={onBack}
-        >
-          ← メニューに戻る
-        </button>
+      <div className="friends-shell">
+        <header className="friends-header">
+          <button
+            className="friends-back-button"
+            type="button"
+            onClick={onBack}
+          >
+            ← BACK
+          </button>
 
-        <h1>フレンド</h1>
+          <div className="friends-header-title">
+            <span>CHAOS CARDS</span>
+            <h1>FRIENDS</h1>
+          </div>
+
+          <div className="friends-online-badge">
+            <span className="friends-online-dot" />
+            ONLINE
+          </div>
+        </header>
 
         {message && (
           <p className="friends-message">
@@ -1192,229 +1235,345 @@ console.log("更新後の部屋:", updatedRoom);
           </p>
         )}
 
-        <section className="friends-section">
-          <h2>自分のプロフィール</h2>
-
-          <label>
-            ニックネーム
-            <input
-              type="text"
-              value={nickname}
-              maxLength={16}
-              onChange={(event) =>
-                setNickname(event.target.value)
-              }
-            />
-          </label>
-
-          <button
-            type="button"
-            onClick={updateNickname}
-            disabled={
-              nickname.trim() ===
-              profile.nickname
-            }
-          >
-            名前を変更
-          </button>
-
-          <div className="friend-code-box">
-            <span>
-              自分のフレンドコード
-            </span>
-            <strong>
-              {profile.friend_code}
-            </strong>
-          </div>
-        </section>
-
-        <section className="friends-section">
-          <h2>フレンド申請を送る</h2>
-
-          <div className="friend-request-form">
-            <input
-              type="text"
-              value={friendCodeInput}
-              maxLength={8}
-              placeholder="8文字のフレンドコード"
-              onChange={(event) =>
-                setFriendCodeInput(
-                  event.target.value.toUpperCase()
-                )
-              }
-            />
-
-            <button
-              type="button"
-              onClick={sendFriendRequest}
-            >
-              申請する
-            </button>
-          </div>
-        </section>
-
-        <section className="friends-section">
-          <h2>
-            対戦招待（{matchInvites.length}）
-          </h2>
-
-          {matchInvites.length === 0 ? (
-            <p>
-              届いている対戦招待はありません。
-            </p>
-          ) : (
-            <div className="friend-list">
-              {matchInvites.map((invite) => (
-                <div
-                  className="friend-list-item"
-                  key={invite.id}
-                >
-                  <div>
-                    <strong>
-                      {invite.sender?.nickname ??
-                        "プレイヤー"}
-                    </strong>
-                    <small>
-                      対戦に招待しています
-                    </small>
-                  </div>
-
-                  <div className="friend-actions">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        acceptMatchInvite(
-                          invite
-                        )
-                      }
-                    >
-                      対戦する
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        rejectMatchInvite(
-                          invite
-                        )
-                      }
-                    >
-                      断る
-                    </button>
-                  </div>
+        <main className="friends-dashboard">
+          {/* 左カラム */}
+          <aside className="friends-sidebar">
+            <section className="friends-panel friends-profile-panel">
+              <div className="friends-panel-heading">
+                <div>
+                  <span>PLAYER DATA</span>
+                  <h2>YOUR PROFILE</h2>
                 </div>
-              ))}
+              </div>
+
+              <div className="friends-avatar">
+                {profile.nickname
+                  ?.charAt(0)
+                  .toUpperCase() || "?"}
+              </div>
+
+              <div className="friends-profile-name">
+                <span>PLAYER NAME</span>
+                <strong>{profile.nickname}</strong>
+              </div>
+
+              <label className="friends-input-label">
+                NICKNAME
+                <input
+                  className="friends-input"
+                  type="text"
+                  value={nickname}
+                  maxLength={16}
+                  onChange={(event) =>
+                    setNickname(event.target.value)
+                  }
+                />
+              </label>
+
+              <button
+                className="friends-secondary-button"
+                type="button"
+                onClick={updateNickname}
+                disabled={
+                  nickname.trim() ===
+                  profile.nickname
+                }
+              >
+                名前を変更
+              </button>
+
+              <div className="friend-code-box">
+                <span>YOUR FRIEND CODE</span>
+                <strong>
+                  {profile.friend_code}
+                </strong>
+              </div>
+            </section>
+
+            <section className="friends-panel friends-add-panel">
+              <div className="friends-panel-heading">
+                <div>
+                  <span>SEARCH PLAYER</span>
+                  <h2>ADD FRIEND</h2>
+                </div>
+              </div>
+
+              <p className="friends-panel-description">
+                相手の8文字のフレンドコードを
+                入力してください。
+              </p>
+
+              <input
+                className="friends-input friends-code-input"
+                type="text"
+                value={friendCodeInput}
+                maxLength={8}
+                placeholder="ABCD1234"
+                onChange={(event) =>
+                  setFriendCodeInput(
+                    event.target.value.toUpperCase()
+                  )
+                }
+              />
+
+              <button
+                className="friends-primary-button"
+                type="button"
+                onClick={sendFriendRequest}
+              >
+                ＋ フレンド申請
+              </button>
+            </section>
+          </aside>
+
+          {/* 中央カラム */}
+          <section className="friends-main-panel friends-panel">
+            <div className="friends-panel-heading friends-list-heading">
+              <div>
+                <span>CONNECTED PLAYERS</span>
+                <h2>FRIEND LIST</h2>
+              </div>
+
+              <div className="friends-count-badge">
+                {friends.length}
+              </div>
             </div>
-          )}
-        </section>
 
-        <section className="friends-section">
-          <h2>
-            届いた申請（
-            {receivedRequests.length}）
-          </h2>
+            {friends.length === 0 ? (
+              <div className="friends-empty-state">
+                <div className="friends-empty-icon">
+                  👥
+                </div>
 
-          {receivedRequests.length === 0 ? (
-            <p>
-              届いている申請はありません。
-            </p>
-          ) : (
-            <div className="friend-list">
-              {receivedRequests.map(
-                (request) => (
-                  <div
-                    className="friend-list-item"
-                    key={request.id}
+                <h3>NO FRIENDS YET</h3>
+
+                <p>
+                  フレンドコードを使って
+                  プレイヤーを追加しましょう。
+                </p>
+              </div>
+            ) : (
+              <div className="friends-card-list">
+                {friends.map((friend) => (
+                  <article
+                    className="friends-player-card"
+                    key={friend.id}
                   >
-                    <div>
-                      <strong>
-                        {
-                          request.sender
-                            .nickname
-                        }
-                      </strong>
+                    <div className="friends-player-avatar">
+                      {friend.nickname
+                        ?.charAt(0)
+                        .toUpperCase() || "?"}
+
+                      <span
+  className={`friends-status-dot ${
+    friend.status ?? "offline"
+  }`}
+/>
+                    </div>
+
+                    <div className="friends-player-info">
+                      <div className="friends-player-name-row">
+                        <strong>
+                          {friend.nickname}
+                        </strong>
+
+                        <span className="friends-status-label">
+  {friend.status === "battle"
+    ? "IN MATCH"
+    : friend.status === "online"
+    ? "ONLINE"
+    : "OFFLINE"}
+</span>
+                      </div>
+
                       <small>
-                        {
-                          request.sender
-                            .friend_code
-                        }
+                        ID: {friend.friend_code}
                       </small>
                     </div>
 
                     <div className="friend-actions">
                       <button
+                        className="friends-invite-button"
                         type="button"
                         onClick={() =>
-                          acceptFriendRequest(
-                            request
-                          )
+                          sendMatchInvite(friend)
                         }
                       >
-                        承認
+                        ⚔ CHALLENGE
                       </button>
 
                       <button
+                        className="delete-friend-button"
                         type="button"
                         onClick={() =>
-                          rejectFriendRequest(
-                            request
-                          )
+                          deleteFriend(friend)
                         }
+                        aria-label={`${friend.nickname}を削除`}
                       >
-                        拒否
+                        🗑
                       </button>
                     </div>
-                  </div>
-                )
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* 右カラム */}
+          <aside className="friends-notification-column">
+            <section className="friends-panel">
+              <div className="friends-panel-heading">
+                <div>
+                  <span>BATTLE REQUESTS</span>
+                  <h2>MATCH INVITES</h2>
+                </div>
+
+                <div className="friends-count-badge">
+                  {matchInvites.length}
+                </div>
+              </div>
+
+              {matchInvites.length === 0 ? (
+                <div className="friends-mini-empty">
+                  <span>⚔️</span>
+                  <p>
+                    対戦招待はありません
+                  </p>
+                </div>
+              ) : (
+                <div className="friends-request-list">
+                  {matchInvites.map((invite) => (
+                    <article
+                      className="friends-request-card friends-match-request"
+                      key={invite.id}
+                    >
+                      <div className="friends-request-header">
+                        <div className="friends-small-avatar">
+                          {invite.sender?.nickname
+                            ?.charAt(0)
+                            .toUpperCase() || "?"}
+                        </div>
+
+                        <div>
+                          <strong>
+                            {invite.sender?.nickname ??
+                              "プレイヤー"}
+                          </strong>
+
+                          <small>
+                            対戦に招待しています
+                          </small>
+                        </div>
+                      </div>
+
+                      <div className="friends-request-actions">
+                        <button
+                          className="friends-accept-button"
+                          type="button"
+                          onClick={() =>
+                            acceptMatchInvite(invite)
+                          }
+                        >
+                          対戦する
+                        </button>
+
+                        <button
+                          className="friends-reject-button"
+                          type="button"
+                          onClick={() =>
+                            rejectMatchInvite(invite)
+                          }
+                        >
+                          断る
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               )}
-            </div>
-          )}
-        </section>
+            </section>
 
-        <section className="friends-section">
-          <h2>
-            フレンド一覧（{friends.length}）
-          </h2>
+            <section className="friends-panel">
+              <div className="friends-panel-heading">
+                <div>
+                  <span>PLAYER REQUESTS</span>
+                  <h2>FRIEND REQUESTS</h2>
+                </div>
 
-          {friends.length === 0 ? (
-            <p>フレンドはまだいません。</p>
-          ) : (
-            <div className="friend-list">
-              {friends.map((friend) => (
-                <div
-                  className="friend-list-item"
-                  key={friend.id}
-                >
-                  <div>
-                    <strong>
-                      {friend.nickname}
-                    </strong>
-                    <small>
-                      {friend.friend_code}
-                    </small>
-                  </div>
+                <div className="friends-count-badge">
+                  {receivedRequests.length}
+                </div>
+              </div>
 
-                  <div className="friend-actions">
-  <button
-    type="button"
-    onClick={() => sendMatchInvite(friend)}
-  >
-    ⚔️ 対戦を申し込む
-  </button>
+              {receivedRequests.length === 0 ? (
+                <div className="friends-mini-empty">
+                  <span>👤</span>
+                  <p>
+                    フレンド申請はありません
+                  </p>
+                </div>
+              ) : (
+                <div className="friends-request-list">
+                  {receivedRequests.map(
+                    (request) => (
+                      <article
+                        className="friends-request-card"
+                        key={request.id}
+                      >
+                        <div className="friends-request-header">
+                          <div className="friends-small-avatar">
+                            {request.sender.nickname
+                              ?.charAt(0)
+                              .toUpperCase() || "?"}
+                          </div>
 
-  <button
-    type="button"
-    className="delete-friend-button"
-    onClick={() => deleteFriend(friend)}
-  >
-    🗑️ 削除
-  </button>
-</div>
-                  </div>
-              ))}
-            </div>
-          )}
-        </section>
+                          <div>
+                            <strong>
+                              {request.sender.nickname}
+                            </strong>
+
+                            <small>
+                              {
+                                request.sender
+                                  .friend_code
+                              }
+                            </small>
+                          </div>
+                        </div>
+
+                        <div className="friends-request-actions">
+                          <button
+                            className="friends-accept-button"
+                            type="button"
+                            onClick={() =>
+                              acceptFriendRequest(
+                                request
+                              )
+                            }
+                          >
+                            承認
+                          </button>
+
+                          <button
+                            className="friends-reject-button"
+                            type="button"
+                            onClick={() =>
+                              rejectFriendRequest(
+                                request
+                              )
+                            }
+                          >
+                            拒否
+                          </button>
+                        </div>
+                      </article>
+                    )
+                  )}
+                </div>
+              )}
+            </section>
+          </aside>
+        </main>
       </div>
     </div>
   );

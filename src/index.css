@@ -1,3 +1,10 @@
+@import "./styles/theme.css";
+@import "./styles/button.css";
+@import "./styles/panel.css";
+@import "./styles/card.css";
+@import "./styles/input.css";
+@import "./styles/animation.css";
+
 body {
   margin: 0;
 
@@ -32,32 +39,6 @@ h1 {
   flex-direction: column;
   gap: 15px;
   margin-top: 30px;
-}
-
-button {
-  width: 320px;
-  padding: 18px;
-
-  font-size: 22px;
-  font-weight: bold;
-
-  color: white;
-
-  background: linear-gradient(90deg,#2563eb,#3b82f6);
-
-  border: none;
-  border-radius: 15px;
-
-  cursor: pointer;
-
-  transition: all .2s;
-}
-
-button:hover{
-    transform: translateY(-4px) scale(1.03);
-
-    box-shadow:
-      0 0 20px #2563eb;
 }
 
 .version {
