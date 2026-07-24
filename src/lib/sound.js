@@ -155,20 +155,38 @@ export async function playSound(name) {
 }
 
 let battleBgm = null;
+let battleBgmPlaying = false;
 
 export function startBattleBgm() {
   if (!battleBgm) {
     battleBgm = new Audio("/sounds/battle-bgm.mp3");
     battleBgm.loop = true;
+    battleBgm.preload = "auto";
   }
 
   const settings = getSettings();
 
-  battleBgm.volume =
-    defaultVolumes.bgm *
-    (settings.bgmVolume / 100);
+  const finalVolume = Math.max(
+    0,
+    Math.min(
+      1,
+      defaultVolumes.bgm *
+        (Number(settings.bgmVolume) / 100)
+    )
+  );
 
-  battleBgm.play().catch(console.warn);
+  battleBgm.volume = finalVolume;
+
+  if (!battleBgmPlaying) {
+    battleBgm
+      .play()
+      .then(() => {
+        battleBgmPlaying = true;
+      })
+      .catch((error) => {
+        console.warn("BGM再生エラー:", error);
+      });
+  }
 }
 
 export function stopBattleBgm() {
@@ -176,12 +194,43 @@ export function stopBattleBgm() {
 
   battleBgm.pause();
   battleBgm.currentTime = 0;
+  battleBgmPlaying = false;
 }
 
-export function setBattleBgmVolume(volume) {
+export async function setBattleBgmVolume(volume) {
   if (!battleBgm) return;
 
-  battleBgm.volume =
-    defaultVolumes.bgm *
-    (Number(volume) / 100);
+  const finalVolume = Math.max(
+    0,
+    Math.min(
+      1,
+      defaultVolumes.bgm *
+        (Number(volume) / 100)
+    )
+  );
+
+  const wasPlaying =
+    battleBgmPlaying && !battleBgm.paused;
+
+  battleBgm.volume = finalVolume;
+
+  // iPhone Safari対策
+  if (wasPlaying) {
+    const currentTime = battleBgm.currentTime;
+
+    battleBgm.pause();
+    battleBgmPlaying = false;
+
+    battleBgm.currentTime = currentTime;
+
+    try {
+      await battleBgm.play();
+      battleBgmPlaying = true;
+    } catch (error) {
+      console.warn(
+        "BGM音量変更後の再生エラー:",
+        error
+      );
+    }
+  }
 }
