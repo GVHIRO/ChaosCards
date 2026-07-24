@@ -446,7 +446,13 @@ useEffect(() => {
       window.setTimeout(() => setCoinVisible(false), 1700);
     }
   }, [addLogs, drawFromDeck, mode]);
-
+function getSelectedEnergyCost() {
+  return selectedRef.current.reduce(
+    (total, selected) =>
+      total + Number(selected.card?.cost || 0),
+    0
+  );
+}
   const syncMatchToView = useCallback(
     (match) => {
       matchRef.current = match;
@@ -456,25 +462,47 @@ useEffect(() => {
       setFirstPlayer(match.first_player);
 
       if (playerRole === "host") {
-  const nextEnergy = Number(match.host_energy);
+  const serverEnergy =
+  Number(match.host_energy) || 0;
 
-  setPlayerHP(match.host_hp);
-  setEnemyHP(match.guest_hp);
-  setPlayerShield(match.host_shield || 0);
-  setEnemyShield(match.guest_shield || 0);
+const selectedCost =
+  match.current_player === playerRole
+    ? getSelectedEnergyCost()
+    : 0;
 
-  energyRef.current = nextEnergy;
-  setEnergy(nextEnergy);
+const nextEnergy = Math.max(
+  0,
+  serverEnergy - selectedCost
+);
+
+setPlayerHP(match.host_hp);
+setEnemyHP(match.guest_hp);
+setPlayerShield(match.host_shield || 0);
+setEnemyShield(match.guest_shield || 0);
+
+energyRef.current = nextEnergy;
+setEnergy(nextEnergy);
 } else {
-  const nextEnergy = Number(match.guest_energy);
+  const serverEnergy =
+  Number(match.guest_energy) || 0;
 
-  setPlayerHP(match.guest_hp);
-  setEnemyHP(match.host_hp);
-  setPlayerShield(match.guest_shield || 0);
-  setEnemyShield(match.host_shield || 0);
+const selectedCost =
+  match.current_player === playerRole
+    ? getSelectedEnergyCost()
+    : 0;
 
-  energyRef.current = nextEnergy;
-  setEnergy(nextEnergy);
+const nextEnergy = Math.max(
+  0,
+  serverEnergy - selectedCost
+);
+
+setPlayerHP(match.guest_hp);
+setEnemyHP(match.host_hp);
+setPlayerShield(match.guest_shield || 0);
+setEnemyShield(match.host_shield || 0);
+
+energyRef.current = nextEnergy;
+setEnergy(nextEnergy);
 }
 
       if (
@@ -1094,6 +1122,22 @@ await new Promise((resolve) => {
   window.setTimeout(resolve, 650);
 });
     const summary = summarizeCards(selectedRef.current);
+    const spentEnergy =
+  selectedRef.current.reduce(
+    (total, selected) =>
+      total +
+      Number(selected.card?.cost || 0),
+    0
+  );
+
+const serverMyEnergy = actingIsHost
+  ? Number(match.host_energy) || 0
+  : Number(match.guest_energy) || 0;
+
+const remainingEnergy = Math.max(
+  0,
+  serverMyEnergy - spentEnergy
+);
     const damageResult = applyDamage(opponentHp, opponentShield, summary.damage);
     const healedHp = Math.min(MAX_HP, myHp + summary.heal);
     const currentMyShield = actingIsHost
@@ -1151,7 +1195,7 @@ if (actualHeal > 0) {
    if (actingIsHost) {
   updates.host_hp = healedHp;
   updates.host_shield = newMyShield;
-  updates.host_energy = energyRef.current;
+  updates.host_energy = remainingEnergy;
 
   updates.guest_hp = damageResult.hp;
   updates.guest_shield = matchWinner
@@ -1170,7 +1214,7 @@ if (actualHeal > 0) {
 } else {
   updates.guest_hp = healedHp;
   updates.guest_shield = newMyShield;
-  updates.guest_energy = energyRef.current;
+  updates.guest_energy = remainingEnergy;
 
   updates.host_hp = damageResult.hp;
   updates.host_shield = matchWinner
