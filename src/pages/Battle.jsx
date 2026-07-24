@@ -218,7 +218,13 @@ export default function Battle({
   const energyRef = useRef(energy);
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
-
+  const previousTurnRef = useRef(null);
+  const selectedRef = useRef(selectedCards);
+const energyRef = useRef(energy);
+const matchRef = useRef(null);
+useEffect(() => {
+  energyRef.current = energy;
+}, [energy]);
   useEffect(() => {
     handRef.current = hand;
   }, [hand]);
@@ -432,25 +438,25 @@ useEffect(() => {
       setFirstPlayer(match.first_player);
 
       if (playerRole === "host") {
-  const syncedEnergy = Number(match.host_energy);
+  const nextEnergy = Number(match.host_energy);
 
   setPlayerHP(match.host_hp);
   setEnemyHP(match.guest_hp);
   setPlayerShield(match.host_shield || 0);
   setEnemyShield(match.guest_shield || 0);
 
-  energyRef.current = syncedEnergy;
-  setEnergy(syncedEnergy);
+  energyRef.current = nextEnergy;
+  setEnergy(nextEnergy);
 } else {
-  const syncedEnergy = Number(match.guest_energy);
+  const nextEnergy = Number(match.guest_energy);
 
   setPlayerHP(match.guest_hp);
   setEnemyHP(match.host_hp);
   setPlayerShield(match.guest_shield || 0);
   setEnemyShield(match.host_shield || 0);
 
-  energyRef.current = syncedEnergy;
-  setEnergy(syncedEnergy);
+  energyRef.current = nextEnergy;
+  setEnergy(nextEnergy);
 }
 
       if (match.phase === "finished" && match.winner) {
@@ -510,7 +516,11 @@ useEffect(() => {
 
   // 最優先で試合状態を同期する
   syncMatchToView(next);
+
+if (previousTurnRef.current !== next.current_player) {
+  previousTurnRef.current = next.current_player;
   showTurnPopup(next.current_player === playerRole);
+}
 if (
   next.phase === "finished" &&
   next.finish_reason === "disconnect"
@@ -733,37 +743,42 @@ function showTurnPopup(myTurn) {
   function playCard(index) {
   if (!isMyTurn || isProcessing || winner) return;
 
-  const card = hand[index];
+  const card = handRef.current[index];
   if (!card) return;
 
   const cardCost = Number(card.cost || 0);
 
-  const selectedIndex = selectedRef.current.findIndex(
-    (item) => item.handIndex === index
-  );
+  const selectedIndex =
+    selectedRef.current.findIndex(
+      (item) => item.handIndex === index
+    );
 
   // 選択解除
   if (selectedIndex >= 0) {
+    const nextSelected =
+      selectedRef.current.filter(
+        (_, itemIndex) =>
+          itemIndex !== selectedIndex
+      );
+
     const nextEnergy = Math.min(
       MAX_ENERGY,
       energyRef.current + cardCost
     );
 
+    selectedRef.current = nextSelected;
     energyRef.current = nextEnergy;
+
+    setSelectedCards(nextSelected);
     setEnergy(nextEnergy);
 
-    const nextSelected = selectedRef.current.filter(
-      (_, itemIndex) => itemIndex !== selectedIndex
-    );
-
-    selectedRef.current = nextSelected;
-    setSelectedCards(nextSelected);
-
-    addLogs([`↩️ ${card.name}の選択を解除`]);
+    addLogs([
+      `↩️ ${card.name}の選択を解除`,
+    ]);
     return;
   }
 
-  // 最新のエネルギー値でチェック
+  // 最新値でエネルギー判定
   if (energyRef.current < cardCost) {
     addLogs(["⚡ エネルギーが足りない！"]);
     return;
@@ -771,7 +786,9 @@ function showTurnPopup(myTurn) {
 
   playSound("card");
 
-  const nextEnergy = energyRef.current - cardCost;
+  const nextEnergy =
+    energyRef.current - cardCost;
+
   const nextSelected = [
     ...selectedRef.current,
     {
@@ -780,7 +797,7 @@ function showTurnPopup(myTurn) {
     },
   ];
 
-  // state更新を待たず、refを先に更新する
+  // Reactの描画より先にRefを更新
   energyRef.current = nextEnergy;
   selectedRef.current = nextSelected;
 
@@ -788,7 +805,7 @@ function showTurnPopup(myTurn) {
   setSelectedCards(nextSelected);
 
   addLogs([
-    `✅ ${card.name}を選択（-${cardCost}エネルギー）`,
+    `✅ ${card.name}を選択（⚡-${cardCost}）`,
   ]);
 }
 
