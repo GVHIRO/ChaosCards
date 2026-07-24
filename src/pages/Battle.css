@@ -780,7 +780,7 @@
     margin: 0 !important;
     padding: 12px 10px 20px !important;
 
-    overflow-x: auto !important;
+    overflow-x: visible !important;
     overflow-y: hidden !important;
 
     scroll-snap-type: x mandatory;
@@ -1884,5 +1884,1940 @@
     width: calc(100vw - 40px);
     padding: 22px 20px;
     font-size: 1.7rem;
+  }
+}
+
+/* =========================================================
+   ENERGY — EMOJI ONLY
+   四角形を消し、⚡だけを表示する
+========================================================= */
+
+.battle-page .resource-row {
+  display: grid !important;
+  grid-template-columns: 68px minmax(0, 1fr) 68px !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.battle-page .deck-counter {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.battle-page .energy-panel {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  padding: 9px 8px !important;
+  overflow: hidden !important;
+}
+
+.battle-page .energy-panel-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+
+  min-width: 0 !important;
+}
+
+.battle-page .energy-orbs {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 2px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 25px !important;
+
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* 古い長方形スタイルを完全に解除 */
+.battle-page .battle-controls .energy-panel
+.energy-orbs .energy-orb {
+  display: inline-grid !important;
+  place-items: center !important;
+
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: rgba(87, 108, 138, 0.34) !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-family:
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Noto Color Emoji",
+    sans-serif !important;
+
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+  filter: grayscale(1) !important;
+  opacity: 0.42 !important;
+
+  transform: none;
+}
+
+.battle-page .energy-orb::before,
+.battle-page .energy-orb::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* 現在使えるエネルギー */
+.battle-page .battle-controls .energy-panel
+.energy-orbs .energy-orb.filled {
+  color: #ffd83d !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  filter: none !important;
+  opacity: 1 !important;
+
+  text-shadow:
+    0 0 5px rgba(255, 216, 61, 0.95),
+    0 0 12px rgba(255, 167, 31, 0.72) !important;
+}
+
+/* 次の自分ターンで追加されるエネルギー */
+.battle-page .battle-controls .energy-panel
+.energy-orbs .energy-orb.next-energy {
+  color: #66ddff !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  filter: none !important;
+
+  animation:
+    next-energy-blink
+    1s
+    ease-in-out
+    infinite !important;
+}
+
+.battle-page .energy-orb.next-energy:nth-child(2) {
+  animation-delay: 0.1s !important;
+}
+
+.battle-page .energy-orb.next-energy:nth-child(3) {
+  animation-delay: 0.2s !important;
+}
+
+.battle-page .energy-orb.next-energy:nth-child(4) {
+  animation-delay: 0.3s !important;
+}
+
+.battle-page .energy-orb.next-energy:nth-child(5) {
+  animation-delay: 0.4s !important;
+}
+
+@keyframes next-energy-blink {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.86);
+    text-shadow:
+      0 0 2px rgba(102, 221, 255, 0.28);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.12);
+    text-shadow:
+      0 0 6px rgba(102, 221, 255, 1),
+      0 0 14px rgba(43, 177, 255, 0.82);
+  }
+}
+
+@media (max-width: 480px) {
+  .battle-page .resource-row {
+    grid-template-columns:
+      60px minmax(0, 1fr) 60px !important;
+    gap: 6px !important;
+  }
+
+  .battle-page .energy-panel {
+    padding-right: 5px !important;
+    padding-left: 5px !important;
+  }
+
+  .battle-page .energy-orbs {
+    gap: 0 !important;
+  }
+
+  .battle-page .battle-controls .energy-panel
+  .energy-orbs .energy-orb {
+    flex-basis: 17px !important;
+    width: 17px !important;
+    min-width: 17px !important;
+    max-width: 17px !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-page .energy-orb.next-energy {
+    animation: none !important;
+    opacity: 0.72 !important;
+  }
+}
+
+/* =========================================================
+   SELECTED CARD ENERGY PREVIEW
+   選択中カードの消費予定エネルギー
+========================================================= */
+
+.battle-page .battle-controls .energy-panel
+.energy-orbs .energy-orb.reserved-energy {
+  color: rgba(255, 216, 61, 0.52) !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  opacity: 0.4 !important;
+  filter:
+    grayscale(0.18)
+    saturate(0.7) !important;
+
+  transform: scale(0.94);
+
+  text-shadow:
+    0 0 3px rgba(255, 216, 61, 0.42),
+    0 0 8px rgba(255, 167, 31, 0.24) !important;
+
+  transition:
+    color 160ms ease,
+    opacity 160ms ease,
+    filter 160ms ease,
+    transform 160ms ease,
+    text-shadow 160ms ease !important;
+}
+
+/* 選択中カードで消費予定のエネルギー */
+.battle-page .energy-orb.reserved-energy {
+  color: #ffd83d !important;
+  opacity: 0.35 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  filter:
+    grayscale(0.35)
+    saturate(0.65) !important;
+
+  transform: scale(0.92);
+
+  text-shadow:
+    0 0 3px rgba(255, 216, 61, 0.35),
+    0 0 7px rgba(255, 167, 31, 0.18) !important;
+}
+
+/* =========================================================
+   PC BATTLE LAYOUT
+   上端はフィールドと同じ
+   下端はターン終了エリア下のラインまで
+========================================================= */
+
+/* PC以外では現在の配置を維持 */
+.battle-page .battle-main-area,
+.battle-page .battle-stage-layout,
+.battle-page .battle-stage-field {
+  display: contents;
+}
+
+@media (min-width: 1100px) {
+  .battle-page,
+  .battle-page .battle-content {
+    overflow: visible !important;
+  }
+
+  /*
+    バトルフィールドと操作欄をまとめた領域
+    この領域の上から下までステータスを伸ばす
+  */
+  .battle-page .battle-main-area {
+    position: relative !important;
+    display: block !important;
+
+    width: min(1120px, calc(100% - 32px)) !important;
+    min-width: 0 !important;
+
+    margin: 18px auto 0 !important;
+    padding-bottom: 18px !important;
+
+    border-bottom:
+      1px solid rgba(65, 141, 202, 0.13);
+
+    overflow: visible !important;
+  }
+
+  /* バトルフィールドの幅は今のまま */
+  .battle-page .battle-stage-layout {
+    position: static !important;
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    overflow: visible !important;
+  }
+
+  .battle-page .battle-stage-field {
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+  }
+
+  .battle-page
+  .battle-stage-field
+  .battle-field {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+  }
+
+  /*
+    ステータス2枚を
+    battle-main-area基準で配置する
+  */
+  .battle-page
+  .battle-stage-layout
+  > .battle-status-grid {
+    display: contents !important;
+  }
+
+  /*
+    ステータス共通
+
+    top: 0
+    → 上端は今の位置
+
+    bottom: 0
+    → ターン終了の下のラインまで
+  */
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > * {
+    position: absolute !important;
+
+    top: 0 !important;
+    bottom: 0 !important;
+
+    width: clamp(
+      360px,
+      30vw,
+      560px
+    ) !important;
+
+    min-width: 360px !important;
+    max-width: 560px !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 30px 28px !important;
+
+    box-sizing: border-box !important;
+
+    transform: none !important;
+
+    z-index: 20 !important;
+  }
+
+  /* 敵ステータスを左外側へ */
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :first-child {
+    right: calc(100% + 20px) !important;
+    left: auto !important;
+  }
+
+  /* YOUステータスを右外側へ */
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :last-child {
+    left: calc(100% + 20px) !important;
+    right: auto !important;
+  }
+
+  /*
+    ラインをbattle-main-area側へ移したので、
+    手札側の重複ラインを消す
+  */
+  .battle-page .hand-section {
+    margin-top: 18px !important;
+    border-top: 0 !important;
+  }
+}
+
+/* =========================================================
+   PC HAND + BATTLE LOG LAYOUT
+
+   バトルログ ｜ 右寄せの小さめ手札
+========================================================= */
+
+/* PC以外では従来の縦並び */
+.battle-page .battle-bottom-layout,
+.battle-page .battle-log-column {
+  display: contents;
+}
+
+@media (min-width: 1100px) {
+  .battle-page .battle-bottom-layout {
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(260px, 320px)
+      minmax(0, 1fr);
+
+    align-items: start;
+    gap: 24px;
+
+    width: min(1120px, calc(100% - 32px));
+    margin: 18px auto 0;
+  }
+
+  /* 左側のバトルログ */
+  .battle-page .battle-log-column {
+    display: block !important;
+
+    min-width: 0;
+    padding-top: 15px;
+  }
+
+  .battle-page .battle-log-column > * {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* 右側の手札エリア */
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding-top: 15px !important;
+
+    border-top: 0 !important;
+  }
+
+  /* 手札見出しも右側の範囲に合わせる */
+  .battle-page
+  .battle-bottom-layout
+  .hand-section-header {
+    width: 100% !important;
+    margin: 0 0 8px !important;
+  }
+
+  /* カード全体を右寄せ */
+  .battle-page .hand-desktop {
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+
+    width: 100% !important;
+    min-height: 360px !important;
+
+    padding:
+      34px
+      8px
+      20px
+      30px !important;
+
+    overflow: visible !important;
+  }
+
+  /*
+    カードを少し小さくする。
+    元の角度と高さを残したまま縮小。
+  */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    margin-inline: -28px !important;
+
+    transform:
+      translateY(var(--card-offset-y))
+      rotate(var(--card-angle))
+      scale(0.86) !important;
+
+    transform-origin:
+      center bottom !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:first-child {
+    margin-left: 0 !important;
+  }
+
+  /* ホバー時も元サイズより少し小さめ */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30;
+
+    transform:
+      translateY(-25px)
+      rotate(0deg)
+      scale(0.94) !important;
+  }
+}
+
+/* =========================================================
+   PC 1画面レイアウト 修正版
+
+   ・バトルフィールドは以前のサイズ
+   ・ステータスは画面内
+   ・バトルログ＋手札は画面幅いっぱい
+   ・手札は扇形にしない
+========================================================= */
+
+@media (min-width: 1200px) {
+  .battle-page {
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+
+    padding: 8px 0 0 !important;
+
+    overflow-x: hidden !important;
+  }
+
+  .battle-page .battle-content {
+    display: grid !important;
+
+    grid-template-rows:
+      auto
+      auto
+      minmax(0, 1fr) !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  /* タイトル */
+  .battle-page .battle-content > h1 {
+    margin: 0 0 10px !important;
+
+    font-size: clamp(
+      46px,
+      4vw,
+      64px
+    ) !important;
+
+    line-height: 1 !important;
+  }
+
+  /* =====================================================
+     上側：バトルフィールド＋ステータス＋操作欄
+  ===================================================== */
+
+  /*
+    中央部分は920px固定。
+    前のスクショに近いバトルフィールド幅。
+  */
+  .battle-page .battle-main-area {
+    position: relative !important;
+    display: block !important;
+
+    width: min(
+      920px,
+      calc(100vw - 520px)
+    ) !important;
+
+    min-width: 700px !important;
+
+    margin: 0 auto !important;
+    padding-bottom: 10px !important;
+
+    overflow: visible !important;
+  }
+
+  .battle-page .battle-stage-layout {
+    position: static !important;
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    overflow: visible !important;
+  }
+
+  .battle-page .battle-stage-field {
+    display: flex !important;
+    justify-content: center !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+  }
+
+  /*
+    バトルフィールドを以前のサイズへ戻す。
+
+    max-width:none は使わない。
+  */
+  .battle-page
+  .battle-stage-field
+  .battle-field {
+    width: min(
+      920px,
+      100%
+    ) !important;
+
+    max-width: 920px !important;
+    min-width: 0 !important;
+
+    margin: 0 auto !important;
+  }
+
+  /* 操作欄はこれまでの幅 */
+  .battle-page .battle-controls {
+    width: min(
+      760px,
+      100%
+    ) !important;
+
+    margin:
+      12px
+      auto
+      0 !important;
+  }
+
+  /* =====================================================
+     左右のステータス
+  ===================================================== */
+
+  .battle-page
+  .battle-stage-layout
+  > .battle-status-grid {
+    display: contents !important;
+  }
+
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > * {
+    position: absolute !important;
+
+    top: 0 !important;
+    bottom: 10px !important;
+
+    /*
+      中央920px以外の余白から自動で横幅を計算
+    */
+    width: clamp(
+      220px,
+      calc(
+        (100vw - 920px) / 2 - 24px
+      ),
+      390px
+    ) !important;
+
+    min-width: 0 !important;
+    max-width: 390px !important;
+
+    height: auto !important;
+
+    margin: 0 !important;
+    padding: 28px 24px !important;
+
+    box-sizing: border-box !important;
+
+    transform: none !important;
+
+    overflow: hidden !important;
+
+    z-index: 20 !important;
+  }
+
+  /* 敵 */
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :first-child {
+    right: calc(
+      100% + 16px
+    ) !important;
+
+    left: auto !important;
+  }
+
+  /* YOU */
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :last-child {
+    left: calc(
+      100% + 16px
+    ) !important;
+
+    right: auto !important;
+  }
+
+  /* =====================================================
+     下側：バトルログ＋手札
+  ===================================================== */
+
+  /*
+    中央920pxではなく、
+    PC画面の横幅に合わせる
+  */
+  .battle-page .battle-bottom-layout {
+    display: grid !important;
+
+    grid-template-columns:
+      clamp(
+        300px,
+        23vw,
+        430px
+      )
+      minmax(0, 1fr) !important;
+
+    align-items: stretch !important;
+    gap: 20px !important;
+
+    width: calc(
+      100vw - 32px
+    ) !important;
+
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+
+    margin:
+      8px
+      auto
+      0 !important;
+
+    padding: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  /* バトルログ */
+  .battle-page .battle-log-column {
+    display: block !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+
+    padding: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .battle-log-column
+  > * {
+    width: 100% !important;
+    max-width: none !important;
+
+    height: 100% !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  /* 手札エリア */
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-top: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .battle-bottom-layout
+  .hand-section-header {
+    width: 100% !important;
+
+    margin:
+      0
+      0
+      4px !important;
+
+    padding:
+      0
+      8px !important;
+  }
+
+  /*
+    扇形をやめて横一列。
+    右側へ寄せる。
+  */
+  .battle-page .hand-desktop {
+    display: flex !important;
+
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+    height: calc(
+      100% - 42px
+    ) !important;
+
+    min-height: 0 !important;
+
+    margin: 0 !important;
+
+    padding:
+      12px
+      10px
+      0
+      20px !important;
+
+    overflow: hidden !important;
+  }
+
+  /*
+    zoomを使うことで、
+    見た目だけでなく占有サイズも縮小する。
+  */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    flex: 0 0 auto !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+
+    transform-origin:
+      center top !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    transform:
+      translateY(-10px)
+      scale(1.04) !important;
+  }
+}
+
+/* 高さが低いPC */
+@media
+  (min-width: 1200px)
+  and (max-height: 850px) {
+
+  .battle-page .battle-content > h1 {
+    margin-bottom: 7px !important;
+    font-size: 52px !important;
+  }
+
+  .battle-page .battle-controls {
+    margin-top: 8px !important;
+  }
+
+  .battle-page .battle-bottom-layout {
+    margin-top: 5px !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+  }
+
+  .battle-page .hand-desktop {
+    padding-top: 7px !important;
+  }
+}
+
+/* =========================================================
+   PC下部レイアウト
+   バトルログ 50% ｜ 手札 50%
+========================================================= */
+
+@media (min-width: 1200px) {
+  .battle-page .battle-bottom-layout {
+    display: grid !important;
+
+    /* 左右を完全に半分ずつ */
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+
+    align-items: stretch !important;
+    gap: 18px !important;
+
+    /* 画面の横幅をほぼ全部使う */
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    margin: 8px auto 0 !important;
+    padding: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  /* 左半分：バトルログ */
+  .battle-page .battle-log-column {
+    display: block !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .battle-page .battle-log-column > * {
+    width: 100% !important;
+    max-width: none !important;
+
+    height: 100% !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /* 右半分：手札 */
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-top: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .battle-bottom-layout
+  .hand-section-header {
+    width: 100% !important;
+    margin: 0 0 5px !important;
+    padding: 0 8px !important;
+  }
+
+  /*
+    手札は右寄せせず中央へ。
+    扇形も解除して横一列。
+  */
+  .battle-page .hand-desktop {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+
+    gap: 6px !important;
+
+    width: 100% !important;
+    height: calc(100% - 42px) !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 12px 8px 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    flex: 0 0 auto !important;
+
+    margin: 0 -10px !important;
+
+    
+
+    transform: none !important;
+    rotate: 0deg !important;
+
+    transform-origin: center top !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:first-child {
+    margin-left: 0 !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:last-child {
+    margin-right: 0 !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    transform:
+      translateY(-10px)
+      scale(1.04) !important;
+  }
+}
+
+/* =========================================================
+   PC手札の間隔 + バトルログ二重スクロール修正
+========================================================= */
+
+@media (min-width: 1200px) {
+  /* =====================================================
+     手札：カード同士の間隔を広げる
+  ===================================================== */
+
+  .battle-page .hand-desktop {
+    justify-content: center !important;
+
+    /* 以前の6pxより広くする */
+    gap: clamp(12px, 1vw, 18px) !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    /* マイナスマージンで重なっていたのを解除 */
+    margin: 0 !important;
+  }
+
+  /* =====================================================
+     バトルログ：スクロールバーを1本だけにする
+  ===================================================== */
+
+  /*
+    battle-log-column自体はスクロールさせない
+  */
+  .battle-page .battle-log-column {
+    overflow: hidden !important;
+  }
+
+  /*
+    BattleLogコンポーネントの外枠も
+    スクロールさせない
+  */
+  .battle-page .battle-log-column > *,
+  .battle-page .battle-log-column .battle-log,
+  .battle-page .battle-log-column .battle-log-panel {
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  /*
+    実際のログ一覧だけをスクロール可能にする
+  */
+  .battle-page
+  .battle-log-column
+  .battle-log-list {
+    flex: 1 1 auto !important;
+
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+}
+
+/* =========================================================
+   PC手札カードを少し大きくする
+========================================================= */
+
+@media (min-width: 1200px) {
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.72 !important;
+  }
+
+  .battle-page .hand-desktop {
+    padding-top: 8px !important;
+  }
+}
+
+/* 画面の高さが低めのPC */
+@media
+  (min-width: 1200px)
+  and (max-height: 850px) {
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.68 !important;
+  }
+
+  .battle-page .hand-desktop {
+    padding-top: 6px !important;
+  }
+}
+
+/* =========================================================
+   PC手札を少し下げる
+========================================================= */
+
+@media (min-width: 1200px) {
+  .battle-page .hand-desktop {
+    /* カード全体を下へ移動 */
+    padding-top: 26px !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    /* 上昇量を -10px から -6px にする */
+    transform:
+      translateY(-6px)
+      scale(1.04) !important;
+  }
+}
+
+/* 高さが低めのPCでも位置を維持 */
+@media
+  (min-width: 1200px)
+  and (max-height: 850px) {
+
+  .battle-page .hand-desktop {
+    padding-top: 22px !important;
+  }
+}
+
+/* =========================================================
+   FINAL PC RESPONSIVE FIX
+
+   1500px以上:
+   ・左右ステータス
+   ・手札は横一列
+
+   1100px〜1499px:
+   ・ステータスは上に2枚並べる
+   ・手札は折り返して全部見えるようにする
+========================================================= */
+
+/* ---------------------------------------------------------
+   PC共通：ログと手札を半分ずつ
+--------------------------------------------------------- */
+
+@media (min-width: 1100px) {
+  .battle-page {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: hidden !important;
+  }
+
+  .battle-page .battle-bottom-layout {
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+
+    gap: 16px !important;
+
+    width: calc(100vw - 24px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+
+    margin: 8px auto 0 !important;
+    padding: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page .battle-log-column,
+  .battle-page .hand-section {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* ログ外側はスクロールさせない */
+  .battle-page .battle-log-column,
+  .battle-page .battle-log-column > *,
+  .battle-page .battle-log-column .battle-log,
+  .battle-page .battle-log-column .battle-log-panel {
+    overflow: hidden !important;
+  }
+
+  /* ログ一覧だけスクロール */
+  .battle-page
+  .battle-log-column
+  .battle-log-list {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* =========================================================
+   1100px〜1499px
+   コンパクトPCレイアウト
+========================================================= */
+
+@media
+  (min-width: 1100px)
+  and (max-width: 1499px) {
+
+  .battle-page {
+    min-height: 100dvh !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /* 中央部分を画面内に収める */
+  .battle-page .battle-main-area {
+    position: relative !important;
+    display: block !important;
+
+    width: min(
+      920px,
+      calc(100vw - 24px)
+    ) !important;
+
+    min-width: 0 !important;
+    max-width: 920px !important;
+
+    margin: 0 auto !important;
+    padding-bottom: 8px !important;
+
+    overflow: visible !important;
+  }
+
+  .battle-page .battle-stage-layout {
+    position: static !important;
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+  }
+
+  /* -------------------------------------------------------
+     1100〜1499pxではステータスを上に並べる
+     横にはみ出させない
+  ------------------------------------------------------- */
+
+  .battle-page
+  .battle-stage-layout
+  > .battle-status-grid {
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 0 10px !important;
+  }
+
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > * {
+    position: relative !important;
+
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    height: 132px !important;
+    min-height: 132px !important;
+
+    margin: 0 !important;
+    padding: 14px 16px !important;
+
+    transform: none !important;
+
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :first-child,
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > :last-child {
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+  }
+
+  /* -------------------------------------------------------
+     バトルフィールドは以前のサイズ
+  ------------------------------------------------------- */
+
+  .battle-page .battle-stage-field {
+    display: flex !important;
+    justify-content: center !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+  }
+
+  .battle-page
+  .battle-stage-field
+  .battle-field {
+    width: min(
+      920px,
+      100%
+    ) !important;
+
+    max-width: 920px !important;
+    min-width: 0 !important;
+
+    margin: 0 auto !important;
+  }
+
+  .battle-page .battle-controls {
+    width: min(
+      760px,
+      100%
+    ) !important;
+
+    margin: 10px auto 0 !important;
+  }
+
+  /* -------------------------------------------------------
+     下半分
+  ------------------------------------------------------- */
+
+  .battle-page .battle-bottom-layout {
+    gap: 12px !important;
+
+    width: calc(100vw - 20px) !important;
+
+    margin-top: 6px !important;
+  }
+
+  /* -------------------------------------------------------
+     手札
+
+     横一列に無理やり押し込まず、
+     狭いPCでは折り返す
+  ------------------------------------------------------- */
+
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page .hand-desktop {
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+
+    justify-content: center !important;
+    align-items: flex-start !important;
+    align-content: flex-start !important;
+
+    gap: 12px 14px !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    height: auto !important;
+    min-height: 260px !important;
+    max-height: 390px !important;
+
+    margin: 0 !important;
+    padding: 26px 10px 12px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    position: relative !important;
+
+    flex: 0 0 auto !important;
+
+    margin: 0 !important;
+
+    zoom: 0.57 !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+
+    transform-origin:
+      center top !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    transform:
+      translateY(-5px)
+      scale(1.035) !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper.card-selected {
+  transform: translateY(-16px) scale(1.02) !important;
+  z-index: 25 !important;
+}
+
+.hand-card-wrapper.card-selected:hover {
+  transform: translateY(-22px) scale(1.04) !important;
+  z-index: 35 !important;
+}
+}
+
+/* 1100px〜1249pxはさらに少し小さく */
+@media
+  (min-width: 1100px)
+  and (max-width: 1249px) {
+
+  .battle-page
+  .battle-main-area
+  .battle-status-grid
+  > * {
+    height: 118px !important;
+    min-height: 118px !important;
+
+    padding: 12px 14px !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.5 !important;
+  }
+
+  .battle-page .hand-desktop {
+    gap: 10px 12px !important;
+    padding-top: 22px !important;
+  }
+}
+
+/* 1250px〜1499px */
+@media
+  (min-width: 1250px)
+  and (max-width: 1499px) {
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.57 !important;
+  }
+}
+
+/* =========================================================
+   1500px以上
+   現在の左右ステータス配置を維持
+========================================================= */
+
+@media (min-width: 1500px) {
+  .battle-page .battle-bottom-layout {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+  }
+
+  .battle-page .hand-desktop {
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+
+    gap: clamp(
+      12px,
+      1vw,
+      18px
+    ) !important;
+
+    padding:
+      26px
+      10px
+      10px !important;
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    margin: 0 !important;
+
+    zoom: 0.68 !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    transform:
+      translateY(-6px)
+      scale(1.04) !important;
+  }
+}
+
+/* =========================================================
+   PC UI 全体の自動スケーリング
+========================================================= */
+
+@media (min-width: 1100px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  /*
+    縦が短すぎて縮小だけでは入らない場合、
+    ページをスクロール可能にする
+  */
+  .battle-page {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 100dvh !important;
+
+    padding: 8px 0 18px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /*
+    Battle.jsxから渡された倍率を
+    UI全体へ適用する
+  */
+  .battle-page .battle-content {
+    display: block !important;
+
+    width:
+      var(
+        --battle-ui-width,
+        100%
+      ) !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    zoom:
+      var(
+        --battle-ui-scale,
+        1
+      );
+  }
+
+  /* 上部エリアの固定高さを解除 */
+  .battle-page .battle-main-area {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* 下部はログと手札を半分ずつ */
+  .battle-page .battle-bottom-layout {
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+
+    gap: 18px !important;
+
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+
+    height: 350px !important;
+    min-height: 350px !important;
+
+    margin: 8px auto 0 !important;
+
+    overflow: visible !important;
+  }
+
+  .battle-page .battle-log-column,
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    width: 100% !important;
+    height: 350px !important;
+    min-height: 350px !important;
+
+    overflow: hidden !important;
+  }
+
+  /* バトルログは一覧だけスクロール */
+  .battle-page .battle-log-column > *,
+  .battle-page .battle-log-column .battle-log,
+  .battle-page .battle-log-column .battle-log-panel {
+    display: flex !important;
+    flex-direction: column !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .battle-page
+  .battle-log-column
+  .battle-log-list {
+    flex: 1 1 auto !important;
+
+    min-height: 0 !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /*
+    カード個別のzoomを解除。
+    battle-content全体の倍率だけを使う
+  */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 1 !important;
+
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+  }
+
+  .battle-page .hand-desktop {
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    justify-content: center !important;
+    align-items: flex-start !important;
+
+    gap: clamp(12px, 1vw, 20px) !important;
+
+    width: 100% !important;
+    height: calc(100% - 44px) !important;
+    min-height: 0 !important;
+
+    padding: 28px 12px 10px !important;
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    transform:
+      translateY(-6px)
+      scale(1.035) !important;
+  }
+}
+
+/* =========================================================
+   PC手札：スクロール禁止・全カードを横一列で収める
+========================================================= */
+
+@media (min-width: 1100px) {
+  .battle-page .hand-section {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .battle-page .hand,
+  .battle-page .hand-desktop {
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    justify-content: center !important;
+    align-items: flex-start !important;
+
+    gap: 6px !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 26px 8px 10px !important;
+
+    /* 横スクロールを完全に禁止 */
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+
+    scroll-snap-type: none !important;
+    scrollbar-width: none !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .battle-page .hand-desktop::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /*
+    カードを横一列に収める。
+    battle-content全体の倍率とは別に、
+    手札だけ少し小さくする。
+  */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    position: relative !important;
+
+    flex: 0 0 auto !important;
+
+    margin: 0 !important;
+
+    zoom: 0.62 !important;
+
+    transform: none !important;
+    rotate: 0deg !important;
+
+    transform-origin: center top !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:first-child {
+    margin-left: 0 !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper:hover {
+    z-index: 30 !important;
+
+    transform:
+      translateY(-6px)
+      scale(1.035) !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper.card-selected {
+    z-index: 25 !important;
+
+    transform:
+      translateY(-5px) !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper.card-selected:hover {
+    z-index: 35 !important;
+
+    transform:
+      translateY(-8px)
+      scale(1.035) !important;
+  }
+}
+
+/* 広い画面では少しだけ大きくする */
+@media (min-width: 1600px) {
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.66 !important;
+  }
+}
+
+/* 1100px台では少し小さくする */
+@media
+  (min-width: 1100px)
+  and (max-width: 1199px) {
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    zoom: 0.56 !important;
+  }
+
+  .battle-page .hand-desktop {
+    gap: 3px !important;
+    padding-inline: 4px !important;
+  }
+}
+
+/* =========================================================
+   選択中カードをはっきり浮かせる
+========================================================= */
+
+@media (min-width: 1100px) {
+  /* 浮いたカードが上で切れないように余白を確保 */
+  .battle-page .hand-desktop {
+    padding-top: 44px !important;
+    overflow: visible !important;
+  }
+
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper {
+    position: relative !important;
+    top: 0;
+
+    transition:
+      top 180ms ease,
+      transform 180ms ease,
+      filter 180ms ease !important;
+  }
+
+  /* 選択中 */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper.card-selected {
+    top: -28px !important;
+    z-index: 40 !important;
+
+    transform:
+      scale(1.045) !important;
+
+    filter:
+      brightness(1.08)
+      drop-shadow(0 14px 16px rgba(0, 255, 200, 0.45)) !important;
+  }
+
+  /* 選択中カードにカーソルを乗せた時 */
+  .battle-page
+  .hand-desktop
+  .hand-card-wrapper.card-selected:hover {
+    top: -34px !important;
+    z-index: 50 !important;
+
+    transform:
+      scale(1.075) !important;
   }
 }

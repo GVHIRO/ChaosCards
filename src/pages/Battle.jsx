@@ -1,6 +1,5 @@
 import "./Battle.css";
 import { getSettings } from "../lib/settings";
-import "./Battle.css";
 import Settings from "./Settings";
 import {
   startBattleBgm,
@@ -265,6 +264,8 @@ export default function Battle({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [gameSettings, setGameSettings] = useState(getSettings());
   const [turnPopup, setTurnPopup] = useState(null);
+  const [battleUiScale, setBattleUiScale] =
+  useState(1);
 
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
@@ -289,6 +290,66 @@ function finishBattle(result) {
     setWinner(result);
   }, RESULT_DELAY);
 }
+useEffect(() => {
+  const updateBattleUiScale = () => {
+    const viewportWidth =
+      window.innerWidth;
+
+    const viewportHeight =
+      window.innerHeight;
+
+    /*
+      このサイズを基準にUI全体を縮小する。
+      実際の画面がこれより小さいと、
+      横と縦の厳しい方に合わせて縮小される。
+    */
+    const designWidth = 1760;
+    const designHeight = 900;
+
+    /*
+      スマホは現在のスマホ用CSSを使う。
+    */
+    if (viewportWidth < 1100) {
+      setBattleUiScale(1);
+      return;
+    }
+
+    const widthScale =
+      viewportWidth / designWidth;
+
+    const heightScale =
+      viewportHeight / designHeight;
+
+    const nextScale = Math.min(
+      1,
+      widthScale,
+      heightScale,
+    );
+
+    /*
+      小さくなりすぎるのを防ぐ。
+      これ以下で収まらない場合は
+      縦スクロールを使う。
+    */
+    setBattleUiScale(
+      Math.max(0.55, nextScale),
+    );
+  };
+
+  updateBattleUiScale();
+
+  window.addEventListener(
+    "resize",
+    updateBattleUiScale,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "resize",
+      updateBattleUiScale,
+    );
+  };
+}, []);
   useEffect(() => {
     handRef.current = hand;
   }, [hand]);
@@ -370,11 +431,56 @@ useEffect(() => {
 }, [winner]);
 
   const isMyTurn = useMemo(() => {
-    if (mode === "cpu") return currentPlayer === "player";
-    return currentPlayer === playerRole;
-  }, [currentPlayer, mode, playerRole]);
+  if (mode === "cpu") {
+    return currentPlayer === "player";
+  }
 
-  const opponentName = mode === "online" ? "OPPONENT" : "CPU";
+  return currentPlayer === playerRole;
+}, [currentPlayer, mode, playerRole]);
+
+/*
+  後攻の最初のターンだけは、
+  現在のゲームルール上エネルギーが増えない。
+*/
+const isSecondPlayerFirstTurn =
+  turnNumber === 1 &&
+  currentPlayer === firstPlayer;
+
+/*
+  敵ターン中かつ、次の自分ターンで
+  本当にエネルギーが追加される場合だけ表示する。
+*/
+const showNextEnergyPreview =
+  currentPlayer !== null &&
+  !isMyTurn &&
+  !isSecondPlayerFirstTurn;
+
+const nextTurnEnergy = showNextEnergyPreview
+  ? Math.min(
+      MAX_ENERGY,
+      energy + ENERGY_PER_TURN,
+    )
+  : energy;
+// 選択しているカードの合計コスト
+const selectedEnergyCost = useMemo(() => {
+  return selectedCards.reduce(
+    (total, selected) => {
+      return (
+        total +
+        Number(selected.card?.cost || 0)
+      );
+    },
+    0,
+  );
+}, [selectedCards]);
+
+// カードを選択する前に持っていたエネルギー
+const energyBeforeSelection = Math.min(
+  MAX_ENERGY,
+  energy + selectedEnergyCost,
+);
+const opponentName =
+  mode === "online" ? "OPPONENT" : "CPU";
 
   const addLogs = useCallback((newLogs) => {
     setLogs((previous) => [...newLogs, ...previous].slice(0, 12));
@@ -1413,13 +1519,18 @@ async function surrender() {
     );
   }
 
-  return (
-    <div className="app battle-page">
-      <div
-        className={`battle-content ${
-          screenShake ? "screen-shake" : ""
-        }`}
-      >
+return (
+  <div className="app battle-page">
+    <div
+      className={`battle-content ${
+        screenShake ? "screen-shake" : ""
+      }`}
+      style={{
+        "--battle-ui-scale": battleUiScale,
+        "--battle-ui-width":
+          `${100 / battleUiScale}%`,
+      }}
+    >
         <button
   type="button"
   className="battle-settings-button"
@@ -1452,35 +1563,40 @@ async function surrender() {
 
         
 
-        <div className="battle-status-grid">
-          <BattleStatus
-            name={opponentName}
-            icon={mode === "online" ? "🌐" : "🤖"}
-            hp={enemyHP}
-            maxHp={MAX_HP}
-            shield={enemyShield}
-            active={!isMyTurn}
-            effect={enemyEffect}
-            enemy
-          />
+        <div className="battle-main-area">
+  <div className="battle-stage-layout">
+    <div className="battle-status-grid">
+      <BattleStatus
+        name={opponentName}
+        icon={mode === "online" ? "🌐" : "🤖"}
+        hp={enemyHP}
+        maxHp={MAX_HP}
+        shield={enemyShield}
+        active={!isMyTurn}
+        effect={enemyEffect}
+        enemy
+      />
 
-          <BattleStatus
-            name="YOU"
-            icon="😀"
-            hp={playerHP}
-            maxHp={MAX_HP}
-            shield={playerShield}
-            active={isMyTurn}
-            effect={playerEffect}
-          />
-        </div>
+      <BattleStatus
+        name="YOU"
+        icon="😀"
+        hp={playerHP}
+        maxHp={MAX_HP}
+        shield={playerShield}
+        active={isMyTurn}
+        effect={playerEffect}
+      />
+    </div>
 
-        <BattleField
-          isMyTurn={isMyTurn}
-          cardAnimation={cardAnimation}
-        />
+    <div className="battle-stage-field">
+      <BattleField
+        isMyTurn={isMyTurn}
+        cardAnimation={cardAnimation}
+      />
+    </div>
+  </div>
 
-        <div className="battle-controls">
+          <div className="battle-controls">
   <div className="turn-summary">
     <div className="turn-summary-number">
       TURN {turnNumber}
@@ -1522,19 +1638,54 @@ async function surrender() {
         </strong>
       </div>
 
-      <div className="energy-orbs">
-        {Array.from(
-          { length: MAX_ENERGY },
-          (_, index) => (
-            <span
-              key={index}
-              className={`energy-orb ${
-                index < energy ? "filled" : ""
-              }`}
-            />
-          )
-        )}
-      </div>
+      <div
+  className="energy-orbs"
+  aria-label={`エネルギー ${energy}/${MAX_ENERGY}`}
+>
+  {Array.from(
+  { length: MAX_ENERGY },
+  (_, index) => {
+    // 今すぐ使えるエネルギー
+    const isFilled =
+      index < energy;
+
+    // 選択したカードによって消費予定のエネルギー
+    const isReservedEnergy =
+      isMyTurn &&
+      index >= energy &&
+      index < energyBeforeSelection;
+
+    // 敵ターン中、次ターンに追加されるエネルギー
+    const isNextEnergy =
+      showNextEnergyPreview &&
+      index >= energy &&
+      index < nextTurnEnergy;
+
+    return (
+      <span
+        key={index}
+        className={[
+          "energy-orb",
+          isFilled
+            ? "filled"
+            : "",
+          isReservedEnergy
+            ? "reserved-energy"
+            : "",
+          isNextEnergy
+            ? "next-energy"
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-hidden="true"
+      >
+        ⚡
+      </span>
+    );
+  },
+)}
+</div>
     </div>
 
     <div className="deck-counter">
@@ -1572,96 +1723,106 @@ async function surrender() {
         : "⌛"}
     </span>
   </button>
+ </div>
 </div>
+<div className="battle-bottom-layout">
+  <div className="battle-log-column">
+    <BattleLog logs={logs} />
+  </div>
 
-<div className="hand-section">
-  <div className="hand-section-header">
-    <div>
-      <span className="hand-section-kicker">
-        YOUR CARDS
+  <div className="hand-section">
+    <div className="hand-section-header">
+      <div>
+        <span className="hand-section-kicker">
+          YOUR CARDS
+        </span>
+
+        <h3>手札</h3>
+      </div>
+
+      <span className="hand-count">
+        {hand.length}/{MAX_HAND_SIZE}
       </span>
-
-      <h3>手札</h3>
     </div>
 
-    <span className="hand-count">
-      {hand.length}/{MAX_HAND_SIZE}
-    </span>
-  </div>
+    <div
+      className={`hand ${
+        isMobile
+          ? "hand-mobile"
+          : "hand-desktop"
+      }`}
+      aria-label="手札"
+    >
+      {hand.map((card, index) => {
+        const isSelected =
+          selectedCards.some(
+            (item) =>
+              item.handIndex === index
+          );
 
-  <div
-    className={`hand ${
-      isMobile
-        ? "hand-mobile"
-        : "hand-desktop"
-    }`}
-    aria-label="手札"
-  >
-    {hand.map((card, index) => {
-      const isSelected =
-        selectedCards.some(
-          (item) =>
-            item.handIndex === index
-        );
+        const disabled =
+          !isMyTurn ||
+          isProcessing ||
+          (!isSelected &&
+            energy < Number(card.cost));
 
-      const disabled =
-        !isMyTurn ||
-        isProcessing ||
-        (!isSelected &&
-          energy < Number(card.cost));
+        const center =
+          (hand.length - 1) / 2;
 
-      const center =
-        (hand.length - 1) / 2;
+        const angleStep =
+          isMobile ? 0 : 6;
 
-      const angleStep = isMobile ? 0 : 6;
-const offsetStep = isMobile ? 0 : 10;
+        const offsetStep =
+          isMobile ? 0 : 10;
 
-const angle =
-  (index - center) * angleStep;
+        const angle =
+          (index - center) * angleStep;
 
-const offsetY =
-  Math.abs(index - center) * offsetStep;
+        const offsetY =
+          Math.abs(index - center) *
+          offsetStep;
 
-      return (
-        <div
-          key={`${card.id}-${index}`}
-          className={`hand-card-wrapper ${
-            isSelected
-              ? "card-selected"
-              : ""
-          }`}
-          style={{
-            "--card-angle": `${angle}deg`,
-            "--card-offset-y": `${offsetY}px`,
-          }}
-        >
-          <Card
-            card={card}
-            index={index}
-            isDrawn={
-              drawnIndex === index
-            }
-            disabled={disabled}
-            onPlay={() =>
-              playCard(index)
-            }
-            isPlayed={playedCards.includes(
-              index
+        return (
+          <div
+            key={`${card.id}-${index}`}
+            className={`hand-card-wrapper ${
+              isSelected
+                ? "card-selected"
+                : ""
+            }`}
+            style={{
+              "--card-angle":
+                `${angle}deg`,
+              "--card-offset-y":
+                `${offsetY}px`,
+            }}
+          >
+            <Card
+              card={card}
+              index={index}
+              isDrawn={
+                drawnIndex === index
+              }
+              disabled={disabled}
+              onPlay={() =>
+                playCard(index)
+              }
+              isPlayed={playedCards.includes(
+                index
+              )}
+            />
+
+            {isSelected && (
+              <div className="selected-overlay">
+                <span>✓</span>
+              </div>
             )}
-          />
-
-          {isSelected && (
-            <div className="selected-overlay">
-              <span>✓</span>
-            </div>
-          )}
-        </div>
-      );
-    })}
+          </div>
+        );
+      })}
+    </div>
   </div>
 </div>
-
-        <BattleLog logs={logs} />
       </div>
 
             {isSettingsOpen && (
@@ -1699,7 +1860,7 @@ const offsetY =
             </span>
           </div>
         </div>
-      )}
+     )}
     </div>
   );
 }
