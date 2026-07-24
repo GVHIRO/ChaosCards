@@ -220,6 +220,20 @@ export default function Battle({
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
   const previousTurnRef = useRef(null);
+  const battleEndingRef = useRef(false);
+const resultTimerRef = useRef(null);
+
+const RESULT_DELAY = 800;
+
+function finishBattle(result) {
+  if (battleEndingRef.current) return;
+
+  battleEndingRef.current = true;
+
+  resultTimerRef.current = setTimeout(() => {
+    setWinner(result);
+  }, RESULT_DELAY);
+}
   useEffect(() => {
     handRef.current = hand;
   }, [hand]);
@@ -463,10 +477,28 @@ useEffect(() => {
   setEnergy(nextEnergy);
 }
 
-      if (match.phase === "finished" && match.winner) {
-        if (match.winner === "draw") setWinner("draw");
-        else setWinner(match.winner === playerRole ? "player" : "enemy");
-      }
+      if (
+  match.phase === "finished" &&
+  match.winner
+) {
+  const result =
+    match.winner === "draw"
+      ? "draw"
+      : match.winner === playerRole
+        ? "player"
+        : "enemy";
+
+  const isKnockout =
+    Number(match.host_hp) <= 0 ||
+    Number(match.guest_hp) <= 0;
+
+  if (isKnockout) {
+    finishBattle(result);
+  } else {
+    // 降参など、HPが0ではない決着
+    setWinner(result);
+  }
+}
     },
     [playerRole]
   );
@@ -737,6 +769,13 @@ useEffect(() => {
   playerRole,
   match?.phase,
 ]);
+useEffect(() => {
+  return () => {
+    if (resultTimerRef.current) {
+      clearTimeout(resultTimerRef.current);
+    }
+  };
+}, []);
 function showTurnPopup(myTurn) {
   setTurnPopup(myTurn ? "player" : "enemy");
 
@@ -898,7 +937,7 @@ await new Promise((resolve) => {
     addLogs(turnLogs);
 
     if (damaged.hp <= 0) {
-      setWinner("enemy");
+      finishBattle("enemy");
       setIsProcessing(false);
       return;
     }
@@ -1008,7 +1047,7 @@ setIsProcessing(false);
     setPlayedCards([]);
 
     if (damaged.hp <= 0) {
-      setWinner("player");
+      finishBattle("player");
       return;
     }
 playSound("turn");
@@ -1189,7 +1228,7 @@ async function surrender() {
 
   // CPU戦
   if (mode === "cpu") {
-    setWinner("enemy");
+    finishBattle("enemy");
     return;
   }
 
