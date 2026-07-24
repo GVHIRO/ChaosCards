@@ -12,7 +12,6 @@ const defaultVolumes = {
 };
 
 const soundPaths = {
-  bgm: "/sounds/battle-bgm.mp3",
   card: "/sounds/card.mp3",
   damage: "/sounds/damage.mp3",
   heal: "/sounds/heal.mp3",
@@ -22,12 +21,17 @@ const soundPaths = {
   defeat: "/sounds/defeat.mp3",
 };
 
+const audioCache = {};
+
 let audioContext = null;
-
-const audioBuffers = {};
-
+let battleBgm = null;
 let battleBgmSource = null;
 let battleBgmGain = null;
+let battleBgmStarting = false;
+
+function clamp(value, min = 0, max = 1) {
+  return Math.max(min, Math.min(max, Number(value) || 0));
+}
 
 function getAudioContext() {
   if (!audioContext) {
@@ -37,9 +41,8 @@ function getAudioContext() {
 
     if (!AudioContextClass) {
       console.warn(
-        "このブラウザはWeb Audio APIに対応していません"
+        "Web Audio APIに対応していません"
       );
-
       return null;
     }
 
@@ -59,133 +62,116 @@ export async function unlockAudio() {
       await context.resume();
     } catch (error) {
       console.warn(
-        "音声の有効化に失敗しました:",
+        "音声の有効化に失敗:",
         error
       );
     }
   }
 }
 
-async function loadAudioBuffer(name) {
-  if (audioBuffers[name]) {
-    return audioBuffers[name];
-  }
+/* =========================
+   SE
+========================= */
 
+export function playSound(name) {
   const path = soundPaths[name];
 
   if (!path) {
-    throw new Error(
-      `存在しないサウンドです: ${name}`
-    );
-  }
-
-  const context = getAudioContext();
-
-  if (!context) return null;
-
-  const response = await fetch(path);
-
-  if (!response.ok) {
-    throw new Error(
-      `音声ファイルを取得できませんでした: ${path}`
-    );
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-
-  const decodedBuffer =
-    await context.decodeAudioData(arrayBuffer);
-
-  audioBuffers[name] = decodedBuffer;
-
-  return decodedBuffer;
-}
-
-function clampVolume(value) {
-  return Math.max(
-    0,
-    Math.min(1, Number(value) || 0)
-  );
-}
-
-export async function playSound(name) {
-  if (!soundPaths[name] || name === "bgm") {
     console.warn(`存在しないSEです: ${name}`);
     return;
   }
 
   try {
-    await unlockAudio();
+    if (!audioCache[name]) {
+      audioCache[name] = new Audio(path);
+    }
 
-    const context = getAudioContext();
-
-    if (!context) return;
-
-    const buffer = await loadAudioBuffer(name);
-
-    if (!buffer) return;
-
+    const audio = audioCache[name].cloneNode();
     const settings = getSettings();
 
-    const settingVolume = clampVolume(
+    const settingVolume = clamp(
       Number(settings.seVolume) / 100
     );
 
     const baseVolume =
       defaultVolumes[name] ?? 0.5;
 
-    const source =
-      context.createBufferSource();
-
-    const gainNode = context.createGain();
-
-    source.buffer = buffer;
-
-    gainNode.gain.value = clampVolume(
+    audio.volume = clamp(
       baseVolume * settingVolume
     );
 
-    source.connect(gainNode);
-    gainNode.connect(context.destination);
-
-    source.start(0);
+    audio.play().catch((error) => {
+      console.warn("SE再生エラー:", error);
+    });
   } catch (error) {
-    console.warn("SE再生エラー:", error);
+    console.error("SE作成エラー:", error);
   }
 }
 
-let battleBgm = null;
-let battleBgmPlaying = false;
+/* =========================
+   BGM
+========================= */
 
-export function startBattleBgm() {
-  if (!battleBgm) {
-    battleBgm = new Audio("/sounds/battle-bgm.mp3");
-    battleBgm.loop = true;
-    battleBgm.preload = "auto";
+export async function startBattleBgm() {
+  if (battleBgmStarting) return;
+
+  /*
+   * すでにBGMが存在して再生中なら、
+   * 新しく作らない。
+   */
+  if (battleBgm && !battleBgm.paused) {
+    setBattleBgmVolume(
+      getSettings().bgmVolume
+    );
+    return;
   }
 
-  const settings = getSettings();
+  battleBgmStarting = true;
 
-  const finalVolume = Math.max(
-    0,
-    Math.min(
-      1,
-      defaultVolumes.bgm *
-        (Number(settings.bgmVolume) / 100)
-    )
-  );
+  try {
+    const context = getAudioContext();
 
-  battleBgm.volume = finalVolume;
+    if (!context) return;
 
-  if (!battleBgmPlaying) {
-    battleBgm
-      .play()
-      .then(() => {
-        battleBgmPlaying = true;
-      })
-      .catch((error) => {
-        console.warn("BGM再生エラー:", error);
-      });
+    await unlockAudio();
+
+    if (!battleBgm) {
+      battleBgm =
+        new Audio("/sounds/battle-bgm.mp3");
+
+      battleBgm.loop = true;
+      battleBgm.preload = "auto";
+
+      /*
+       * MediaElementSourceは同じAudio要素に対して
+       * 1回だけ作成する。
+       */
+      battleBgmSource =
+        context.createMediaElementSource(
+          battleBgm
+        );
+
+      battleBgmGain =
+        context.createGain();
+
+      battleBgmSource.connect(
+        battleBgmGain
+      );
+
+      battleBgmGain.connect(
+        context.destination
+      );
+    }
+
+    setBattleBgmVolume(
+      getSettings().bgmVolume
+    );
+
+    await battleBgm.play();
+  } catch (error) {
+    console.warn("BGM再生エラー:", error);
+  } finally {
+    battleBgmStarting = false;
   }
 }
 
@@ -194,43 +180,31 @@ export function stopBattleBgm() {
 
   battleBgm.pause();
   battleBgm.currentTime = 0;
-  battleBgmPlaying = false;
 }
 
-export async function setBattleBgmVolume(volume) {
-  if (!battleBgm) return;
+/*
+ * BGMを止めたり再生し直したりせず、
+ * GainNodeの音量だけ変更する。
+ */
+export function setBattleBgmVolume(volume) {
+  if (!battleBgmGain || !audioContext) {
+    return;
+  }
 
-  const finalVolume = Math.max(
-    0,
-    Math.min(
-      1,
-      defaultVolumes.bgm *
-        (Number(volume) / 100)
-    )
+  const settingVolume = clamp(
+    Number(volume) / 100
   );
 
-  const wasPlaying =
-    battleBgmPlaying && !battleBgm.paused;
+  const finalVolume =
+    defaultVolumes.bgm * settingVolume;
 
-  battleBgm.volume = finalVolume;
+  battleBgmGain.gain.cancelScheduledValues(
+    audioContext.currentTime
+  );
 
-  // iPhone Safari対策
-  if (wasPlaying) {
-    const currentTime = battleBgm.currentTime;
-
-    battleBgm.pause();
-    battleBgmPlaying = false;
-
-    battleBgm.currentTime = currentTime;
-
-    try {
-      await battleBgm.play();
-      battleBgmPlaying = true;
-    } catch (error) {
-      console.warn(
-        "BGM音量変更後の再生エラー:",
-        error
-      );
-    }
-  }
+  battleBgmGain.gain.setTargetAtTime(
+    finalVolume,
+    audioContext.currentTime,
+    0.03
+  );
 }

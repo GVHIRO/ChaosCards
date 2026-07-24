@@ -279,7 +279,7 @@ useEffect(() => {
  useEffect(() => {
   async function initAudio() {
     await unlockAudio();
-    startBattleBgm();
+    await startBattleBgm();
   }
 
   initAudio();
