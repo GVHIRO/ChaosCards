@@ -7,6 +7,7 @@ import OnlineMenu from "./pages/OnlineMenu";
 import Battle from "./pages/Battle";
 import DeckBuilder from "./pages/DeckBuilder";
 import Friends from "./pages/Friends";
+import Settings from "./pages/Settings";
 
 function App() {
   const [authReady, setAuthReady] = useState(false);
@@ -281,6 +282,13 @@ function App() {
   }
 
   function renderScreen() {
+    if (screen === "settings") {
+  return (
+    <Settings
+      goBack={() => setScreen("menu")}
+    />
+  );
+}
  if (screen === "friends") {
   return (
     <Friends
@@ -348,6 +356,7 @@ function App() {
   onOnline={openOnlineMenu}
   onDeckBuilder={() => setScreen("deck-builder")}
   onFriends={() => setScreen("friends")}
+  onSettings={() => setScreen("settings")}
   openAuthMenu={() => setShowAuthMenu(true)}
   currentUser={currentUser}
   handleLogout={handleLogout}

@@ -3,6 +3,7 @@ export default function Menu({
   onOnline,
   onDeckBuilder,
   onFriends,
+  onSettings,
   openAuthMenu,
   currentUser,
   handleLogout,
@@ -127,6 +128,23 @@ export default function Menu({
 
             <span className="home-mode-arrow">›</span>
           </button>
+          <button
+  type="button"
+  className="home-mode-card"
+  onClick={onSettings}
+>
+  <span className="home-mode-icon">⚙️</span>
+
+  <span className="home-mode-content">
+    <small>SETTINGS</small>
+    <strong>設定</strong>
+    <span>
+      BGM・SE・演出を変更する
+    </span>
+  </span>
+
+  <span className="home-mode-arrow">›</span>
+</button>
         </section>
 
         <footer className="home-footer">

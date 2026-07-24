@@ -1,0 +1,125 @@
+.settings-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(74, 85, 255, 0.2),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(0, 220, 255, 0.14),
+      transparent 35%
+    ),
+    #070914;
+}
+
+.settings-panel {
+  width: min(560px, 100%);
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(16, 20, 38, 0.78);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.settings-title {
+  margin: 0 0 28px;
+  font-size: clamp(30px, 6vw, 46px);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.settings-item {
+  margin-bottom: 26px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.settings-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.settings-label span {
+  font-weight: 700;
+}
+
+.settings-label strong {
+  color: #7de8ff;
+}
+
+.settings-item input[type="range"] {
+  width: 100%;
+  accent-color: #67dfff;
+  cursor: pointer;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  width: 22px;
+  height: 22px;
+  accent-color: #67dfff;
+  cursor: pointer;
+}
+
+.settings-back-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 15px 20px;
+  border: 1px solid rgba(125, 232, 255, 0.35);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(79, 107, 255, 0.9),
+    rgba(0, 198, 255, 0.9)
+  );
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.settings-back-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+@media (max-width: 600px) {
+  .settings-panel {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .settings-item,
+  .settings-toggle {
+    padding: 15px;
+  }
+}
