@@ -1,0 +1,14 @@
+/* =========================================================
+   CHAOS CARDS — SETTINGS
+   Automatically split from the supplied App.css.
+========================================================= */
+
+.settings-page-modal {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.settings-page-modal .settings-panel {
+  width: 100%;
+}

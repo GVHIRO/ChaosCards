@@ -1,3 +1,4 @@
+import "./AuthMenu.css";
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 

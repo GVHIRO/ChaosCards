@@ -169,3 +169,154 @@
   touch-action: pan-x;
   pointer-events: auto;
 }
+
+/* =========================================
+   SETTINGS — COLOR OVERRIDE ONLY
+   レイアウト・サイズは変更しない
+========================================= */
+
+/* 画面背景 */
+.settings-page {
+  color: #f7faff !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(45, 190, 255, 0.08),
+      transparent 36%
+    ),
+    linear-gradient(
+      145deg,
+      #050a14 0%,
+      #070d19 55%,
+      #040812 100%
+    ) !important;
+}
+
+/* 外側の設定パネル */
+.settings-page .settings-panel {
+  color: #f7faff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11, 18, 35, 0.98),
+      rgba(7, 13, 27, 0.99)
+    ) !important;
+
+  border-color: rgba(123, 155, 196, 0.24) !important;
+
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.42),
+    0 0 30px rgba(44, 189, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+/* SETTINGSタイトル */
+.settings-page .settings-title,
+.settings-page h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+
+  text-shadow:
+    0 0 7px rgba(91, 215, 255, 0.95),
+    0 0 18px rgba(65, 194, 255, 0.58),
+    0 0 35px rgba(42, 156, 230, 0.25) !important;
+}
+
+/* BGM・SE・チェック項目の背景 */
+.settings-page .settings-section,
+.settings-page .settings-row,
+.settings-page .setting-row,
+.settings-page .setting-item {
+  color: #f7faff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(22, 29, 47, 0.94),
+      rgba(17, 23, 40, 0.96)
+    ) !important;
+
+  border-color: rgba(120, 148, 185, 0.2) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
+}
+
+/* ラベル文字 */
+.settings-page label,
+.settings-page .settings-label,
+.settings-page .setting-label {
+  color: #f5f8ff !important;
+  -webkit-text-fill-color: #f5f8ff !important;
+}
+
+/* 音量のパーセント */
+.settings-page .settings-value,
+.settings-page .volume-value,
+.settings-page output {
+  color: #62d9ff !important;
+  -webkit-text-fill-color: #62d9ff !important;
+}
+
+/* 補助文字 */
+.settings-page small,
+.settings-page .settings-description {
+  color: #9aa9c1 !important;
+}
+
+/* スライダー */
+.settings-page input[type="range"] {
+  accent-color: #5bd6fa !important;
+}
+
+.settings-page input[type="range"]::-webkit-slider-runnable-track {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(184, 213, 237, 0.3) !important;
+}
+
+.settings-page input[type="range"]::-webkit-slider-thumb {
+  background: #5bd6fa !important;
+
+  box-shadow:
+    0 0 10px rgba(91, 214, 250, 0.28) !important;
+}
+
+.settings-page input[type="range"]::-moz-range-track {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+.settings-page input[type="range"]::-moz-range-progress {
+  background: #5bd6fa !important;
+}
+
+.settings-page input[type="range"]::-moz-range-thumb {
+  background: #5bd6fa !important;
+}
+
+/* チェックボックス */
+.settings-page input[type="checkbox"] {
+  accent-color: #5bd6fa !important;
+}
+
+/* 戻るボタン */
+.settings-page .settings-back-button,
+.settings-page .back-button,
+.settings-page .return-button {
+  color: #ffffff !important;
+
+  background:
+    linear-gradient(
+      110deg,
+      #3f6ff0 0%,
+      #258be2 52%,
+      #09b8dc 100%
+    ) !important;
+
+  border-color: rgba(101, 204, 255, 0.45) !important;
+
+  box-shadow:
+    0 10px 26px rgba(18, 118, 207, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}

@@ -1,3 +1,4 @@
+import "./BattleField.css";
 export default function BattleField({
   isMyTurn,
   cardAnimation,

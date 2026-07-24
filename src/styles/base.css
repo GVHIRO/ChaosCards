@@ -1,0 +1,51 @@
+/* =========================================================
+   CHAOS CARDS — BASE
+   Automatically split from the supplied App.css.
+========================================================= */
+
+h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2.7rem, 7vw, 4.5rem);
+  text-align: center;
+  letter-spacing: 3px;
+  text-shadow:
+    0 0 10px #38bdf8,
+    0 0 24px rgba(56, 189, 248, 0.7);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+
+    margin: 0;
+
+    overflow-x: hidden;
+  }
+}

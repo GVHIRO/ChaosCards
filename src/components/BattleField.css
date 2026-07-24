@@ -1,0 +1,628 @@
+/* =========================================================
+   CHAOS CARDS — BATTLE FIELD
+   Automatically split from the supplied App.css.
+========================================================= */
+
+.card-use-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 2000;
+  width: min(90vw, 720px);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.card-use-overlay.player {
+  animation:
+    player-card-use-in 0.35s ease-out,
+    card-use-out 0.35s ease-in 1.2s forwards;
+}
+
+.card-use-overlay.enemy {
+  animation:
+    enemy-card-use-in 0.35s ease-out,
+    card-use-out 0.35s ease-in 1.2s forwards;
+}
+
+.card-use-label {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 7px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  background: rgba(8, 12, 28, 0.92);
+  color: white;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  box-shadow:
+    0 0 24px rgba(93, 170, 255, 0.45);
+}
+
+.card-use-overlay.enemy .card-use-label {
+  box-shadow:
+    0 0 24px rgba(255, 86, 86, 0.5);
+}
+
+.used-card-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.used-card {
+  width: 116px;
+  min-height: 150px;
+  padding: 15px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(35, 46, 75, 0.98),
+      rgba(10, 15, 31, 0.98)
+    );
+  color: white;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.55);
+  animation:
+    used-card-pop 0.45s
+    cubic-bezier(0.18, 0.89, 0.32, 1.28)
+    both;
+}
+
+.used-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.used-card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.used-card:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.used-card-emoji {
+  margin-bottom: 9px;
+  font-size: 43px;
+}
+
+.used-card strong {
+  display: block;
+  font-size: 15px;
+}
+
+.used-card small {
+  display: block;
+  margin-top: 8px;
+  color: #ffd761;
+  font-weight: 800;
+}
+
+.used-card-common {
+  border-color: #b8c0cc;
+}
+
+.used-card-rare {
+  border-color: #47a8ff;
+  box-shadow:
+    0 0 28px rgba(71, 168, 255, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.used-card-epic {
+  border-color: #c16cff;
+  box-shadow:
+    0 0 30px rgba(193, 108, 255, 0.5),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.used-card-legend {
+  border-color: #ffc83d;
+  box-shadow:
+    0 0 34px rgba(255, 200, 61, 0.55),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes player-card-use-in {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, 35%)
+      scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+@keyframes enemy-card-use-in {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, -135%)
+      scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+@keyframes used-card-pop {
+  from {
+    opacity: 0;
+    transform:
+      translateY(30px)
+      rotate(-6deg)
+      scale(0.65);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      rotate(0)
+      scale(1);
+  }
+}
+
+@keyframes card-use-out {
+  to {
+    opacity: 0;
+    transform:
+      translate(-50%, -60%)
+      scale(0.92);
+  }
+}
+
+@media (max-width: 600px) {
+.used-card {
+    width: 88px;
+    min-height: 120px;
+    padding: 10px 7px;
+  }
+
+.used-card-emoji {
+    font-size: 32px;
+  }
+
+.used-card strong {
+    font-size: 12px;
+  }
+}
+
+.battle-field {
+  position: relative;
+  width: min(1120px, calc(100% - 32px));
+  min-height: 240px;
+  margin: 18px auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(91, 166, 255, 0.2);
+  border-radius: 26px;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(47, 143, 255, 0.14),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 15% 80%,
+      rgba(108, 71, 255, 0.12),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(11, 23, 44, 0.96),
+      rgba(5, 12, 25, 0.98)
+    );
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.battle-field::before,
+.battle-field::after {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  pointer-events: none;
+  content: "";
+  border-radius: 50%;
+  filter: blur(75px);
+  opacity: 0.12;
+}
+
+.battle-field::before {
+  top: -190px;
+  left: -80px;
+  background: #1e9cff;
+}
+
+.battle-field::after {
+  right: -90px;
+  bottom: -200px;
+  background: #8757ff;
+}
+
+.battle-field-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(
+      rgba(112, 176, 255, 0.12) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(112, 176, 255, 0.12) 1px,
+      transparent 1px
+    );
+  background-size: 42px 42px;
+  mask-image:
+    radial-gradient(
+      circle at center,
+      black,
+      transparent 78%
+    );
+}
+
+.battle-turn-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  min-width: 180px;
+  padding: 8px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+  animation: battleTurnEnter 0.45s ease both;
+}
+
+.battle-turn-banner small {
+  margin-bottom: 1px;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.21em;
+  opacity: 0.67;
+}
+
+.battle-turn-banner strong {
+  font-size: 0.86rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.battle-field-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  opacity: 0.52;
+}
+
+.battle-field-symbol {
+  color: #70c6ff;
+  font-size: 3rem;
+  line-height: 1;
+  text-shadow:
+    0 0 15px rgba(68, 182, 255, 0.5);
+  animation:
+    battleSymbolFloat 2.4s ease-in-out infinite;
+}
+
+.battle-field-label {
+  color: #7086a4;
+  font-size: 0.63rem;
+  font-weight: 950;
+  letter-spacing: 0.3em;
+}
+
+.battle-field-line {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  width: min(70%, 620px);
+  height: 1px;
+  overflow: visible;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(80, 185, 255, 0.5),
+      transparent
+    );
+  transform: translateX(-50%);
+}
+
+.battle-field-line::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  content: "";
+  border: 2px solid rgba(91, 197, 255, 0.72);
+  transform:
+    translate(-50%, -50%)
+    rotate(45deg);
+  background: #0b1a30;
+  box-shadow:
+    0 0 12px rgba(67, 181, 255, 0.55);
+}
+
+.battle-card-animation {
+  position: absolute;
+  z-index: 5;
+  min-width: 250px;
+  max-width: calc(100% - 30px);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(88, 188, 255, 0.55);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 59, 97, 0.97),
+      rgba(9, 23, 45, 0.98)
+    );
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.48),
+    0 0 32px rgba(46, 166, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+.battle-card-animation.from-player {
+  animation:
+    battleCardFromPlayer 1.35s
+    cubic-bezier(0.2, 0.85, 0.25, 1)
+    both;
+}
+
+.battle-card-animation.from-enemy {
+  border-color: rgba(188, 111, 255, 0.54);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(66, 36, 100, 0.97),
+      rgba(19, 16, 43, 0.98)
+    );
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.48),
+    0 0 32px rgba(161, 75, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  animation:
+    battleCardFromEnemy 1.35s
+    cubic-bezier(0.2, 0.85, 0.25, 1)
+    both;
+}
+
+.battle-used-card-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(113, 197, 255, 0.28);
+  border-radius: 15px;
+  background: rgba(77, 168, 255, 0.12);
+  font-size: 2rem;
+}
+
+.battle-used-card-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.battle-used-card-info small {
+  color: #6ebfff;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.from-enemy .battle-used-card-info small {
+  color: #c791ff;
+}
+
+.battle-used-card-info strong {
+  overflow: hidden;
+  color: #f3f8ff;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes battleTurnEnter {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, -12px)
+      scale(0.93);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, 0)
+      scale(1);
+  }
+}
+
+@keyframes battleSymbolFloat {
+  50% {
+    transform: translateY(-5px);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes battleCardFromPlayer {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(150px)
+      scale(0.7)
+      rotate(5deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  48%,
+  74% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1)
+      rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translateY(-45px)
+      scale(1.08);
+  }
+}
+
+@keyframes battleCardFromEnemy {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(-150px)
+      scale(0.7)
+      rotate(-5deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  48%,
+  74% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1)
+      rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translateY(45px)
+      scale(1.08);
+  }
+}
+
+@media (max-width: 720px) {
+.battle-field {
+    width: min(100% - 20px, 560px);
+    min-height: 200px;
+    margin-block: 12px;
+    border-radius: 20px;
+  }
+
+.battle-card-animation {
+    min-width: min(250px, calc(100% - 30px));
+    padding: 13px 15px;
+  }
+
+.battle-used-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.6rem;
+  }
+
+.battle-used-card-info strong {
+    font-size: 1rem;
+  }
+}
+
+.battle-used-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.battle-used-card-entry {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.battle-used-card-entry {
+  opacity: 0;
+  animation: used-card-appear 0.45s ease-out forwards;
+}
+
+@keyframes used-card-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.85);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+.battlefield,
+  .battle-field,
+  .battle-center,
+  .center-battlefield {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 220px !important;
+    height: auto !important;
+    margin: 14px 0 !important;
+    padding: 18px 12px !important;
+  }
+
+.battlefield-title,
+  .battle-field-title {
+    font-size: clamp(28px, 9vw, 44px) !important;
+  }
+}
+
+@media (max-width: 768px) {
+.battle-field,
+  .battlefield,
+  .battle-field-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    margin: 14px 0;
+  }
+}

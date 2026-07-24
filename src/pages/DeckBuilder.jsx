@@ -1,3 +1,4 @@
+import "./DeckBuilder.css";
 import { useEffect, useMemo, useState } from "react";
 import cards from "../data/cards";
 

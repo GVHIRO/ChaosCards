@@ -1,3 +1,4 @@
+import "./BattleStatus.css";
 export default function BattleStatus({
   name,
   icon,

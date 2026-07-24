@@ -1,33 +1,41 @@
-:root{
+:root {
+  --color-bg-deep: #060b16;
+  --color-bg: #07101f;
+  --color-bg-soft: #0a1427;
 
-  --bg:#08111F;
+  --color-panel: rgba(13, 29, 54, 0.84);
+  --color-panel-strong: rgba(8, 20, 40, 0.94);
+  --color-panel-soft: rgba(22, 43, 73, 0.72);
 
-  --panel:rgba(24,34,58,.82);
+  --color-border: rgba(103, 166, 229, 0.24);
+  --color-border-strong: rgba(75, 184, 246, 0.58);
 
-  --panel2:#101827;
+  --color-primary: #4ab6ff;
+  --color-primary-bright: #62c7ff;
+  --color-secondary: #765cff;
 
-  --primary:#58B9FF;
+  --color-text: #f4f8ff;
+  --color-text-soft: #a0b2ca;
+  --color-text-muted: #7287a4;
 
-  --primary-dark:#2D84FF;
+  --color-success: #45df86;
+  --color-warning: #ffc84b;
+  --color-danger: #ff6075;
 
-  --text:#F4F8FF;
+  --rarity-common: #c0ccd9;
+  --rarity-rare: #42b5ff;
+  --rarity-epic: #bd67ff;
+  --rarity-legend: #ffca3f;
 
-  --text2:#AEBBD3;
+  --radius-small: 10px;
+  --radius-medium: 15px;
+  --radius-large: 22px;
+  --radius-page: 28px;
 
-  --common:#C9D2DD;
+  --page-width: 1180px;
+  --page-padding: clamp(14px, 3vw, 36px);
 
-  --rare:#5AB7FF;
-
-  --epic:#BF6DFF;
-
-  --legend:#FFD54F;
-
-  --radius:18px;
-
-  --shadow:
-    0 10px 40px rgba(0,0,0,.35);
-
-  --glow:
-    0 0 25px rgba(88,185,255,.35);
-
+  --shadow-panel:
+    0 24px 60px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

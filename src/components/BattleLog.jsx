@@ -1,3 +1,4 @@
+import "./BattleLog.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 function getLogType(message) {

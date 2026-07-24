@@ -1,3 +1,4 @@
+import AppLoading from "./components/AppLoading";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 
@@ -383,12 +384,7 @@ function App() {
   }
 
   if (!authReady) {
-    return (
-      <main className="loading-screen">
-        <h2>CHAOS CARDS</h2>
-        <p>ゲームを準備中...</p>
-      </main>
-    );
+    return <AppLoading />;
   }
 
   return (

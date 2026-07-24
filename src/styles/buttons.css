@@ -1,0 +1,42 @@
+/* =========================================================
+   CHAOS CARDS — BUTTONS
+   Automatically split from the supplied App.css.
+========================================================= */
+
+button {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.deck-back-button,
+.deck-save-top,
+.deck-clear-button {
+  border: 1px solid var(--deck-line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  font-weight: 800;
+}
+
+.deck-back-button,
+.deck-save-top {
+  min-height: 52px;
+  padding: 0 18px;
+}
+
+.deck-back-button:hover,
+.deck-clear-button:hover {
+  background: rgba(255,255,255,.13);
+  transform: translateY(-1px);
+}
+
+.deck-clear-button { min-height: 42px; padding: 0 15px; }
+
+.deck-clear-button:disabled { opacity: .35; }
+
+@media (max-width: 720px) {
+.deck-back-button,
+  .deck-save-top { min-width: 0; padding: 0; font-size: 0; }
+
+.deck-back-button span { font-size: 24px; }
+}

@@ -1,4 +1,6 @@
+import "./Battle.css";
 import { getSettings } from "../lib/settings";
+import "./Battle.css";
 import Settings from "./Settings";
 import {
   startBattleBgm,
@@ -14,8 +16,7 @@ import { supabase } from "../lib/supabase";
 import BattleLog from "../components/BattleLog";
 import Card from "../components/Card";
 import cards from "../data/cards";
-import "../App.css";
-import "./Battle.css";
+
 
 const INITIAL_HP = 40;
 const MAX_HP = 40;

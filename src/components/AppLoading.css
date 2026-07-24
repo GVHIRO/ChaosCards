@@ -1,0 +1,392 @@
+/* =========================================================
+   CHAOS CARDS — APP STARTUP LOADING
+========================================================= */
+
+.app-loading-screen {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  min-height: 100dvh;
+  padding:
+    max(24px, env(safe-area-inset-top))
+    20px
+    max(24px, env(safe-area-inset-bottom));
+
+  color: #f4f8ff;
+
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(32, 140, 255, 0.17),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 92% 90%,
+      rgba(112, 73, 255, 0.13),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      #06101f 0%,
+      #071426 50%,
+      #050a16 100%
+    );
+
+  overflow: hidden;
+}
+
+.app-loading-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+
+  background-image:
+    linear-gradient(
+      rgba(83, 163, 224, 0.022) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(83, 163, 224, 0.022) 1px,
+      transparent 1px
+    );
+
+  background-size: 52px 52px;
+  pointer-events: none;
+}
+
+.app-loading-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.app-loading-orb {
+  position: absolute;
+
+  width: 360px;
+  height: 360px;
+
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+}
+
+.app-loading-orb-left {
+  top: -150px;
+  left: -130px;
+  background: #22aaff;
+}
+
+.app-loading-orb-right {
+  right: -150px;
+  bottom: -170px;
+  background: #765cff;
+}
+
+.app-loading-content {
+  width: min(720px, 100%);
+  text-align: center;
+}
+
+.app-loading-kicker {
+  margin: 0 0 15px;
+
+  color: #65c7ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+}
+
+.app-loading-logo {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+
+  margin: 0;
+
+  color: #f4f9ff;
+  font-size: clamp(48px, 9vw, 86px);
+  font-weight: 300;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+
+  text-shadow:
+    0 0 16px rgba(103, 202, 255, 0.24),
+    0 0 42px rgba(44, 148, 230, 0.12);
+}
+
+.app-loading-logo strong {
+  color: #4db8fa;
+  font-weight: 900;
+
+  text-shadow:
+    0 0 14px rgba(74, 184, 250, 0.52),
+    0 0 34px rgba(74, 184, 250, 0.24);
+}
+
+.app-loading-subtitle {
+  margin: 22px 0 0;
+
+  color: #91a5c0;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.app-loading-indicator {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+
+  width: min(510px, 100%);
+  margin: 52px auto 0;
+  padding: 20px 22px;
+
+  text-align: left;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(15, 35, 63, 0.82),
+      rgba(8, 20, 39, 0.91)
+    );
+
+  border: 1px solid rgba(75, 167, 224, 0.29);
+  border-radius: 20px;
+
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  backdrop-filter: blur(18px);
+}
+
+.app-loading-symbol {
+  position: relative;
+
+  width: 62px;
+  height: 74px;
+  margin: auto;
+}
+
+.app-loading-card {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+}
+
+.app-loading-card-back {
+  background: rgba(26, 68, 111, 0.65);
+  border: 1px solid rgba(87, 177, 234, 0.34);
+
+  transform: rotate(-10deg) translate(-5px, 2px);
+}
+
+.app-loading-card-front {
+  color: #70d8ff;
+  font-size: 25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(34, 94, 145, 0.96),
+      rgba(13, 42, 76, 0.98)
+    );
+
+  border: 1px solid rgba(93, 202, 255, 0.64);
+
+  box-shadow:
+    0 0 20px rgba(67, 185, 247, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  animation: app-loading-card-float 1.7s ease-in-out infinite;
+}
+
+.app-loading-status {
+  min-width: 0;
+}
+
+.app-loading-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  color: #f3f8ff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.app-loading-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.app-loading-dots i {
+  width: 5px;
+  height: 5px;
+
+  background: #5bd4ff;
+  border-radius: 50%;
+
+  box-shadow: 0 0 9px rgba(91, 212, 255, 0.75);
+
+  animation: app-loading-dot 1.2s ease-in-out infinite;
+}
+
+.app-loading-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.app-loading-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.app-loading-track {
+  height: 5px;
+  margin: 13px 0 10px;
+  overflow: hidden;
+
+  background: rgba(3, 13, 27, 0.8);
+  border: 1px solid rgba(70, 142, 195, 0.2);
+  border-radius: 999px;
+}
+
+.app-loading-track span {
+  display: block;
+
+  width: 42%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #2da9ed,
+      #6cddff,
+      transparent
+    );
+
+  border-radius: inherit;
+
+  box-shadow: 0 0 13px rgba(76, 199, 255, 0.65);
+
+  animation: app-loading-progress 1.35s ease-in-out infinite;
+}
+
+.app-loading-status small {
+  color: #7289a7;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.app-loading-footer {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin: 0;
+
+  color: #4e6784;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.19em;
+}
+
+.app-loading-footer span {
+  color: #43bbf9;
+}
+
+@keyframes app-loading-card-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(3deg);
+  }
+
+  50% {
+    transform: translateY(-7px) rotate(0deg);
+  }
+}
+
+@keyframes app-loading-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes app-loading-progress {
+  0% {
+    transform: translateX(-115%);
+  }
+
+  100% {
+    transform: translateX(340%);
+  }
+}
+
+@media (max-width: 600px) {
+  .app-loading-logo {
+    flex-direction: column;
+    gap: 2px;
+
+    font-size: clamp(48px, 15vw, 68px);
+  }
+
+  .app-loading-subtitle {
+    margin-top: 18px;
+    font-size: 12px;
+  }
+
+  .app-loading-indicator {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 14px;
+
+    margin-top: 42px;
+    padding: 17px;
+  }
+
+  .app-loading-symbol {
+    width: 50px;
+    height: 61px;
+  }
+
+  .app-loading-card-front {
+    font-size: 20px;
+  }
+
+  .app-loading-status-row {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-card-front,
+  .app-loading-dots i,
+  .app-loading-track span {
+    animation-duration: 3s;
+  }
+}

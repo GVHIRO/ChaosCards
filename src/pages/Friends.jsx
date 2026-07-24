@@ -1,3 +1,4 @@
+import "./Friends.css";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { updateStatus } from "../lib/status";
