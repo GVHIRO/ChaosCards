@@ -57,17 +57,24 @@ export default function Settings({
           </div>
 
           <input
-            type="range"
-            min="0"
-            max="100"
-            value={settings.bgmVolume}
-            onChange={(event) =>
-              updateSetting(
-                "bgmVolume",
-                Number(event.target.value)
-              )
-            }
-          />
+  type="range"
+  min="0"
+  max="1"
+  step="0.01"
+  value={bgmVolume}
+  onInput={(e) => {
+    const value = Number(e.currentTarget.value);
+
+    setBgmVolume(value);
+    localStorage.setItem("bgmVolume", String(value));
+
+    window.dispatchEvent(
+      new CustomEvent("game-settings-change", {
+        detail: { bgmVolume: value },
+      })
+    );
+  }}
+/>
         </div>
 
         <div className="settings-item">
@@ -77,17 +84,21 @@ export default function Settings({
           </div>
 
           <input
-            type="range"
-            min="0"
-            max="100"
-            value={settings.seVolume}
-            onChange={(event) =>
-              updateSetting(
-                "seVolume",
-                Number(event.target.value)
-              )
-            }
-          />
+  type="checkbox"
+  checked={soundEnabled}
+  onChange={(e) => {
+    const value = e.currentTarget.checked;
+
+    setSoundEnabled(value);
+    localStorage.setItem("soundEnabled", JSON.stringify(value));
+
+    window.dispatchEvent(
+      new CustomEvent("game-settings-change", {
+        detail: { soundEnabled: value },
+      })
+    );
+  }}
+/>
         </div>
 
         <label className="settings-toggle">

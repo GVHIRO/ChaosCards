@@ -237,6 +237,31 @@ useEffect(() => {
   useEffect(() => {
   energyRef.current = energy;
 }, [energy]);
+useEffect(() => {
+  function handleSettingsChange(event) {
+    const nextVolume = event.detail?.bgmVolume;
+
+    if (typeof nextVolume === "number") {
+      setBgmVolume(nextVolume);
+
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.volume = nextVolume;
+      }
+    }
+  }
+
+  window.addEventListener(
+    "game-settings-change",
+    handleSettingsChange
+  );
+
+  return () => {
+    window.removeEventListener(
+      "game-settings-change",
+      handleSettingsChange
+    );
+  };
+}, []);
   useEffect(() => {
   function handleSettingsChange() {
     setGameSettings(getSettings());
