@@ -461,3 +461,180 @@
       rgba(255, 255, 255, 0.55);
   transform: translateY(-1px);
 }
+
+/* ENERGY削除後の1列表示 */
+.battle-status .battle-resource-row-single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.battle-status .battle-resource-row-single .battle-resource {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ステータスカードの基本形を確実に復旧 */
+.battle-status {
+  position: relative;
+  min-width: 0;
+  padding: 18px;
+
+  color: #f5f9ff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 51, 88, 0.92),
+      rgba(9, 26, 51, 0.96)
+    );
+
+  border: 1px solid rgba(68, 176, 238, 0.48);
+  border-radius: 20px;
+
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  overflow: hidden;
+}
+
+.battle-status-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.battle-status-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.battle-status-avatar {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+
+  background: rgba(14, 44, 78, 0.8);
+  border: 1px solid rgba(81, 182, 239, 0.35);
+  border-radius: 14px;
+}
+
+.battle-status-player-info {
+  min-width: 0;
+}
+
+.battle-status-player small {
+  color: #88a4c5;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.battle-status-player h2 {
+  margin: 5px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.battle-status-turn {
+  color: #60d8ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.battle-hp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 16px;
+  margin-bottom: 7px;
+}
+
+.battle-hp-header > span {
+  color: #89a4c3;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.battle-hp-header strong {
+  color: #ffffff;
+}
+
+.battle-hp-header strong small {
+  color: #9db2cb;
+}
+
+.battle-hp-track {
+  position: relative;
+  height: 11px;
+  overflow: hidden;
+
+  background: rgba(2, 13, 28, 0.75);
+  border: 1px solid rgba(82, 148, 196, 0.22);
+  border-radius: 999px;
+}
+
+.battle-hp-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 300ms ease;
+}
+
+.battle-hp-fill.healthy {
+  background: linear-gradient(90deg, #38d88c, #55e6a0);
+}
+
+.battle-hp-fill.warning {
+  background: linear-gradient(90deg, #ffb72f, #ffd25b);
+}
+
+.battle-hp-fill.danger {
+  background: linear-gradient(90deg, #f2425b, #ff6a75);
+}
+
+.battle-resource-row {
+  margin-top: 14px;
+}
+
+.battle-resource {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  min-height: 58px;
+  padding: 10px 13px;
+
+  background: rgba(5, 20, 41, 0.64);
+  border: 1px solid rgba(66, 136, 191, 0.2);
+  border-radius: 13px;
+}
+
+.battle-resource-icon {
+  font-size: 22px;
+}
+
+.battle-resource small {
+  display: block;
+
+  color: #7895b7;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.battle-resource strong {
+  display: block;
+  margin-top: 2px;
+
+  color: #ffffff;
+  font-size: 16px;
+}

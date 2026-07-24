@@ -1,16 +1,22 @@
+import "./BattleStatus.css";
+
 export default function BattleStatus({
   name,
   icon,
   hp,
   maxHp,
   shield = 0,
+  energy,
+  maxEnergy,
   active = false,
   effect,
   enemy = false,
 }) {
+  const safeMaxHp = Math.max(1, maxHp);
+
   const hpRate = Math.max(
     0,
-    Math.min(100, (hp / maxHp) * 100),
+    Math.min(100, (hp / safeMaxHp) * 100),
   );
 
   const hpState =
@@ -22,25 +28,27 @@ export default function BattleStatus({
 
   return (
     <section
-  className={[
-    "battle-status",
-    active ? "battle-status-active" : "",
-    enemy ? "battle-status-enemy" : "",
-    effect?.type === "damage"
-      ? "battle-status-damaged"
-      : "",
-    effect?.type === "heal"
-      ? "battle-status-healed"
-      : "",
-  ].join(" ")}
->
+      className={[
+        "battle-status",
+        active ? "battle-status-active" : "",
+        enemy ? "battle-status-enemy" : "",
+        effect?.type === "damage"
+          ? "battle-status-damaged"
+          : "",
+        effect?.type === "heal"
+          ? "battle-status-healed"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="battle-status-heading">
         <div className="battle-status-player">
           <span className="battle-status-avatar">
             {icon}
           </span>
 
-          <div>
+          <div className="battle-status-player-info">
             <small>
               {enemy ? "ENEMY" : "PLAYER"}
             </small>
@@ -83,7 +91,7 @@ export default function BattleStatus({
         <div className="battle-hp-shine" />
       </div>
 
-      <div className="battle-resource-row">
+      <div className="battle-resource-row battle-resource-row-single">
         <div className="battle-resource">
           <span className="battle-resource-icon">
             🛡️
