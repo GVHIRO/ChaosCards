@@ -15,6 +15,7 @@ import BattleLog from "../components/BattleLog";
 import Card from "../components/Card";
 import cards from "../data/cards";
 import "../App.css";
+import "./Battle.css";
 
 const INITIAL_HP = 40;
 const MAX_HP = 40;
@@ -1359,7 +1360,7 @@ async function surrender() {
     const isDraw = winner === "draw";
 
     return (
-      <div className="app">
+      <div className="app battle-page">
         <div className="result-screen">
           <div className="result-icon">
             {isDraw ? "🤝" : playerWon ? "🏆" : "💀"}
@@ -1405,14 +1406,14 @@ async function surrender() {
 
   if (isLoadingMatch) {
     return (
-      <div className="app">
+      <div className="app battle-page">
         <h2>⚔️ 試合を読み込んでいます…</h2>
       </div>
     );
   }
 
   return (
-    <div className="app">
+    <div className="app battle-page">
       <div
         className={`battle-content ${
           screenShake ? "screen-shake" : ""
@@ -1613,8 +1614,8 @@ async function surrender() {
       const center =
         (hand.length - 1) / 2;
 
-      const angleStep = isMobile ? 5 : 6;
-const offsetStep = isMobile ? 5 : 10;
+      const angleStep = isMobile ? 0 : 6;
+const offsetStep = isMobile ? 0 : 10;
 
 const angle =
   (index - center) * angleStep;

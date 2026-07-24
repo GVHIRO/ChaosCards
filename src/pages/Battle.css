@@ -1,0 +1,437 @@
+/* ========================================
+   CHAOS CARDS — BATTLE PAGE
+======================================== */
+
+.battle-page {
+  width: 100%;
+  min-height: 100dvh;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(28px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 15% 5%,
+      rgba(36, 137, 255, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 95%,
+      rgba(111, 67, 255, 0.12),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      #07101f 0%,
+      #091426 52%,
+      #060b16 100%
+    );
+}
+
+.battle-page .battle-content {
+  position: relative;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+/* ========================================
+   HAND
+======================================== */
+
+.battle-page .hand-section {
+  width: 100%;
+  min-width: 0;
+  margin-top: 28px;
+  padding-top: 24px;
+
+  border-top: 1px solid rgba(116, 163, 219, 0.14);
+}
+
+.battle-page .hand-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+.battle-page .hand-section-kicker {
+  display: block;
+  margin-bottom: 7px;
+
+  color: #62bdff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.battle-page .hand-section-header h3 {
+  margin: 0;
+
+  color: #f4f8ff;
+  font-size: 1.8rem;
+}
+
+.battle-page .hand-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 68px;
+  min-height: 42px;
+  padding: 0 15px;
+
+  color: #cceaff;
+  font-weight: 900;
+
+  background: rgba(18, 55, 91, 0.75);
+  border: 1px solid rgba(75, 166, 225, 0.35);
+  border-radius: 999px;
+}
+
+/* PC用の扇形 */
+.battle-page .hand-desktop {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  min-height: 330px;
+  padding: 45px 30px 30px;
+  overflow: visible;
+}
+
+.battle-page .hand-desktop .hand-card-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: -28px;
+
+  transform:
+    rotate(var(--card-angle))
+    translateY(var(--card-offset-y));
+
+  transform-origin: center bottom;
+
+  transition:
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+.battle-page .hand-desktop .hand-card-wrapper:first-child {
+  margin-left: 0;
+}
+
+.battle-page .hand-desktop .hand-card-wrapper:hover {
+  z-index: 30;
+
+  transform:
+    rotate(0deg)
+    translateY(-32px)
+    scale(1.06);
+
+  filter:
+    drop-shadow(0 14px 25px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 18px rgba(55, 166, 255, 0.38));
+}
+
+.battle-page .hand-card-wrapper.card-selected {
+  z-index: 25;
+
+  filter:
+    drop-shadow(0 0 13px rgba(65, 255, 171, 0.75))
+    drop-shadow(0 0 27px rgba(65, 255, 171, 0.28));
+}
+
+/* 選択マーク */
+.battle-page .selected-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 8;
+
+  display: grid;
+  place-items: center;
+
+  width: 30px;
+  height: 30px;
+
+  color: #ffffff;
+  font-weight: 900;
+
+  background: #28d96f;
+  border: 2px solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+
+  box-shadow: 0 0 16px rgba(40, 217, 111, 0.62);
+}
+
+/* ========================================
+   MOBILE BATTLE
+======================================== */
+
+@media (max-width: 768px) {
+  .battle-page {
+    display: block;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      0
+      max(24px, env(safe-area-inset-bottom));
+
+    overflow-x: hidden;
+  }
+
+  .battle-page .battle-content {
+    width: 100%;
+    min-width: 0;
+    padding: 0 14px;
+  }
+
+  .battle-page .hand-section {
+    min-width: 0;
+    margin-top: 24px;
+  }
+
+  .battle-page .hand-section-header {
+    padding: 0 6px;
+  }
+
+  /* スマホでは横スクロール */
+  .battle-page .hand-mobile {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+
+    width: calc(100% + 28px);
+    min-height: 270px;
+    margin-left: -14px;
+    padding: 12px 18px 28px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 18px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .battle-page .hand-mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper {
+    position: relative;
+
+    flex: 0 0 154px;
+    width: 154px;
+    min-width: 154px;
+    margin: 0;
+
+    transform: none !important;
+    filter: none;
+
+    scroll-snap-align: center;
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper.card-selected {
+    transform: translateY(-9px) !important;
+
+    filter:
+      drop-shadow(0 0 12px rgba(65, 255, 171, 0.7))
+      drop-shadow(0 0 24px rgba(65, 255, 171, 0.25));
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper:hover {
+    transform: none !important;
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper.card-selected:hover {
+    transform: translateY(-9px) !important;
+  }
+
+  .battle-page .hand-mobile .card {
+    width: 154px;
+    min-width: 154px;
+    max-width: 154px;
+    height: 235px;
+    min-height: 235px;
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-page .hand-mobile {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+
+    width: calc(100vw - 28px) !important;
+    max-width: none !important;
+    min-height: 310px !important;
+
+    margin: 0 !important;
+    padding: 14px 18px 30px !important;
+    gap: 14px !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper {
+    flex: 0 0 180px !important;
+
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    transform: none !important;
+  }
+
+  /*
+    Card.jsxのルートクラスが何であっても、
+    wrapper直下のカード本体に幅を与える
+  */
+
+
+  .battle-page .hand-mobile button {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+
+  .battle-page .hand-mobile p,
+  .battle-page .hand-mobile span,
+  .battle-page .hand-mobile strong,
+  .battle-page .hand-mobile small {
+    writing-mode: horizontal-tb !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-page .hand-mobile .hand-card-wrapper {
+    flex: 0 0 180px !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+
+    /* 高さを固定しすぎない */
+    height: auto !important;
+    min-height: 270px !important;
+
+    overflow: visible !important;
+  }
+
+ 
+
+  /* カード内の説明文が長くても収める */
+  .battle-page .hand-mobile .card-description,
+  .battle-page .hand-mobile .card-effect,
+  .battle-page .hand-mobile .card-text {
+    display: -webkit-box;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    line-height: 1.35;
+  }
+
+  /* 一番下の効果値をカード内に固定 */
+  .battle-page .hand-mobile .card-value,
+  .battle-page .hand-mobile .card-footer,
+  .battle-page .hand-mobile .card-power {
+    margin-top: auto !important;
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-page .hand-mobile .card {
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 180px !important;
+    height: 270px !important;
+
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .battle-page .hand-mobile .card > :last-child {
+    margin-top: auto;
+  }
+}
+@media (max-width: 768px) {
+  .battle-page .hand-mobile {
+    min-height: 330px !important;
+  }
+
+  .battle-page .hand-mobile .hand-card-wrapper {
+    min-height: 295px !important;
+  }
+
+@media (max-width: 768px) {
+  .battle-page .hand-mobile .hand-card-wrapper > .card,
+  .battle-page .hand-mobile .hand-card-wrapper > button {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+
+    height: 295px !important;
+    min-height: 295px !important;
+
+    margin: 0 !important;
+    transform: none !important;
+    overflow: hidden !important;
+  }
+}
+
+  .battle-page .hand-mobile .card {
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 180px !important;
+    height: 295px !important;
+    min-height: 295px !important;
+
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  /* 説明文を2～3行表示 */
+  .battle-page .hand-mobile .card-description,
+  .battle-page .hand-mobile .card-effect,
+  .battle-page .hand-mobile .card-text {
+    display: -webkit-box !important;
+
+    min-height: 42px;
+    max-height: 58px;
+
+    overflow: hidden !important;
+    line-height: 1.4;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* 最下部の数値 */
+  .battle-page .hand-mobile .card-value,
+  .battle-page .hand-mobile .card-footer,
+  .battle-page .hand-mobile .card-power,
+  .battle-page .hand-mobile .card > :last-child {
+    margin-top: auto !important;
+    padding-top: 8px;
+    flex-shrink: 0;
+  }
+}
