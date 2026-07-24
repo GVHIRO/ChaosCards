@@ -371,7 +371,7 @@ setMessage(
       </button>
 
       <div className="online-header-title">
-        <small>NETWORK BATTLE</small>
+        <small>ONLINE MATCH</small>
         <h1>オンライン対戦</h1>
         <p>
           ルームを作成するか、コードを入力して対戦に参加

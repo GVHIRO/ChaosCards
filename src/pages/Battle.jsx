@@ -1544,7 +1544,10 @@ return (
   ⚙
 </button>
 
-        <h1>CHAOS CARDS</h1>
+        <h1 className="battle-title">
+  <span>CHAOS</span>
+  <strong>CARDS</strong>
+</h1>
 
         {coinVisible && firstPlayer && (
           <div className="coin-toss-overlay">

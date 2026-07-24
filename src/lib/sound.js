@@ -7,8 +7,8 @@ const defaultVolumes = {
   heal: 0.6,
   shield: 0.35,
   turn: 0.25,
-  victory: 0.6,
-  defeat: 0.45,
+  victory: 0.50,
+  defeat: 0.30,
 };
 
 const soundPaths = {

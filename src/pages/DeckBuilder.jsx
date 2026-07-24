@@ -399,7 +399,7 @@ export default function DeckBuilder({ onBack }) {
         </button>
 
         <div className="deck-title-block">
-          <span className="deck-kicker">CHAOS CARDS</span>
+          <span className="deck-kicker">DECK BUILDER</span>
           <h1 className="deck-page-title">デッキ編集</h1>
         </div>
 
@@ -427,23 +427,23 @@ export default function DeckBuilder({ onBack }) {
           </div>
           <p>
             {deck.length === DECK_SIZE
-              ? "デッキ完成！保存できます"
-              : `あと${DECK_SIZE - deck.length}枚選択`}
+              ? "デッキを保存できます！"
+              : `あと${DECK_SIZE - deck.length}枚必要です`}
           </p>
         </div>
 
         <div className="deck-rarity-rules">
           <div className="rarity-rule rarity-rule-common">
-            <span>Common</span><strong>同名 ×3</strong>
+            <span>Common</span><strong>種類につき3枚ずつ</strong>
           </div>
           <div className="rarity-rule rarity-rule-rare">
-            <span>Rare</span><strong>同名 ×2</strong>
+            <span>Rare</span><strong>種類につき2枚ずつ</strong>
           </div>
           <div className="rarity-rule rarity-rule-epic">
-            <span>Epic</span><strong>同名 ×1・合計4</strong>
+            <span>Epic</span><strong>種類につき1枚ずつ、合計4枚まで</strong>
           </div>
           <div className="rarity-rule rarity-rule-legend">
-            <span>Legend</span><strong>同名 ×1・合計2</strong>
+            <span>Legend</span><strong>種類につき1枚ずつ、合計2枚まで</strong>
           </div>
         </div>
       </section>

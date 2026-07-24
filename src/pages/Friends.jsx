@@ -1263,8 +1263,8 @@ await updateStatus(user.id, "battle");
           </button>
 
           <div className="friends-header-title">
-            <span>CHAOS CARDS</span>
-            <h1>FRIENDS</h1>
+            <span>FRIENDS</span>
+            <h1>フレンド</h1>
           </div>
 
           <div className="friends-online-badge">
@@ -1285,8 +1285,8 @@ await updateStatus(user.id, "battle");
             <section className="friends-panel friends-profile-panel">
               <div className="friends-panel-heading">
                 <div>
-                  <span>PLAYER DATA</span>
-                  <h2>YOUR PROFILE</h2>
+                  <span>YOUR PROFILE</span>
+                  <h2>自分のプロフィール</h2>
                 </div>
               </div>
 
@@ -1297,12 +1297,12 @@ await updateStatus(user.id, "battle");
               </div>
 
               <div className="friends-profile-name">
-                <span>PLAYER NAME</span>
+                <span>NICKNAME</span>
                 <strong>{profile.nickname}</strong>
               </div>
 
               <label className="friends-input-label">
-                NICKNAME
+                CHANGE NICKNAME
                 <input
                   className="friends-input"
                   type="text"
@@ -1323,7 +1323,7 @@ await updateStatus(user.id, "battle");
                   profile.nickname
                 }
               >
-                名前を変更
+                変更を確定
               </button>
 
               <div className="friend-code-box">
@@ -1337,8 +1337,8 @@ await updateStatus(user.id, "battle");
             <section className="friends-panel friends-add-panel">
               <div className="friends-panel-heading">
                 <div>
-                  <span>SEARCH PLAYER</span>
-                  <h2>ADD FRIEND</h2>
+                  <span>ADD FRIEND</span>
+                  <h2>フレンド追加</h2>
                 </div>
               </div>
 
@@ -1374,8 +1374,8 @@ await updateStatus(user.id, "battle");
           <section className="friends-main-panel friends-panel">
             <div className="friends-panel-heading friends-list-heading">
               <div>
-                <span>CONNECTED PLAYERS</span>
-                <h2>FRIEND LIST</h2>
+                <span>FRIEND LIST</span>
+                <h2>フレンド一覧</h2>
               </div>
 
               <div className="friends-count-badge">
@@ -1392,8 +1392,7 @@ await updateStatus(user.id, "battle");
                 <h3>NO FRIENDS YET</h3>
 
                 <p>
-                  フレンドコードを使って
-                  プレイヤーを追加しましょう。
+                  フレンドがいません。
                 </p>
               </div>
             ) : (
@@ -1468,8 +1467,8 @@ await updateStatus(user.id, "battle");
             <section className="friends-panel">
               <div className="friends-panel-heading">
                 <div>
-                  <span>BATTLE REQUESTS</span>
-                  <h2>MATCH INVITES</h2>
+                  <span>MATCH INVITES</span>
+                  <h2>対戦招待</h2>
                 </div>
 
                 <div className="friends-count-badge">
@@ -1481,7 +1480,7 @@ await updateStatus(user.id, "battle");
                 <div className="friends-mini-empty">
                   <span>⚔️</span>
                   <p>
-                    対戦招待はありません
+                    対戦招待はありません。
                   </p>
                 </div>
               ) : (
@@ -1540,8 +1539,8 @@ await updateStatus(user.id, "battle");
             <section className="friends-panel">
               <div className="friends-panel-heading">
                 <div>
-                  <span>PLAYER REQUESTS</span>
-                  <h2>FRIEND REQUESTS</h2>
+                  <span>FRIEND REQUESTS</span>
+                  <h2>フレンドリクエスト</h2>
                 </div>
 
                 <div className="friends-count-badge">
@@ -1553,7 +1552,7 @@ await updateStatus(user.id, "battle");
                 <div className="friends-mini-empty">
                   <span>👤</span>
                   <p>
-                    フレンド申請はありません
+                    フレンド申請はありません。
                   </p>
                 </div>
               ) : (
