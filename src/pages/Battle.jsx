@@ -1613,15 +1613,14 @@ async function surrender() {
       const center =
         (hand.length - 1) / 2;
 
-      const angle = isMobile
-        ? 0
-        : (index - center) * 6;
+      const angleStep = isMobile ? 5 : 6;
+const offsetStep = isMobile ? 5 : 10;
 
-      const offsetY = isMobile
-        ? 0
-        : Math.abs(
-            index - center
-          ) * 10;
+const angle =
+  (index - center) * angleStep;
+
+const offsetY =
+  Math.abs(index - center) * offsetStep;
 
       return (
         <div
