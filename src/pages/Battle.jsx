@@ -208,12 +208,14 @@ export default function Battle({
   const [screenShake, setScreenShake] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [gameSettings, setGameSettings] = useState(getSettings());
+  const [turnPopup, setTurnPopup] = useState(null);
 
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
   const deckRef = useRef(deck);
   const discardRef = useRef(discardPile);
   const selectedRef = useRef(selectedCards);
+  const energyRef = useRef(energy);
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
 
@@ -229,6 +231,9 @@ export default function Battle({
   useEffect(() => {
     selectedRef.current = selectedCards;
   }, [selectedCards]);
+  useEffect(() => {
+  energyRef.current = energy;
+}, [energy]);
   useEffect(() => {
   function handleSettingsChange() {
     setGameSettings(getSettings());
@@ -427,18 +432,26 @@ useEffect(() => {
       setFirstPlayer(match.first_player);
 
       if (playerRole === "host") {
-        setPlayerHP(match.host_hp);
-        setEnemyHP(match.guest_hp);
-        setPlayerShield(match.host_shield || 0);
-        setEnemyShield(match.guest_shield || 0);
-        setEnergy(match.host_energy);
-      } else {
-        setPlayerHP(match.guest_hp);
-        setEnemyHP(match.host_hp);
-        setPlayerShield(match.guest_shield || 0);
-        setEnemyShield(match.host_shield || 0);
-        setEnergy(match.guest_energy);
-      }
+  const syncedEnergy = Number(match.host_energy);
+
+  setPlayerHP(match.host_hp);
+  setEnemyHP(match.guest_hp);
+  setPlayerShield(match.host_shield || 0);
+  setEnemyShield(match.guest_shield || 0);
+
+  energyRef.current = syncedEnergy;
+  setEnergy(syncedEnergy);
+} else {
+  const syncedEnergy = Number(match.guest_energy);
+
+  setPlayerHP(match.guest_hp);
+  setEnemyHP(match.host_hp);
+  setPlayerShield(match.guest_shield || 0);
+  setEnemyShield(match.host_shield || 0);
+
+  energyRef.current = syncedEnergy;
+  setEnergy(syncedEnergy);
+}
 
       if (match.phase === "finished" && match.winner) {
         if (match.winner === "draw") setWinner("draw");
@@ -497,6 +510,7 @@ useEffect(() => {
 
   // 最優先で試合状態を同期する
   syncMatchToView(next);
+  showTurnPopup(next.current_player === playerRole);
 if (
   next.phase === "finished" &&
   next.finish_reason === "disconnect"
@@ -709,32 +723,74 @@ useEffect(() => {
   playerRole,
   match?.phase,
 ]);
+function showTurnPopup(myTurn) {
+  setTurnPopup(myTurn ? "player" : "enemy");
+
+  setTimeout(() => {
+    setTurnPopup(null);
+  }, 1200);
+}
   function playCard(index) {
-    if (!isMyTurn || isProcessing || winner) return;
+  if (!isMyTurn || isProcessing || winner) return;
 
-    const card = hand[index];
-    if (!card) return;
+  const card = hand[index];
+  if (!card) return;
 
-    const selectedIndex = selectedCards.findIndex((item) => item.handIndex === index);
+  const cardCost = Number(card.cost || 0);
 
-    if (selectedIndex >= 0) {
-      setSelectedCards((previous) =>
-        previous.filter((_, itemIndex) => itemIndex !== selectedIndex)
-      );
-      setEnergy((value) => Math.min(MAX_ENERGY, value + Number(card.cost)));
-      addLogs([`↩️ ${card.name}の選択を解除`]);
-      return;
-    }
+  const selectedIndex = selectedRef.current.findIndex(
+    (item) => item.handIndex === index
+  );
 
-    if (energy < Number(card.cost)) {
-      addLogs(["⚡ エネルギーが足りない！"]);
-      return;
-    }
-playSound("card");
-    setEnergy((value) => value - Number(card.cost));
-    setSelectedCards((previous) => [...previous, { card, handIndex: index }]);
-    addLogs([`✅ ${card.name}を選択`]);
+  // 選択解除
+  if (selectedIndex >= 0) {
+    const nextEnergy = Math.min(
+      MAX_ENERGY,
+      energyRef.current + cardCost
+    );
+
+    energyRef.current = nextEnergy;
+    setEnergy(nextEnergy);
+
+    const nextSelected = selectedRef.current.filter(
+      (_, itemIndex) => itemIndex !== selectedIndex
+    );
+
+    selectedRef.current = nextSelected;
+    setSelectedCards(nextSelected);
+
+    addLogs([`↩️ ${card.name}の選択を解除`]);
+    return;
   }
+
+  // 最新のエネルギー値でチェック
+  if (energyRef.current < cardCost) {
+    addLogs(["⚡ エネルギーが足りない！"]);
+    return;
+  }
+
+  playSound("card");
+
+  const nextEnergy = energyRef.current - cardCost;
+  const nextSelected = [
+    ...selectedRef.current,
+    {
+      card,
+      handIndex: index,
+    },
+  ];
+
+  // state更新を待たず、refを先に更新する
+  energyRef.current = nextEnergy;
+  selectedRef.current = nextSelected;
+
+  setEnergy(nextEnergy);
+  setSelectedCards(nextSelected);
+
+  addLogs([
+    `✅ ${card.name}を選択（-${cardCost}エネルギー）`,
+  ]);
+}
 
   function chooseCpuCards(availableEnergy) {
     let remaining = availableEnergy;
@@ -832,6 +888,7 @@ await new Promise((resolve) => {
 playSound("turn");
 setTurnNumber((value) => value + 1);
 setCurrentPlayer("player");
+showTurnPopup(true);
 
 // CPU先攻後のプレイヤー初回ターンは初期値3のまま
 if (!isPlayerFirstTurn) {
@@ -936,6 +993,7 @@ setIsProcessing(false);
 playSound("turn");
     setTurnNumber((value) => value + 1);
     setCurrentPlayer("cpu");
+  showTurnPopup(false);
     setCpuEnergy((value) => Math.min(MAX_ENERGY, value + ENERGY_PER_TURN));
     setEnemyShield(0);
   }
@@ -1033,7 +1091,7 @@ if (actualHeal > 0) {
    if (actingIsHost) {
   updates.host_hp = healedHp;
   updates.host_shield = newMyShield;
-  updates.host_energy = energy;
+  updates.host_energy = energyRef.current;
 
   updates.guest_hp = damageResult.hp;
   updates.guest_shield = matchWinner
@@ -1052,7 +1110,7 @@ if (actualHeal > 0) {
 } else {
   updates.guest_hp = healedHp;
   updates.guest_shield = newMyShield;
-  updates.guest_energy = energy;
+  updates.guest_energy = energyRef.current;
 
   updates.host_hp = damageResult.hp;
   updates.host_shield = matchWinner
@@ -1103,7 +1161,35 @@ if (actualHeal > 0) {
 
     setIsProcessing(false);
   }
+async function surrender() {
+  if (!window.confirm("本当に降参しますか？")) {
+    return;
+  }
 
+  // CPU戦
+  if (mode === "cpu") {
+    setWinner("enemy");
+    return;
+  }
+
+  // オンライン戦
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      winner: nextRole(playerRole),
+      phase: "finished",
+      finish_reason: "surrender",
+    })
+    .eq("id", matchId)
+    .eq("phase", "playing");
+
+  if (error) {
+    addLogs([`❌ 降参エラー：${error.message}`]);
+    return;
+  }
+
+  setIsSettingsOpen(false);
+}
   async function endTurn() {
     if (!isMyTurn || isProcessing || winner) return;
     setIsProcessing(true);
@@ -1123,53 +1209,42 @@ if (actualHeal > 0) {
     return (
       <div className="app">
         <div className="result-screen">
-          <div className="result-icon">{isDraw ? "🤝" : playerWon ? "🏆" : "💀"}</div>
-          <h1>{isDraw ? "DRAW!" : playerWon ? "YOU WIN!" : "YOU LOSE..."}</h1>
+          <div className="result-icon">
+            {isDraw ? "🤝" : playerWon ? "🏆" : "💀"}
+          </div>
+
+          <h1>
+            {isDraw
+              ? "DRAW!"
+              : playerWon
+                ? "YOU WIN!"
+                : "YOU LOSE..."}
+          </h1>
+
           <p>
-  {match?.finish_reason === "disconnect"
-    ? playerWon
-      ? "相手が切断したため勝利しました"
-      : "接続が切断されたため敗北しました"
-    : isDraw
-    ? "引き分け！"
-    : playerWon
-    ? "勝利した！"
-    : "次の戦いで取り返そう！"}
-</p>
+            {match?.finish_reason === "disconnect"
+              ? playerWon
+                ? "相手が切断したため勝利しました"
+                : "接続が切断されたため敗北しました"
+              : match?.finish_reason === "surrender"
+                ? playerWon
+                  ? "相手が降参しました"
+                  : "あなたは降参しました"
+                : isDraw
+                  ? "引き分け！"
+                  : playerWon
+                    ? "勝利した！"
+                    : "次の戦いで取り返そう！"}
+          </p>
+
           <div className="result-buttons">
-           <button
-  type="button"
-  onClick={async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+            <button type="button" onClick={restartGame}>
+              🔄 もう一回
+            </button>
 
-    if (user) {
-      await updateStatus(user.id, "online");
-    }
-
-    restartGame();
-  }}
->
-  🔄 もう一回
-</button>
-
-<button
-  type="button"
-  onClick={async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      await updateStatus(user.id, "online");
-    }
-
-    goToMenu();
-  }}
->
-  🏠 メニューへ戻る
-</button>
+            <button type="button" onClick={goToMenu}>
+              🏠 メニューへ戻る
+            </button>
           </div>
         </div>
       </div>
@@ -1177,136 +1252,182 @@ if (actualHeal > 0) {
   }
 
   if (isLoadingMatch) {
-    return <div className="app"><h2>⚔️ 試合を読み込んでいます…</h2></div>;
+    return (
+      <div className="app">
+        <h2>⚔️ 試合を読み込んでいます…</h2>
+      </div>
+    );
   }
 
   return (
-  <div
-    className={`app ${
-      screenShake ? "screen-shake" : ""
-    }`}
-  >
-    <button
-      type="button"
-      className="battle-settings-button"
-      onClick={() => setIsSettingsOpen(true)}
-      aria-label="設定を開く"
-    >
-      ⚙
-    </button>
-
-    <h1>CHAOS CARDS</h1>
-      {coinVisible && firstPlayer && (
-        <div className="coin-toss-overlay">
-          <div className="coin">🪙</div>
-          <strong>
-            {mode === "cpu"
-              ? firstPlayer === "player" ? "YOUが先攻！" : "CPUが先攻！"
-              : firstPlayer === playerRole ? "あなたが先攻！" : "相手が先攻！"}
-          </strong>
-        </div>
-      )}
-
-      <div className="battle-status-grid">
-  <BattleStatus
-    name={mode === "online" ? "OPPONENT" : "CPU"}
-    icon={mode === "online" ? "🌐" : "🤖"}
-    hp={enemyHP}
-    maxHp={MAX_HP}
-    shield={enemyShield}
-    active={!isMyTurn}
-    effect={enemyEffect}
-    enemy
-  />
-
-  <BattleStatus
-    name="YOU"
-    icon="😀"
-    hp={playerHP}
-    maxHp={MAX_HP}
-    shield={playerShield}
-    energy={energy}
-    maxEnergy={MAX_ENERGY}
-    active={isMyTurn}
-    effect={playerEffect}
-  />
-</div>
-
-<BattleField
-  isMyTurn={isMyTurn}
-  cardAnimation={cardAnimation}
-/>
-
-      <div className={`turn-display ${isMyTurn ? "player-turn" : "cpu-turn"}`}>
-        <strong>ターン {turnNumber}</strong>
-        <span>{isMyTurn ? "⚡ あなたの番" : "⏳ 相手の番"}</span>
-      </div>
-
-      <h3>手札</h3>
-      <p className="deck-info">🃏 山札：{deck.length}枚　🗑️ 捨て札：{discardPile.length}枚</p>
-         
-     <div
-  className={`hand ${
-    isMobile ? "hand-mobile" : "hand-desktop"
-  }`}
-  aria-label="手札"
->
-  {hand.map((card, index) => {
-    const isSelected = selectedCards.some(
-      (item) => item.handIndex === index
-    );
-
-    const disabled =
-      !isMyTurn ||
-      isProcessing ||
-      (!isSelected &&
-        energy < Number(card.cost));
-
-    const center = (hand.length - 1) / 2;
-
-    const angle = isMobile
-      ? 0
-      : (index - center) * 6;
-
-    const offsetY = isMobile
-      ? 0
-      : Math.abs(index - center) * 10;
-
-    return (
+    <div className="app">
       <div
-        key={`${card.id}-${index}`}
-        className={`hand-card-wrapper ${
-          isSelected ? "card-selected" : ""
+        className={`battle-content ${
+          screenShake ? "screen-shake" : ""
         }`}
-        style={{
-          "--card-angle": `${angle}deg`,
-          "--card-offset-y": `${offsetY}px`,
-        }}
       >
-        <Card
-          card={card}
-          index={index}
-          isDrawn={drawnIndex === index}
-          disabled={disabled}
-          onPlay={() => playCard(index)}
-          isPlayed={playedCards.includes(index)}
-        />
+        <button
+          type="button"
+          className="battle-settings-button"
+          onClick={() => setIsSettingsOpen(true)}
+          aria-label="設定を開く"
+        >
+          ⚙
+        </button>
 
-        {isSelected && (
-          <div className="selected-overlay">
-            ✓
+        <h1>CHAOS CARDS</h1>
+
+        {coinVisible && firstPlayer && (
+          <div className="coin-toss-overlay">
+            <div className="coin">🪙</div>
+            <strong>
+              {mode === "cpu"
+                ? firstPlayer === "player"
+                  ? "YOUが先攻！"
+                  : "CPUが先攻！"
+                : firstPlayer === playerRole
+                  ? "あなたが先攻！"
+                  : "相手が先攻！"}
+            </strong>
           </div>
         )}
+
+        {turnPopup && (
+  <div className="turn-popup">
+    <div className={`turn-popup-content ${turnPopup}`}>
+      <span className="turn-icon">
+        {turnPopup === "player" ? "⚡" : "⌛"}
+      </span>
+
+      <span>
+        {turnPopup === "player"
+          ? "YOUR TURN"
+          : "ENEMY TURN"}
+      </span>
+    </div>
+  </div>
+)}
+
+        <div className="battle-status-grid">
+          <BattleStatus
+            name={opponentName}
+            icon={mode === "online" ? "🌐" : "🤖"}
+            hp={enemyHP}
+            maxHp={MAX_HP}
+            shield={enemyShield}
+            active={!isMyTurn}
+            effect={enemyEffect}
+            enemy
+          />
+
+          <BattleStatus
+            name="YOU"
+            icon="😀"
+            hp={playerHP}
+            maxHp={MAX_HP}
+            shield={playerShield}
+            energy={energy}
+            maxEnergy={MAX_ENERGY}
+            active={isMyTurn}
+            effect={playerEffect}
+          />
+        </div>
+
+        <BattleField
+          isMyTurn={isMyTurn}
+          cardAnimation={cardAnimation}
+        />
+
+        <div
+          className={`turn-display ${
+            isMyTurn ? "player-turn" : "cpu-turn"
+          }`}
+        >
+          <strong>ターン {turnNumber}</strong>
+          <span>
+            {isMyTurn
+              ? "⚡ あなたの番"
+              : "⏳ 相手の番"}
+          </span>
+        </div>
+
+        <h3>手札</h3>
+
+        <p className="deck-info">
+          🃏 山札：{deck.length}枚　🗑️ 捨て札：
+          {discardPile.length}枚
+        </p>
+
+        <div
+          className={`hand ${
+            isMobile ? "hand-mobile" : "hand-desktop"
+          }`}
+          aria-label="手札"
+        >
+          {hand.map((card, index) => {
+            const isSelected = selectedCards.some(
+              (item) => item.handIndex === index
+            );
+
+            const disabled =
+              !isMyTurn ||
+              isProcessing ||
+              (!isSelected &&
+                energy < Number(card.cost));
+
+            const center = (hand.length - 1) / 2;
+            const angle = isMobile
+              ? 0
+              : (index - center) * 6;
+            const offsetY = isMobile
+              ? 0
+              : Math.abs(index - center) * 10;
+
+            return (
+              <div
+                key={`${card.id}-${index}`}
+                className={`hand-card-wrapper ${
+                  isSelected ? "card-selected" : ""
+                }`}
+                style={{
+                  "--card-angle": `${angle}deg`,
+                  "--card-offset-y": `${offsetY}px`,
+                }}
+              >
+                <Card
+                  card={card}
+                  index={index}
+                  isDrawn={drawnIndex === index}
+                  disabled={disabled}
+                  onPlay={() => playCard(index)}
+                  isPlayed={playedCards.includes(index)}
+                />
+
+                {isSelected && (
+                  <div className="selected-overlay">
+                    ✓
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className="end-turn-button"
+          onClick={endTurn}
+          disabled={!isMyTurn || isProcessing}
+        >
+          {isProcessing
+            ? "処理中…"
+            : isMyTurn
+              ? "ターン終了"
+              : "相手のターンです"}
+        </button>
+
+        <BattleLog logs={logs} />
       </div>
-    );
-  })}
-</div>
-
-      <button className="end-turn-button" onClick={endTurn} disabled={!isMyTurn || isProcessing}>
-        {isProcessing ? "処理中…" : isMyTurn ? "ターン終了" : "相手のターンです"}
-      </button>
-
-            <BattleLog logs={logs} />
 
       {isSettingsOpen && (
         <div
@@ -1315,9 +1436,7 @@ if (actualHeal > 0) {
           aria-modal="true"
           aria-label="戦闘設定"
           onMouseDown={(event) => {
-            if (
-              event.target === event.currentTarget
-            ) {
+            if (event.target === event.currentTarget) {
               setIsSettingsOpen(false);
             }
           }}
@@ -1325,9 +1444,8 @@ if (actualHeal > 0) {
           <div className="battle-settings-modal">
             <Settings
               isModal
-              onClose={() =>
-                setIsSettingsOpen(false)
-              }
+              onClose={() => setIsSettingsOpen(false)}
+              onSurrender={surrender}
             />
           </div>
         </div>

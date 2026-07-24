@@ -9,6 +9,7 @@ import { setBattleBgmVolume } from "../lib/sound";
 export default function Settings({
   goBack,
   onClose,
+  onSurrender,
   isModal = false,
 }) {
   const [settings, setSettings] = useState(getSettings());
@@ -118,7 +119,15 @@ export default function Settings({
             }
           />
         </label>
-
+{isModal && (
+  <button
+    type="button"
+    className="settings-surrender-button"
+    onClick={onSurrender}
+  >
+    🏳️ 降参する
+  </button>
+)}
         <button
           type="button"
           className="settings-back-button"

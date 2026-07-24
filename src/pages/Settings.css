@@ -135,3 +135,31 @@
   width: 100%;
   max-width: 560px;
 }
+
+.settings-surrender-button {
+  width: 100%;
+  margin-top: 14px;
+  margin-bottom: 10px;
+  padding: 14px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #d13a3a,
+    #8f1717
+  );
+
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.settings-surrender-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
