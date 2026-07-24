@@ -219,9 +219,6 @@ export default function Battle({
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
   const previousTurnRef = useRef(null);
-  const selectedRef = useRef(selectedCards);
-const energyRef = useRef(energy);
-const matchRef = useRef(null);
 useEffect(() => {
   energyRef.current = energy;
 }, [energy]);
