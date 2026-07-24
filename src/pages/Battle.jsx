@@ -1356,21 +1356,7 @@ async function surrender() {
           </div>
         )}
 
-        {turnPopup && (
-  <div className="turn-popup">
-    <div className={`turn-popup-content ${turnPopup}`}>
-      <span className="turn-icon">
-        {turnPopup === "player" ? "⚡" : "⌛"}
-      </span>
-
-      <span>
-        {turnPopup === "player"
-          ? "YOUR TURN"
-          : "ENEMY TURN"}
-      </span>
-    </div>
-  </div>
-)}
+        
 
         <div className="battle-status-grid">
           <BattleStatus
@@ -1402,93 +1388,187 @@ async function surrender() {
           cardAnimation={cardAnimation}
         />
 
+        <div className="battle-controls">
+  <div className="turn-summary">
+    <div className="turn-summary-number">
+      TURN {turnNumber}
+    </div>
+
+    <div
+      className={`turn-summary-state ${
+        isMyTurn ? "is-player" : "is-enemy"
+      }`}
+    >
+      <span className="turn-summary-dot" />
+
+      {isProcessing
+        ? "PROCESSING..."
+        : isMyTurn
+          ? "YOUR TURN"
+          : mode === "cpu"
+            ? "CPU THINKING..."
+            : "OPPONENT TURN"}
+    </div>
+  </div>
+
+  <div className="resource-row">
+    <div className="deck-counter">
+      <span className="resource-icon">🃏</span>
+
+      <span className="resource-label">
+        DECK
+      </span>
+
+      <strong>{deck.length}</strong>
+    </div>
+
+    <div className="energy-panel">
+      <div className="energy-panel-header">
+        <span>ENERGY</span>
+        <strong>
+          {energy}/{MAX_ENERGY}
+        </strong>
+      </div>
+
+      <div className="energy-orbs">
+        {Array.from(
+          { length: MAX_ENERGY },
+          (_, index) => (
+            <span
+              key={index}
+              className={`energy-orb ${
+                index < energy ? "filled" : ""
+              }`}
+            />
+          )
+        )}
+      </div>
+    </div>
+
+    <div className="deck-counter">
+      <span className="resource-icon">🗑️</span>
+
+      <span className="resource-label">
+        DISCARD
+      </span>
+
+      <strong>{discardPile.length}</strong>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    className={`end-turn-button ${
+      isMyTurn && !isProcessing
+        ? "end-turn-ready"
+        : ""
+    }`}
+    onClick={endTurn}
+    disabled={!isMyTurn || isProcessing}
+  >
+    <span className="end-turn-button-text">
+      {isProcessing
+        ? "処理中..."
+        : isMyTurn
+          ? "ターン終了"
+          : "相手のターン"}
+    </span>
+
+    <span className="end-turn-button-icon">
+      {isMyTurn && !isProcessing
+        ? "➜"
+        : "⌛"}
+    </span>
+  </button>
+</div>
+
+<div className="hand-section">
+  <div className="hand-section-header">
+    <div>
+      <span className="hand-section-kicker">
+        YOUR CARDS
+      </span>
+
+      <h3>手札</h3>
+    </div>
+
+    <span className="hand-count">
+      {hand.length}/{MAX_HAND_SIZE}
+    </span>
+  </div>
+
+  <div
+    className={`hand ${
+      isMobile
+        ? "hand-mobile"
+        : "hand-desktop"
+    }`}
+    aria-label="手札"
+  >
+    {hand.map((card, index) => {
+      const isSelected =
+        selectedCards.some(
+          (item) =>
+            item.handIndex === index
+        );
+
+      const disabled =
+        !isMyTurn ||
+        isProcessing ||
+        (!isSelected &&
+          energy < Number(card.cost));
+
+      const center =
+        (hand.length - 1) / 2;
+
+      const angle = isMobile
+        ? 0
+        : (index - center) * 6;
+
+      const offsetY = isMobile
+        ? 0
+        : Math.abs(
+            index - center
+          ) * 10;
+
+      return (
         <div
-          className={`turn-display ${
-            isMyTurn ? "player-turn" : "cpu-turn"
+          key={`${card.id}-${index}`}
+          className={`hand-card-wrapper ${
+            isSelected
+              ? "card-selected"
+              : ""
           }`}
+          style={{
+            "--card-angle": `${angle}deg`,
+            "--card-offset-y": `${offsetY}px`,
+          }}
         >
-          <strong>ターン {turnNumber}</strong>
-          <span>
-            {isMyTurn
-              ? "⚡ あなたの番"
-              : "⏳ 相手の番"}
-          </span>
+          <Card
+            card={card}
+            index={index}
+            isDrawn={
+              drawnIndex === index
+            }
+            disabled={disabled}
+            onPlay={() =>
+              playCard(index)
+            }
+            isPlayed={playedCards.includes(
+              index
+            )}
+          />
+
+          {isSelected && (
+            <div className="selected-overlay">
+              <span>✓</span>
+            </div>
+          )}
         </div>
-
-        <h3>手札</h3>
-
-        <p className="deck-info">
-          🃏 山札：{deck.length}枚　🗑️ 捨て札：
-          {discardPile.length}枚
-        </p>
-
-        <div
-          className={`hand ${
-            isMobile ? "hand-mobile" : "hand-desktop"
-          }`}
-          aria-label="手札"
-        >
-          {hand.map((card, index) => {
-            const isSelected = selectedCards.some(
-              (item) => item.handIndex === index
-            );
-
-            const disabled =
-              !isMyTurn ||
-              isProcessing ||
-              (!isSelected &&
-                energy < Number(card.cost));
-
-            const center = (hand.length - 1) / 2;
-            const angle = isMobile
-              ? 0
-              : (index - center) * 6;
-            const offsetY = isMobile
-              ? 0
-              : Math.abs(index - center) * 10;
-
-            return (
-              <div
-                key={`${card.id}-${index}`}
-                className={`hand-card-wrapper ${
-                  isSelected ? "card-selected" : ""
-                }`}
-                style={{
-                  "--card-angle": `${angle}deg`,
-                  "--card-offset-y": `${offsetY}px`,
-                }}
-              >
-                <Card
-                  card={card}
-                  index={index}
-                  isDrawn={drawnIndex === index}
-                  disabled={disabled}
-                  onPlay={() => playCard(index)}
-                  isPlayed={playedCards.includes(index)}
-                />
-
-                {isSelected && (
-                  <div className="selected-overlay">
-                    ✓
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          className="end-turn-button"
-          onClick={endTurn}
-          disabled={!isMyTurn || isProcessing}
-        >
-          {isProcessing
-            ? "処理中…"
-            : isMyTurn
-              ? "ターン終了"
-              : "相手のターンです"}
-        </button>
+      );
+    })}
+  </div>
+</div>
 
         <BattleLog logs={logs} />
       </div>
@@ -1510,6 +1590,21 @@ async function surrender() {
     />
   </div>
 </div>
+)}
+{turnPopup && (
+  <div className="turn-popup">
+    <div className={`turn-popup-content ${turnPopup}`}>
+      <span className="turn-icon">
+        {turnPopup === "player" ? "⚡" : "⌛"}
+      </span>
+
+      <span>
+        {turnPopup === "player"
+          ? "YOUR TURN"
+          : "ENEMY TURN"}
+      </span>
+    </div>
+  </div>
 )}
     </div>
   );
