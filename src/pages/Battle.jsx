@@ -1,3 +1,5 @@
+import { getSettings } from "../lib/settings";
+import Settings from "./Settings";
 import {
   playSound,
   startBattleBgm,
@@ -197,12 +199,15 @@ export default function Battle({
   const [selectedCards, setSelectedCards] = useState([]);
   const [deck, setDeck] = useState(loadDeck);
   const [hand, setHand] = useState([]);
+  const [isSettingsOpen, setIsSettingsOpen] =
+  useState(false);
   const [discardPile, setDiscardPile] = useState([]);
   const [cardAnimation, setCardAnimation] = useState(null);
   const [battleEffect, setBattleEffect] = useState(null);
   const [playedCards, setPlayedCards] = useState([]);
   const [screenShake, setScreenShake] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [gameSettings, setGameSettings] = useState(getSettings());
 
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
@@ -224,6 +229,43 @@ export default function Battle({
   useEffect(() => {
     selectedRef.current = selectedCards;
   }, [selectedCards]);
+  useEffect(() => {
+  function handleSettingsChange() {
+    setGameSettings(getSettings());
+  }
+
+  window.addEventListener(
+    "chaos-settings-change",
+    handleSettingsChange
+  );
+
+  return () => {
+    window.removeEventListener(
+      "chaos-settings-change",
+      handleSettingsChange
+    );
+  };
+}, []);
+useEffect(() => {
+  if (!gameSettings.cardAnimation) {
+    setCardAnimation(null);
+
+    if (cardAnimationTimerRef.current) {
+      window.clearTimeout(
+        cardAnimationTimerRef.current
+      );
+
+      cardAnimationTimerRef.current = null;
+    }
+  }
+
+  if (!gameSettings.screenShake) {
+    setScreenShake(false);
+  }
+}, [
+  gameSettings.cardAnimation,
+  gameSettings.screenShake,
+]);
   useEffect(() => {
   startBattleBgm();
 
@@ -261,6 +303,11 @@ useEffect(() => {
 
   const showCardAnimation = useCallback(
   (side, usedCards) => {
+    if (!gameSettings.cardAnimation) {
+      setCardAnimation(null);
+      return;
+    }
+
     if (
       !Array.isArray(usedCards) ||
       usedCards.length === 0
@@ -285,7 +332,7 @@ useEffect(() => {
         setCardAnimation(null);
       }, 1600);
   },
-  []
+  [gameSettings.cardAnimation]
 );
 useEffect(() => {
   return () => {
@@ -746,8 +793,13 @@ await new Promise((resolve) => {
     if (damaged.hpDamage > 0) {
   playSound("damage");
 
+  if (gameSettings.screenShake) {
   setScreenShake(true);
-  setTimeout(() => setScreenShake(false), 300);
+
+  window.setTimeout(() => {
+    setScreenShake(false);
+  }, 300);
+}
 
   turnLogs.push(`⚔️ YOUに${damaged.hpDamage}ダメージ`);
   showPlayerEffect(`-${damaged.hpDamage}`, "damage");
@@ -848,8 +900,13 @@ setIsProcessing(false);
     if (damaged.blocked > 0) turnLogs.push(`🛡️ CPUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
       playSound("damage");
+  if (gameSettings.screenShake) {
   setScreenShake(true);
-  setTimeout(() => setScreenShake(false), 300);
+
+  window.setTimeout(() => {
+    setScreenShake(false);
+  }, 300);
+}
 
   turnLogs.push(`⚔️ CPUに${damaged.hpDamage}ダメージ`);
   showEnemyEffect(`-${damaged.hpDamage}`, "damage");
@@ -942,8 +999,13 @@ const isSecondPlayerFirstTurn =
     }
     if (damageResult.hpDamage > 0) {
        playSound("damage");
-      setScreenShake(true);
-setTimeout(() => setScreenShake(false), 300);
+      if (gameSettings.screenShake) {
+  setScreenShake(true);
+
+  window.setTimeout(() => {
+    setScreenShake(false);
+  }, 300);
+}
       turnLogs.push(`⚔️ ${followingPlayer}に${damageResult.hpDamage}ダメージ`);
     }
     const actualHeal = healedHp - myHp;
@@ -1119,12 +1181,21 @@ if (actualHeal > 0) {
   }
 
   return (
-    <div
-  className={`app ${
-    screenShake ? "screen-shake" : ""
-  }`}
->
-      <h1>CHAOS CARDS</h1>
+  <div
+    className={`app ${
+      screenShake ? "screen-shake" : ""
+    }`}
+  >
+    <button
+      type="button"
+      className="battle-settings-button"
+      onClick={() => setIsSettingsOpen(true)}
+      aria-label="設定を開く"
+    >
+      ⚙
+    </button>
+
+    <h1>CHAOS CARDS</h1>
       {coinVisible && firstPlayer && (
         <div className="coin-toss-overlay">
           <div className="coin">🪙</div>
@@ -1235,7 +1306,32 @@ if (actualHeal > 0) {
         {isProcessing ? "処理中…" : isMyTurn ? "ターン終了" : "相手のターンです"}
       </button>
 
-      <BattleLog logs={logs} />
+            <BattleLog logs={logs} />
+
+      {isSettingsOpen && (
+        <div
+          className="battle-settings-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="戦闘設定"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget
+            ) {
+              setIsSettingsOpen(false);
+            }
+          }}
+        >
+          <div className="battle-settings-modal">
+            <Settings
+              isModal
+              onClose={() =>
+                setIsSettingsOpen(false)
+              }
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,6 +36,10 @@ export function saveSettings(settings) {
       STORAGE_KEY,
       JSON.stringify(settings)
     );
+
+    window.dispatchEvent(
+      new Event("chaos-settings-change")
+    );
   } catch (error) {
     console.error(
       "設定の保存エラー:",

@@ -7624,3 +7624,113 @@ filter:brightness(1);
     min-height: 56px;
   }
 }
+
+.battle-settings-button {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1200;
+
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(125, 232, 255, 0.35);
+  border-radius: 14px;
+
+  background: rgba(12, 17, 34, 0.86);
+  backdrop-filter: blur(14px);
+
+  color: #ffffff;
+  font-size: 22px;
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.battle-settings-button:hover {
+  transform: translateY(-2px) rotate(15deg);
+  border-color: rgba(125, 232, 255, 0.8);
+  background: rgba(24, 34, 65, 0.95);
+}
+
+.battle-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(2, 4, 12, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.battle-settings-modal {
+  width: min(600px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.65);
+}
+
+.settings-page-modal {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.settings-page-modal .settings-panel {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .battle-settings-button {
+    top: 10px;
+    right: 10px;
+
+    width: 42px;
+    height: 42px;
+
+    font-size: 19px;
+  }
+
+  .battle-settings-overlay {
+    padding: 10px;
+  }
+}
+
+.battle-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(2, 4, 12, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.battle-settings-modal {
+  width: min(600px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}

@@ -123,3 +123,15 @@
     padding: 15px;
   }
 }
+
+.settings-page-modal {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.settings-page-modal .settings-panel {
+  width: 100%;
+  max-width: 560px;
+}

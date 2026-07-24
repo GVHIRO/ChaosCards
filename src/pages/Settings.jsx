@@ -6,7 +6,11 @@ import {
 } from "../lib/settings";
 import { setBattleBgmVolume } from "../lib/sound";
 
-export default function Settings({ goBack }) {
+export default function Settings({
+  goBack,
+  onClose,
+  isModal = false,
+}) {
   const [settings, setSettings] = useState(getSettings());
 
   function updateSetting(key, value) {
@@ -19,19 +23,31 @@ export default function Settings({ goBack }) {
     saveSettings(nextSettings);
 
     if (key === "bgmVolume") {
-      setBattleBgmVolume(
-        0.15 * (value / 100)
-      );
+      setBattleBgmVolume(value);
     }
   }
 
-  return (
-  <main className="settings-page">
-    <section className="settings-panel">
-      <h1 className="settings-title">
-        ⚙ SETTINGS
-      </h1>
+  function handleClose() {
+    if (isModal) {
+      onClose?.();
+      return;
+    }
 
+    goBack?.();
+  }
+
+  return (
+    <main
+      className={
+        isModal
+          ? "settings-page settings-page-modal"
+          : "settings-page"
+      }
+    >
+      <section className="settings-panel">
+        <h1 className="settings-title">
+          ⚙ SETTINGS
+        </h1>
 
         <div className="settings-item">
           <div className="settings-label">
@@ -104,13 +120,15 @@ export default function Settings({ goBack }) {
         </label>
 
         <button
-        type="button"
-        className="settings-back-button"
-        onClick={goBack}
-      >
-        ← メニューへ戻る
-      </button>
-    </section>
-  </main>
-);
+          type="button"
+          className="settings-back-button"
+          onClick={handleClose}
+        >
+          {isModal
+            ? "戦闘に戻る"
+            : "← メニューへ戻る"}
+        </button>
+      </section>
+    </main>
+  );
 }

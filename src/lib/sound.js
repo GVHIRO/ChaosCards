@@ -76,8 +76,17 @@ export function stopBattleBgm() {
   battleBgm.currentTime = 0;
 }
 
-export function setBattleBgmVolume(volume) {
+export function setBattleBgmVolume(
+  settingsVolume
+) {
   if (!battleBgm) return;
 
-  battleBgm.volume = Math.max(0, Math.min(1, volume));
+  battleBgm.volume = Math.max(
+    0,
+    Math.min(
+      1,
+      defaultVolumes.bgm *
+        (settingsVolume / 100)
+    )
+  );
 }
