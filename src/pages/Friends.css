@@ -1360,3 +1360,550 @@
     transform: rotate(360deg);
   }
 }
+
+/* =========================================================
+   FRIENDS：PCフルスクリーンで1画面に収める
+========================================================= */
+
+@media (min-width: 1200px) {
+  /*
+    フレンド画面を開いている間だけ、
+    ページ全体のスクロールを禁止
+  */
+  html:has(.friends-page),
+  body:has(.friends-page),
+  #root:has(.friends-page) {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .friends-page {
+    width: 100% !important;
+
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+
+    padding: 12px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+  }
+
+  /*
+    上：ヘッダー
+    下：3カラム部分
+  */
+  .friends-shell {
+    display: grid !important;
+
+    grid-template-rows:
+      78px
+      minmax(0, 1fr) !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* ヘッダーを少し低くする */
+  .friends-header {
+    height: 78px !important;
+    min-height: 78px !important;
+
+    padding:
+      0
+      18px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 18px !important;
+  }
+
+  .friends-header-title {
+    gap: 2px !important;
+  }
+
+  .friends-header-title > span {
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  .friends-header-title > h1 {
+    margin: 4px 0 0 !important;
+
+    font-size: 36px !important;
+    line-height: 1 !important;
+  }
+
+  .friends-header .friends-back-button {
+    height: 44px !important;
+
+    padding:
+      0
+      24px !important;
+  }
+
+  /*
+    左・中央・右の比率
+  */
+  .friends-dashboard {
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(290px, 0.8fr)
+      minmax(500px, 1.65fr)
+      minmax(310px, 0.95fr) !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  /* 左：プロフィール＋フレンド追加 */
+  .friends-sidebar {
+    display: grid !important;
+
+    grid-template-rows:
+      minmax(0, 1.72fr)
+      minmax(0, 0.82fr) !important;
+
+    gap: 12px !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  /* 右：対戦招待＋フレンド申請 */
+  .friends-notification-column {
+    display: grid !important;
+
+    grid-template-rows:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+
+    gap: 12px !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  /* 各パネルの基本サイズ */
+  .friends-panel {
+    min-width: 0 !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+
+    padding: 16px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 18px !important;
+
+    overflow: hidden !important;
+  }
+
+  .friends-panel-heading {
+    flex: 0 0 auto !important;
+
+    margin:
+      0
+      0
+      8px !important;
+  }
+
+  .friends-panel-heading span {
+    font-size: 10px !important;
+  }
+
+  .friends-panel-heading h2 {
+    margin-top: 4px !important;
+
+    font-size: 17px !important;
+    line-height: 1.15 !important;
+  }
+
+  /* =====================================================
+     左上：自分のプロフィール
+  ===================================================== */
+
+  .friends-profile-panel {
+    display: flex !important;
+    flex-direction: column !important;
+
+    gap: 8px !important;
+
+    align-items: stretch !important;
+  }
+
+  .friends-profile-panel .friends-panel-heading {
+    margin-bottom: 2px !important;
+  }
+
+  .friends-profile-panel .friends-avatar {
+    flex: 0 0 auto !important;
+
+    width: 66px !important;
+    height: 66px !important;
+
+    margin:
+      2px
+      auto
+      0 !important;
+
+    font-size: 34px !important;
+  }
+
+  .friends-profile-name {
+    margin: 0 !important;
+
+    text-align: center !important;
+  }
+
+  .friends-profile-name span {
+    font-size: 10px !important;
+  }
+
+  .friends-profile-name strong {
+    margin-top: 3px !important;
+
+    font-size: 20px !important;
+    line-height: 1.1 !important;
+  }
+
+  .friends-input-label {
+    gap: 5px !important;
+
+    margin: 0 !important;
+
+    font-size: 10px !important;
+  }
+
+  .friends-input {
+    height: 40px !important;
+    min-height: 40px !important;
+
+    padding:
+      8px
+      11px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .friends-secondary-button,
+  .friends-primary-button {
+    height: 40px !important;
+    min-height: 40px !important;
+
+    padding:
+      0
+      14px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .friend-code-box {
+    flex: 0 0 auto !important;
+
+    margin-top: auto !important;
+
+    padding:
+      11px
+      12px !important;
+  }
+
+  .friend-code-box span {
+    font-size: 10px !important;
+  }
+
+  .friend-code-box strong {
+    margin-top: 5px !important;
+
+    font-size: 24px !important;
+    line-height: 1 !important;
+
+    letter-spacing: 0.12em !important;
+  }
+
+  /* =====================================================
+     左下：フレンド追加
+  ===================================================== */
+
+  .friends-add-panel {
+    display: flex !important;
+    flex-direction: column !important;
+
+    gap: 9px !important;
+  }
+
+  .friends-add-panel .friends-panel-heading {
+    margin-bottom: 0 !important;
+  }
+
+  .friends-panel-description {
+    margin:
+      0
+      0
+      2px !important;
+
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .friends-code-input {
+    flex: 0 0 auto !important;
+
+    height: 40px !important;
+  }
+
+  .friends-add-panel .friends-primary-button {
+    flex: 0 0 auto !important;
+
+    margin-top: auto !important;
+  }
+
+  /* =====================================================
+     中央：フレンド一覧
+  ===================================================== */
+
+  .friends-main-panel {
+    display: grid !important;
+
+    grid-template-rows:
+      auto
+      minmax(0, 1fr) !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .friends-empty-state {
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 18px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .friends-empty-icon {
+    width: 66px !important;
+    height: 66px !important;
+
+    margin-bottom: 14px !important;
+  }
+
+  .friends-empty-state h3 {
+    margin:
+      0
+      0
+      8px !important;
+  }
+
+  .friends-empty-state p {
+    margin: 0 !important;
+  }
+
+  /*
+    フレンドが増えた場合だけ、
+    一覧部分の中でスクロールさせる
+  */
+  .friends-card-list {
+    min-height: 0 !important;
+
+    padding-right: 4px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /* =====================================================
+     右：招待と申請
+  ===================================================== */
+
+  .friends-notification-column > .friends-panel {
+    display: grid !important;
+
+    grid-template-rows:
+      auto
+      minmax(0, 1fr) !important;
+  }
+
+  .friends-mini-empty {
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 12px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .friends-mini-empty span {
+    margin-bottom: 8px !important;
+
+    font-size: 24px !important;
+  }
+
+  .friends-mini-empty p {
+    margin: 0 !important;
+
+    font-size: 12px !important;
+  }
+
+  /*
+    招待が増えた場合だけ、
+    パネル内部をスクロール
+  */
+  .friends-request-list {
+    min-height: 0 !important;
+
+    padding-right: 4px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* =========================================================
+   高さが760px以下のPC用：さらにコンパクト
+========================================================= */
+
+@media
+  (min-width: 1200px)
+  and (max-height: 760px) {
+
+  .friends-page {
+    padding: 8px !important;
+  }
+
+  .friends-shell {
+    grid-template-rows:
+      64px
+      minmax(0, 1fr) !important;
+
+    gap: 8px !important;
+  }
+
+  .friends-header {
+    height: 64px !important;
+    min-height: 64px !important;
+
+    padding:
+      0
+      14px !important;
+  }
+
+  .friends-header-title > h1 {
+    font-size: 30px !important;
+  }
+
+  .friends-header .friends-back-button {
+    height: 38px !important;
+  }
+
+  .friends-dashboard,
+  .friends-sidebar,
+  .friends-notification-column {
+    gap: 8px !important;
+  }
+
+  .friends-panel {
+    padding: 12px !important;
+
+    border-radius: 15px !important;
+  }
+
+  .friends-panel-heading {
+    margin-bottom: 5px !important;
+  }
+
+  .friends-panel-heading h2 {
+    font-size: 15px !important;
+  }
+
+  .friends-profile-panel {
+    gap: 5px !important;
+  }
+
+  .friends-profile-panel .friends-avatar {
+    width: 54px !important;
+    height: 54px !important;
+
+    font-size: 28px !important;
+  }
+
+  .friends-profile-name strong {
+    font-size: 17px !important;
+  }
+
+  .friends-input,
+  .friends-secondary-button,
+  .friends-primary-button {
+    height: 35px !important;
+    min-height: 35px !important;
+  }
+
+  .friend-code-box {
+    padding:
+      8px
+      10px !important;
+  }
+
+  .friend-code-box strong {
+    font-size: 20px !important;
+  }
+
+  .friends-add-panel {
+    gap: 5px !important;
+  }
+
+  .friends-panel-description {
+    font-size: 11px !important;
+  }
+}

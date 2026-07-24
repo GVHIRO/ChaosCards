@@ -37,10 +37,18 @@ function createRoomCode() {
 export default function Friends({
   onBack,
   onMatchStart,
+  onProfileUpdated,
 }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [nickname, setNickname] = useState("");
+  const [
+  nicknameInput,
+  setNicknameInput,
+] = useState("");
+  const [
+  searchNickname,
+  setSearchNickname,
+] = useState("");
   const [friendCodeInput, setFriendCodeInput] =
     useState("");
 
@@ -57,6 +65,7 @@ export default function Friends({
   
 
   const notificationTimerRef = useRef(null);
+  
 
   function showNotification(text) {
     setNotification(text);
@@ -396,24 +405,23 @@ useEffect(() => {
   };
 }, [user]);
   async function initializeFriends() {
-    setLoading(true);
-    setMessage("");
+  setLoading(true);
+  setMessage("");
 
+  try {
     const {
       data: { user: currentUser },
       error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError || !currentUser) {
-      console.error(
-        "ユーザー取得エラー:",
-        userError
-      );
-      setMessage(
+    if (userError) {
+      throw userError;
+    }
+
+    if (!currentUser) {
+      throw new Error(
         "ユーザー情報を取得できませんでした"
       );
-      setLoading(false);
-      return;
     }
 
     setUser(currentUser);
@@ -422,43 +430,92 @@ useEffect(() => {
       currentUser.id
     );
 
-    if (currentProfile) {
-      setProfile(currentProfile);
-      setNickname(currentProfile.nickname);
-await updateStatus(currentUser.id, "online");
-      await Promise.all([
-        loadReceivedRequests(currentUser.id),
-        loadFriends(currentUser.id),
-        loadMatchInvites(currentUser.id),
-      ]);
+    if (!currentProfile) {
+      throw new Error(
+        "プロフィールを取得できませんでした"
+      );
     }
 
+    setProfile(currentProfile);
+
+setNicknameInput(
+  currentProfile.username ??
+    currentProfile.nickname ??
+    ""
+);
+
+    /*
+      1つ失敗しても、ほかの読み込みを止めない
+    */
+    const results = await Promise.allSettled([
+      loadReceivedRequests(currentUser.id),
+      loadFriends(currentUser.id),
+      loadMatchInvites(currentUser.id),
+    ]);
+
+    const rejectedResult = results.find(
+      (result) =>
+        result.status === "rejected"
+    );
+
+    if (rejectedResult) {
+      console.error(
+        "フレンドデータ読込エラー:",
+        rejectedResult.reason
+      );
+
+      setMessage(
+        rejectedResult.reason?.message ??
+          "一部のフレンドデータを取得できませんでした"
+      );
+    }
+  } catch (error) {
+    console.error(
+      "フレンド画面初期化エラー:",
+      error
+    );
+
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : String(error)
+    );
+  } finally {
+    /*
+      成功・失敗にかかわらず必ず実行
+    */
     setLoading(false);
   }
+}
 
   async function loadProfile(userId) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("profiles")
+    .select(`
+      id,
+      username,
+      nickname,
+      friend_code,
+      avatar_id,
+      bio
+    `)
+    .eq("id", userId)
+    .maybeSingle();
 
-    if (error) {
-      console.error(
-        "プロフィール取得エラー:",
-        error
-      );
-      setMessage(
-        `プロフィール取得エラー：${error.message}`
-      );
-      return null;
-    }
-
-    return data;
+  if (error) {
+    throw new Error(
+      `プロフィール取得エラー：${error.message}`
+    );
   }
 
+  return data;
+}
+
   async function createProfile() {
-    const trimmedNickname = nickname.trim();
+    const trimmedNickname = searchNickname.trim();
 
     if (!user) {
       setMessage("ユーザー情報がありません");
@@ -496,7 +553,7 @@ await updateStatus(currentUser.id, "online");
 
       if (!error) {
         setProfile(data);
-        setNickname(data.nickname);
+        setNicknameInput(data.nickname);
         setMessage(
           "プロフィールを作成しました！"
         );
@@ -521,43 +578,85 @@ await updateStatus(currentUser.id, "online");
   }
 
   async function updateNickname() {
-    const trimmedNickname = nickname.trim();
+  const trimmedNickname =
+    nicknameInput.trim();
 
-    if (!profile || !user) return;
-
-    if (
-      trimmedNickname.length < 1 ||
-      trimmedNickname.length > 16
-    ) {
-      setMessage(
-        "ニックネームは1〜16文字にしてください"
-      );
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("profiles")
-      .update({
-        nickname: trimmedNickname,
-      })
-      .eq("id", user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("名前変更エラー:", error);
-      setMessage(
-        `名前変更エラー：${error.message}`
-      );
-      return;
-    }
-
-    setProfile(data);
-    setNickname(data.nickname);
-    setMessage(
-      "ニックネームを変更しました！"
-    );
+  if (!profile || !user) {
+    return;
   }
+
+  if (
+    trimmedNickname.length < 1 ||
+    trimmedNickname.length > 16
+  ) {
+    setMessage(
+      "ニックネームは1〜16文字にしてください"
+    );
+    return;
+  }
+
+  setMessage("名前を変更しています…");
+
+  const {
+    data: updatedProfile,
+    error,
+  } = await supabase
+    .from("profiles")
+    .update({
+      /*
+        新旧両方の名前列を同期する
+      */
+      username: trimmedNickname,
+      nickname: trimmedNickname,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id)
+    .select(`
+      id,
+      username,
+      nickname,
+      friend_code,
+      avatar_id,
+      bio
+    `)
+    .single();
+
+  if (error) {
+    console.error(
+      "名前変更エラー:",
+      error
+    );
+
+    if (error.code === "23505") {
+      setMessage(
+        "そのニックネームは既に使用されています"
+      );
+      return;
+    }
+
+    setMessage(
+      `名前変更エラー：${error.message}`
+    );
+    return;
+  }
+
+  setProfile(updatedProfile);
+
+  setNicknameInput(
+    updatedProfile.username ??
+      updatedProfile.nickname ??
+      ""
+  );
+
+  /*
+    App.jsx側のcurrentProfileも更新する
+  */
+  onProfileUpdated?.(updatedProfile);
+
+  setMessage(
+    "ニックネームを変更しました！"
+  );
+}
 
   async function sendFriendRequest() {
     if (!user || !profile) return;
@@ -1166,16 +1265,53 @@ await updateStatus(user.id, "battle");
   }
 
     if (loading) {
-    return (
-      <div className="friends-page">
-        <div className="friends-loading">
-          <div className="friends-loading-spinner" />
-          <p>FRIENDS DATA LOADING...</p>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="friends-page">
+      <div className="friends-loading">
+        <div className="friends-loading-spinner" />
 
+        <p>FRIENDS DATA LOADING...</p>
+
+        <button
+          type="button"
+          className="friends-back-button"
+          onClick={onBack}
+        >
+          ← BACK
+        </button>
+      </div>
+    </div>
+  );
+}
+if (message && !profile) {
+  return (
+    <div className="friends-page">
+      <div className="friends-profile-create-card">
+        <button
+          type="button"
+          className="friends-back-button"
+          onClick={onBack}
+        >
+          ← BACK
+        </button>
+
+        <h1>読み込みエラー</h1>
+
+        <p className="friends-message">
+          {message}
+        </p>
+
+        <button
+          type="button"
+          className="friends-primary-button"
+          onClick={initializeFriends}
+        >
+          もう一度読み込む
+        </button>
+      </div>
+    </div>
+  );
+}
   if (!profile) {
     return (
       <div className="friends-page">
@@ -1204,26 +1340,36 @@ await updateStatus(user.id, "battle");
           </p>
 
           <label className="friends-input-label">
-            NICKNAME
-            <input
-              className="friends-input"
-              type="text"
-              value={nickname}
-              maxLength={16}
-              placeholder="1〜16文字"
-              onChange={(event) =>
-                setNickname(event.target.value)
-              }
-            />
-          </label>
+  NICKNAME
 
-          <button
-            className="friends-primary-button"
-            type="button"
-            onClick={createProfile}
-          >
-            プロフィールを作成
-          </button>
+  <input
+    className="friends-input"
+    type="text"
+    value={nicknameInput}
+    maxLength={16}
+    onChange={(event) =>
+      setNicknameInput(
+        event.target.value
+      )
+    }
+  />
+</label>
+
+<button
+  className="friends-secondary-button"
+  type="button"
+  onClick={updateNickname}
+  disabled={
+    nicknameInput.trim() ===
+    (
+      profile.username ??
+      profile.nickname ??
+      ""
+    )
+  }
+>
+  名前を変更
+</button>
 
           {message && (
             <p className="friends-message">
@@ -1291,14 +1437,22 @@ await updateStatus(user.id, "battle");
               </div>
 
               <div className="friends-avatar">
-                {profile.nickname
-                  ?.charAt(0)
-                  .toUpperCase() || "?"}
-              </div>
+  {(
+    profile.username ??
+    profile.nickname ??
+    "?"
+  )
+    .charAt(0)
+    .toUpperCase()}
+</div>
 
               <div className="friends-profile-name">
                 <span>NICKNAME</span>
-                <strong>{profile.nickname}</strong>
+                <strong>
+  {profile.username ??
+    profile.nickname ??
+    "PLAYER"}
+</strong>
               </div>
 
               <label className="friends-input-label">
@@ -1306,11 +1460,11 @@ await updateStatus(user.id, "battle");
                 <input
                   className="friends-input"
                   type="text"
-                  value={nickname}
+                  value={searchNickname}
                   maxLength={16}
                   onChange={(event) =>
-                    setNickname(event.target.value)
-                  }
+  setNicknameInput(event.target.value)
+}
                 />
               </label>
 
@@ -1319,7 +1473,7 @@ await updateStatus(user.id, "battle");
                 type="button"
                 onClick={updateNickname}
                 disabled={
-                  nickname.trim() ===
+                  searchNickname.trim() ===
                   profile.nickname
                 }
               >
@@ -1417,8 +1571,10 @@ await updateStatus(user.id, "battle");
                     <div className="friends-player-info">
                       <div className="friends-player-name-row">
                         <strong>
-                          {friend.nickname}
-                        </strong>
+  {profile.username ??
+    profile.nickname ??
+    "PLAYER"}
+</strong>
 
                         <span className="friends-status-label">
   {friend.status === "battle"

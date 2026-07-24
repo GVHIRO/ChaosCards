@@ -160,8 +160,15 @@ function nextRole(role) {
   return role === "host" ? "guest" : "host";
 }
 
-function roleLabel(role, myRole) {
-  return role === myRole ? "YOU" : "相手";
+function roleLabel(
+  role,
+  myRole,
+  myName,
+  enemyName
+) {
+  return role === myRole
+    ? myName
+    : enemyName;
 }
 function createCardLogs(actor, usedCards) {
   if (!Array.isArray(usedCards) || usedCards.length === 0) {
@@ -227,9 +234,12 @@ function useMediaQuery(query) {
   return matches;
 }
 export default function Battle({
-  mode = "cpu",
+  mode,
+  roomId,
   matchId,
   playerRole,
+  currentUserId,
+  playerName = "YOU",
   restartGame,
   goToMenu,
 }) {
@@ -266,7 +276,96 @@ export default function Battle({
   const [turnPopup, setTurnPopup] = useState(null);
   const [battleUiScale, setBattleUiScale] =
   useState(1);
+const [opponentName, setOpponentName] =
+  useState("ENEMY");
 
+/* ここから追加 */
+useEffect(() => {
+  if (mode !== "online") {
+    setOpponentName("CPU");
+    return undefined;
+  }
+
+  if (!roomId || !currentUserId) {
+    setOpponentName("対戦相手");
+    return undefined;
+  }
+
+  let cancelled = false;
+
+  async function loadOpponentName() {
+    try {
+      const {
+        data: room,
+        error: roomError,
+      } = await supabase
+        .from("rooms")
+        .select("host_id, guest_id")
+        .eq("id", roomId)
+        .single();
+
+      if (roomError) {
+        throw roomError;
+      }
+
+      const isHost =
+        String(room.host_id) ===
+        String(currentUserId);
+
+      const opponentId = isHost
+        ? room.guest_id
+        : room.host_id;
+
+      if (!opponentId) {
+        if (!cancelled) {
+          setOpponentName("対戦相手");
+        }
+
+        return;
+      }
+
+      const {
+        data: profile,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", opponentId)
+        .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (!cancelled) {
+        setOpponentName(
+          profile?.username ??
+            "対戦相手"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "対戦相手の名前取得エラー:",
+        error
+      );
+
+      if (!cancelled) {
+        setOpponentName("対戦相手");
+      }
+    }
+  }
+
+  loadOpponentName();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  mode,
+  roomId,
+  currentUserId,
+]);
+/* ここまで追加 */
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
   const deckRef = useRef(deck);
@@ -479,8 +578,6 @@ const energyBeforeSelection = Math.min(
   MAX_ENERGY,
   energy + selectedEnergyCost,
 );
-const opponentName =
-  mode === "online" ? "OPPONENT" : "CPU";
 
   const addLogs = useCallback((newLogs) => {
     setLogs((previous) => [...newLogs, ...previous].slice(0, 12));
@@ -601,7 +698,7 @@ useEffect(() => {
       setCurrentPlayer(first);
       setCoinVisible(true);
       addLogs([
-        `🪙 コイントス！${first === "player" ? "YOU" : "CPU"}が先攻！`,
+        `🪙 コイントス！${first === "player" ? playerName : "CPU"}が先攻！`,
       ]);
 
       window.setTimeout(() => setCoinVisible(false), 1700);
@@ -716,7 +813,12 @@ setEnergy(nextEnergy);
       setCoinVisible(true);
       setIsLoadingMatch(false);
       addLogs([
-        `🪙 コイントス結果：${roleLabel(data.first_player, playerRole)}が先攻！`,
+        `🪙 コイントス結果：${roleLabel(
+  data.first_player,
+  playerRole,
+  playerName,
+  opponentName
+)}が先攻！`,
       ]);
       window.setTimeout(() => setCoinVisible(false), 1700);
     }
@@ -793,9 +895,11 @@ if (
     addLogs([
       `🔄 ターン${next.turn_number}：${
         roleLabel(
-          next.current_player,
-          playerRole
-        )
+  next.current_player,
+  playerRole,
+  playerName,
+  opponentName
+)
       }の番`,
       ...battleLogs,
     ]);
@@ -1083,7 +1187,7 @@ await new Promise((resolve) => {
 
     const turnLogs = createCardEffectLogs(
   "CPU",
-  "YOU",
+  playerName,
   chosen,
   playerHP,
   playerShield,
@@ -1191,7 +1295,7 @@ setIsProcessing(false);
     setPlayerShield((value) => value + summary.shield);
 
     const turnLogs = createCardEffectLogs(
-  "YOU",
+  playerName,
   "CPU",
   selectedRef.current,
   enemyHP,
@@ -1304,9 +1408,9 @@ const remainingEnergy = Math.max(
 const isSecondPlayerFirstTurn =
   Number(match.turn_number) === 1 &&
   match.current_player === match.first_player;
-    const turnLogs = createCardEffectLogs(
-  roleLabel(playerRole, playerRole),
-  roleLabel(followingPlayer, playerRole),
+   const turnLogs = createCardEffectLogs(
+  playerName,
+  opponentName,
   selectedRef.current,
   opponentHp,
   opponentShield,
@@ -1314,7 +1418,9 @@ const isSecondPlayerFirstTurn =
 );
 
     if (damageResult.blocked > 0) {
-      turnLogs.push(`${followingPlayer}の盾が${damageResult.blocked}ダメージ防御`);
+      turnLogs.push(
+  `${opponentName}の盾が${damageResult.blocked}ダメージ防御`
+);
     }
     if (damageResult.hpDamage > 0) {
        playSound("damage");
@@ -1330,11 +1436,15 @@ const isSecondPlayerFirstTurn =
 
 if (actualHeal > 0) {
   playSound("heal");
-  turnLogs.push(`${playerRole}が${actualHeal}回復`);
+  turnLogs.push(
+  `${playerName}が${actualHeal}回復`
+);
 }
     if (summary.shield > 0) {
   playSound("shield");
-  turnLogs.push(`${playerRole}がシールド${summary.shield}獲得`);
+  turnLogs.push(
+  `${playerName}がシールド${summary.shield}獲得`
+);
 }
 
     let matchWinner = null;
@@ -1581,7 +1691,7 @@ return (
       />
 
       <BattleStatus
-        name="YOU"
+        name={playerName}
         icon="😀"
         hp={playerHP}
         maxHp={MAX_HP}

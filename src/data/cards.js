@@ -1,5 +1,5 @@
 const cards = [
-  // Common: 基準効率。デッキに同名3枚まで。
+  // Common: 基準効率。種類につき3枚まで。
   { id: 1, name: "こぶし", emoji: "👊", type: "attack", damage: 4, rarity: "Common", cost: 1, description: "相手に4ダメージ" },
   { id: 2, name: "石投げ", emoji: "🪨", type: "attack", damage: 4, rarity: "Common", cost: 1, description: "相手に4ダメージ" },
   { id: 3, name: "木の剣", emoji: "🗡️", type: "attack", damage: 7, rarity: "Common", cost: 2, description: "相手に7ダメージ" },
@@ -13,7 +13,7 @@ const cards = [
   { id: 11, name: "栄養ドリンク", emoji: "🥤", type: "heal", heal: 4, shield: 3, rarity: "Common", cost: 2, description: "HPを4回復し、シールドを3得る" },
   { id: 12, name: "黒板消し落とし", emoji: "🧽", type: "attack", damage: 7, rarity: "Common", cost: 2, description: "相手に7ダメージ" },
 
-  // Rare: Commonより少し高効率・個性的。同名2枚まで。
+  // Rare: Commonより少し高効率・個性的。種類につき2枚まで。
   { id: 13, name: "鉄の剣", emoji: "⚔️", type: "attack", damage: 9, rarity: "Rare", cost: 2, description: "相手に9ダメージ" },
   { id: 14, name: "火炎弾", emoji: "🔥", type: "attack", damage: 13, rarity: "Rare", cost: 3, description: "相手に13ダメージ" },
   { id: 15, name: "雷撃", emoji: "⚡", type: "attack", damage: 9, rarity: "Rare", cost: 2, description: "相手に9ダメージ" },
@@ -29,7 +29,7 @@ const cards = [
   { id: 25, name: "激辛ラーメン", emoji: "🍜", type: "attack", damage: 9, rarity: "Rare", cost: 2, description: "辛さで相手に9ダメージ" },
   { id: 26, name: "謎の給食", emoji: "🍛", type: "heal", heal: 9, rarity: "Rare", cost: 2, description: "なぜかHPを9回復" },
 
-  // Epic: 強力だが同名1枚、デッキ全体で最大4枚。
+  // Epic: 強力だが種類につき1枚、デッキ全体で最大4枚。
   { id: 27, name: "ドラゴンブレス", emoji: "🐉", type: "attack", damage: 16, rarity: "Epic", cost: 3, description: "相手に16ダメージ" },
   { id: 28, name: "巨大ハンマー", emoji: "🔨", type: "attack", damage: 21, rarity: "Epic", cost: 4, description: "相手に21ダメージ" },
   { id: 29, name: "メテオ", emoji: "☄️", type: "attack", damage: 26, rarity: "Epic", cost: 5, description: "相手に26ダメージ" },
@@ -43,7 +43,7 @@ const cards = [
   { id: 37, name: "再生の炎", emoji: "🔥", type: "attack", damage: 9, heal: 8, rarity: "Epic", cost: 3, description: "9ダメージを与え、HPを8回復" },
   { id: 38, name: "先生の説教", emoji: "📢", type: "attack", damage: 16, rarity: "Epic", cost: 3, description: "精神的に16ダメージ" },
 
-  // Legend: 最高効率。同名1枚、デッキ全体で最大2枚。
+  // Legend: 最高効率。種類につき1枚、デッキ全体で最大2枚。
   { id: 39, name: "神の一撃", emoji: "🌟", type: "attack", damage: 19, rarity: "Legend", cost: 3, description: "相手に19ダメージ" },
   { id: 40, name: "終焉の剣", emoji: "🗡️", type: "attack", damage: 25, rarity: "Legend", cost: 4, description: "相手に25ダメージ" },
   { id: 41, name: "天地崩壊", emoji: "🌋", type: "attack", damage: 31, rarity: "Legend", cost: 5, description: "相手に31ダメージ" },

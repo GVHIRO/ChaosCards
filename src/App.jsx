@@ -1,3 +1,4 @@
+import ProfileSetup from "./pages/ProfileSetup";
 import AppLoading from "./components/AppLoading";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
@@ -22,65 +23,137 @@ function App() {
     useState(false);
 
   const [currentUser, setCurrentUser] =
-    useState(null);
+  useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
+const [currentProfile, setCurrentProfile] =
+  useState(null);
 
-    async function initializeAuth() {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+/*
+  profilesからユーザーのプロフィールを取得する。
+  既存アカウントでも、プロフィールがなければnullになる。
+*/
+async function fetchUserProfile(user) {
+  if (!user || user.is_anonymous) {
+    setCurrentProfile(null);
+    return null;
+  }
 
-        if (sessionError) {
-          throw sessionError;
-        }
+  const {
+    data: profile,
+    error: profileError,
+  } = await supabase
+    .from("profiles")
+    .select(
+      "id, username, avatar_id, bio"
+    )
+    .eq("id", user.id)
+    .maybeSingle();
 
-        if (!session) {
-          const { error: signInError } =
-            await supabase.auth.signInAnonymously();
+  if (profileError) {
+    throw profileError;
+  }
 
-          if (signInError) {
-            throw signInError;
-          }
-        }
+  setCurrentProfile(profile ?? null);
 
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+  return profile ?? null;
+}
 
-        if (userError) {
-          throw userError;
-        }
+useEffect(() => {
+  let isMounted = true;
 
-        if (isMounted) {
-          setCurrentUser(user);
-          setAuthReady(true);
-        }
-      } catch (error) {
-        console.error("認証初期化エラー:", error);
+  async function initializeAuth() {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-        if (isMounted) {
-          setAuthError(
-            error?.message ||
-              "ゲームの準備に失敗しました"
-          );
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      /*
+        ログインしていない場合だけ、
+        ゲストアカウントを作成する。
+      */
+      if (!session) {
+        const { error: signInError } =
+          await supabase.auth.signInAnonymously();
+
+        if (signInError) {
+          throw signInError;
         }
       }
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!isMounted) {
+        return;
+      }
+
+      setCurrentUser(user);
+
+      const profile =
+        await fetchUserProfile(user);
+
+      if (!isMounted) {
+        return;
+      }
+
+      /*
+        通常アカウントなのにプロフィールがない場合、
+        既存ユーザーでもプロフィール設定を表示する。
+      */
+      const hasCompletedProfile =
+  Boolean(profile?.username?.trim());
+
+if (
+  user &&
+  !user.is_anonymous &&
+  !hasCompletedProfile
+) {
+  setScreen("profile-setup");
+} else {
+  setScreen("menu");
+}
+
+      setAuthReady(true);
+    } catch (error) {
+      console.error(
+        "認証初期化エラー:",
+        error
+      );
+
+      if (isMounted) {
+        setAuthError(
+          error?.message ||
+            "ゲームの準備に失敗しました"
+        );
+
+        setAuthReady(true);
+      }
     }
+  }
 
-    initializeAuth();
+  initializeAuth();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const user = session?.user ?? null;
-        setCurrentUser(user);
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      const user =
+        session?.user ?? null;
 
+      setCurrentUser(user);
+
+      try {
         const savedPassword =
           sessionStorage.getItem(
             "pendingAccountPassword"
@@ -91,32 +164,72 @@ function App() {
           !user.is_anonymous &&
           savedPassword
         ) {
-          const { error } =
+          /*
+            USER_UPDATEDがもう一度発生しても
+            重複処理されないよう、先に削除する。
+          */
+          sessionStorage.removeItem(
+            "pendingAccountPassword"
+          );
+
+          const { error: passwordError } =
             await supabase.auth.updateUser({
               password: savedPassword,
             });
 
-          if (error) {
-            console.error(
-              "パスワード設定エラー:",
-              error
+          if (passwordError) {
+            sessionStorage.setItem(
+              "pendingAccountPassword",
+              savedPassword
             );
-            return;
+
+            throw passwordError;
           }
-
-          sessionStorage.removeItem(
-            "pendingAccountPassword"
-          );
         }
+
+        if (
+          event === "SIGNED_IN" ||
+          event === "USER_UPDATED"
+        ) {
+          const profile =
+            await fetchUserProfile(user);
+
+          const hasCompletedProfile =
+  Boolean(profile?.username?.trim());
+
+if (
+  user &&
+  !user.is_anonymous &&
+  !hasCompletedProfile
+) {
+  setScreen("profile-setup");
+} else if (hasCompletedProfile) {
+  setScreen((currentScreen) =>
+    currentScreen === "profile-setup"
+      ? "menu"
+      : currentScreen
+  );
+}
+        }
+
+        if (event === "SIGNED_OUT") {
+          setCurrentProfile(null);
+          setScreen("menu");
+        }
+      } catch (error) {
+        console.error(
+          "認証状態変更エラー:",
+          error
+        );
       }
-    );
+    }
+  );
 
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
+  return () => {
+    isMounted = false;
+    subscription.unsubscribe();
+  };
+}, []);
   function hasValidDeck() {
     const savedDeck =
       localStorage.getItem("chaosCardsDeck");
@@ -283,6 +396,16 @@ function App() {
   }
 
   function renderScreen() {
+    if (screen === "profile-setup") {
+  return (
+    <ProfileSetup
+      onComplete={(profile) => {
+        setCurrentProfile(profile);
+        setScreen("menu");
+      }}
+    />
+  );
+}
     if (screen === "settings") {
   return (
     <Settings
@@ -293,9 +416,14 @@ function App() {
  if (screen === "friends") {
   return (
     <Friends
-      onBack={() => setScreen("menu")}
-      onMatchStart={startOnlineBattle}
-    />
+  onBack={() =>
+    setScreen("menu")
+  }
+  onMatchStart={startOnlineBattle}
+  onProfileUpdated={(updatedProfile) => {
+    setCurrentProfile(updatedProfile);
+  }}
+/>
   );
 }
 
@@ -310,46 +438,73 @@ function App() {
     if (screen === "battle") {
       return (
         <Battle
-          key={battleKey}
-          mode="cpu"
-          restartGame={() => {
-            setBattleKey(
-              (currentKey) => currentKey + 1
-            );
-          }}
-          goToMenu={() => setScreen("menu")}
-        />
+  key={battleKey}
+  mode="cpu"
+
+  currentUserId={currentUser?.id}
+  playerName={
+    currentProfile?.username ??
+    "YOU"
+  }
+
+  restartGame={() => {
+    setBattleKey(
+      (currentKey) =>
+        currentKey + 1
+    );
+  }}
+  goToMenu={() =>
+    setScreen("menu")
+  }
+/>
       );
     }
 
     if (screen === "online-battle") {
       return (
         <Battle
-          key={`${onlineRoom?.matchId}-${battleKey}`}
-          mode="online"
-          roomId={onlineRoom?.roomId}
-          matchId={onlineRoom?.matchId}
-          playerRole={onlineRoom?.role}
-          restartGame={() => {
-            setOnlineRoom(null);
-            setScreen("online");
-          }}
-          goToMenu={() => {
-            setOnlineRoom(null);
-            setScreen("menu");
-          }}
-        />
+  key={`${onlineRoom?.matchId}-${battleKey}`}
+  mode="online"
+  roomId={onlineRoom?.roomId}
+  matchId={onlineRoom?.matchId}
+  playerRole={onlineRoom?.role}
+
+  currentUserId={currentUser?.id}
+  playerName={
+    currentProfile?.username ??
+    "YOU"
+  }
+
+  restartGame={() => {
+    setOnlineRoom(null);
+    setScreen("online");
+  }}
+  goToMenu={() => {
+    setOnlineRoom(null);
+    setScreen("menu");
+  }}
+/>
       );
     }
 
     if (screen === "online") {
-      return (
-        <OnlineMenu
-          onBack={() => setScreen("menu")}
-          onMatchStart={startOnlineBattle}
-        />
-      );
-    }
+  return (
+    <OnlineMenu
+      onBack={() => setScreen("menu")}
+      onMatchStart={startOnlineBattle}
+
+      currentUser={currentUser}
+      nickname={
+        currentProfile?.username ??
+        "ゲスト"
+      }
+      avatarId={
+        currentProfile?.avatar_id ??
+        "default"
+      }
+    />
+  );
+}
 
     return (
      <Menu
