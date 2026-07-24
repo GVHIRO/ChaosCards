@@ -21,8 +21,6 @@ const soundPaths = {
   defeat: "/sounds/defeat.mp3",
 };
 
-const audioCache = {};
-
 let audioContext = null;
 let battleBgm = null;
 let battleBgmSource = null;
@@ -73,7 +71,55 @@ export async function unlockAudio() {
    SE
 ========================= */
 
-export function playSound(name) {
+async function loadAudioBuffer(name) {
+  if (audioBuffers[name]) {
+    return audioBuffers[name];
+  }
+
+  if (loadingBuffers[name]) {
+    return loadingBuffers[name];
+  }
+
+  const path = soundPaths[name];
+
+  if (!path) {
+    throw new Error(`存在しないサウンドです: ${name}`);
+  }
+
+  const context = getAudioContext();
+
+  if (!context) {
+    return null;
+  }
+
+  loadingBuffers[name] = fetch(path)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `音声ファイルを取得できません: ${path}`
+        );
+      }
+
+      return response.arrayBuffer();
+    })
+    .then((arrayBuffer) =>
+      context.decodeAudioData(arrayBuffer)
+    )
+    .then((buffer) => {
+      audioBuffers[name] = buffer;
+      delete loadingBuffers[name];
+
+      return buffer;
+    })
+    .catch((error) => {
+      delete loadingBuffers[name];
+      throw error;
+    });
+
+  return loadingBuffers[name];
+}
+
+export async function playSound(name) {
   const path = soundPaths[name];
 
   if (!path) {
@@ -82,11 +128,20 @@ export function playSound(name) {
   }
 
   try {
-    if (!audioCache[name]) {
-      audioCache[name] = new Audio(path);
+    const context = getAudioContext();
+
+    if (!context) {
+      return;
     }
 
-    const audio = audioCache[name].cloneNode();
+    await unlockAudio();
+
+    const buffer = await loadAudioBuffer(name);
+
+    if (!buffer) {
+      return;
+    }
+
     const settings = getSettings();
 
     const settingVolume = clamp(
@@ -96,21 +151,35 @@ export function playSound(name) {
     const baseVolume =
       defaultVolumes[name] ?? 0.5;
 
-    audio.volume = clamp(
+    const finalVolume = clamp(
       baseVolume * settingVolume
     );
 
-    audio.play().catch((error) => {
-      console.warn("SE再生エラー:", error);
-    });
+    const source = context.createBufferSource();
+    const gainNode = context.createGain();
+
+    source.buffer = buffer;
+    gainNode.gain.value = finalVolume;
+
+    source.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    source.start(0);
+
+    source.onended = () => {
+      source.disconnect();
+      gainNode.disconnect();
+    };
   } catch (error) {
-    console.error("SE作成エラー:", error);
+    console.warn("SE再生エラー:", error);
   }
 }
 
 /* =========================
    BGM
 ========================= */
+const audioBuffers = {};
+const loadingBuffers = {};
 
 export async function startBattleBgm() {
   if (battleBgmStarting) return;
