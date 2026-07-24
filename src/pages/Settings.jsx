@@ -65,18 +65,18 @@ export default function Settings({
           </div>
 
           <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={settings.bgmVolume}
-            onInput={(event) =>
-              updateSetting(
-                "bgmVolume",
-                Number(event.currentTarget.value)
-              )
-            }
-          />
+  type="range"
+  min="0"
+  max="100"
+  step="1"
+  value={settings.bgmVolume}
+  onChange={(event) => {
+    updateSetting(
+      "bgmVolume",
+      Number(event.currentTarget.value)
+    );
+  }}
+/>
         </div>
 
         <div className="settings-item">
@@ -88,18 +88,18 @@ export default function Settings({
           </div>
 
           <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={settings.seVolume}
-            onInput={(event) =>
-              updateSetting(
-                "seVolume",
-                Number(event.currentTarget.value)
-              )
-            }
-          />
+  type="range"
+  min="0"
+  max="100"
+  step="1"
+  value={settings.seVolume}
+  onChange={(event) => {
+    updateSetting(
+      "seVolume",
+      Number(event.currentTarget.value)
+    );
+  }}
+/>
         </div>
 
         <label className="settings-toggle">

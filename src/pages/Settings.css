@@ -163,3 +163,9 @@
   transform: translateY(-2px);
   filter: brightness(1.08);
 }
+
+.settings-item input[type="range"] {
+  width: 100%;
+  touch-action: pan-x;
+  pointer-events: auto;
+}

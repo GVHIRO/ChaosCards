@@ -1450,29 +1450,21 @@ async function surrender() {
 
       {isSettingsOpen && (
   <div
-    className="battle-settings-overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-label="戦闘設定"
-    onPointerDown={(event) => {
-      if (event.target === event.currentTarget) {
-        setIsSettingsOpen(false);
-      }
-    }}
-  >
-    <div
-      className="battle-settings-modal"
-      onPointerDown={(event) => {
-        event.stopPropagation();
-      }}
-    >
-      <Settings
-        isModal
-        onClose={() => setIsSettingsOpen(false)}
-        onSurrender={surrender}
-      />
-    </div>
+  className="battle-settings-overlay"
+  onClick={(event) => {
+    if (event.target === event.currentTarget) {
+      setIsSettingsOpen(false);
+    }
+  }}
+>
+  <div className="battle-settings-modal">
+    <Settings
+      isModal
+      onClose={() => setIsSettingsOpen(false)}
+      onSurrender={surrender}
+    />
   </div>
+</div>
 )}
     </div>
   );
