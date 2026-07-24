@@ -26,6 +26,12 @@ export default function Settings({
     if (key === "bgmVolume") {
       setBattleBgmVolume(value);
     }
+
+    window.dispatchEvent(
+      new CustomEvent("chaos-settings-change", {
+        detail: nextSettings,
+      })
+    );
   }
 
   function handleClose() {
@@ -53,52 +59,47 @@ export default function Settings({
         <div className="settings-item">
           <div className="settings-label">
             <span>🎵 BGM</span>
-            <strong>{settings.bgmVolume}%</strong>
+            <strong>
+              {Math.round(settings.bgmVolume)}%
+            </strong>
           </div>
 
           <input
-  type="range"
-  min="0"
-  max="1"
-  step="0.01"
-  value={bgmVolume}
-  onInput={(e) => {
-    const value = Number(e.currentTarget.value);
-
-    setBgmVolume(value);
-    localStorage.setItem("bgmVolume", String(value));
-
-    window.dispatchEvent(
-      new CustomEvent("game-settings-change", {
-        detail: { bgmVolume: value },
-      })
-    );
-  }}
-/>
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={settings.bgmVolume}
+            onInput={(event) =>
+              updateSetting(
+                "bgmVolume",
+                Number(event.currentTarget.value)
+              )
+            }
+          />
         </div>
 
         <div className="settings-item">
           <div className="settings-label">
             <span>🔊 SE</span>
-            <strong>{settings.seVolume}%</strong>
+            <strong>
+              {Math.round(settings.seVolume)}%
+            </strong>
           </div>
 
           <input
-  type="checkbox"
-  checked={soundEnabled}
-  onChange={(e) => {
-    const value = e.currentTarget.checked;
-
-    setSoundEnabled(value);
-    localStorage.setItem("soundEnabled", JSON.stringify(value));
-
-    window.dispatchEvent(
-      new CustomEvent("game-settings-change", {
-        detail: { soundEnabled: value },
-      })
-    );
-  }}
-/>
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={settings.seVolume}
+            onInput={(event) =>
+              updateSetting(
+                "seVolume",
+                Number(event.currentTarget.value)
+              )
+            }
+          />
         </div>
 
         <label className="settings-toggle">
@@ -110,7 +111,7 @@ export default function Settings({
             onChange={(event) =>
               updateSetting(
                 "screenShake",
-                event.target.checked
+                event.currentTarget.checked
               )
             }
           />
@@ -125,20 +126,22 @@ export default function Settings({
             onChange={(event) =>
               updateSetting(
                 "cardAnimation",
-                event.target.checked
+                event.currentTarget.checked
               )
             }
           />
         </label>
-{isModal && (
-  <button
-    type="button"
-    className="settings-surrender-button"
-    onClick={onSurrender}
-  >
-    🏳️ 降参する
-  </button>
-)}
+
+        {isModal && (
+          <button
+            type="button"
+            className="settings-surrender-button"
+            onClick={onSurrender}
+          >
+            🏳️ 降参する
+          </button>
+        )}
+
         <button
           type="button"
           className="settings-back-button"

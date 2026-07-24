@@ -7844,3 +7844,46 @@ filter:brightness(1);
         transform:scale(1.2);
     }
 }
+
+.battle-settings-button {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  z-index: 9000;
+
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.battle-settings-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(16px, env(safe-area-inset-top))
+    16px
+    max(16px, env(safe-area-inset-bottom));
+
+  background: rgba(0, 0, 0, 0.72);
+
+  z-index: 10000;
+  pointer-events: auto;
+  touch-action: none;
+  overflow-y: auto;
+}
+
+.battle-settings-modal {
+  position: relative;
+  z-index: 10001;
+
+  width: min(92vw, 600px);
+  max-height: 90dvh;
+  overflow-y: auto;
+
+  pointer-events: auto;
+  touch-action: pan-y;
+}

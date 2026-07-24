@@ -1282,13 +1282,17 @@ async function surrender() {
         }`}
       >
         <button
-          type="button"
-          className="battle-settings-button"
-          onClick={() => setIsSettingsOpen(true)}
-          aria-label="設定を開く"
-        >
-          ⚙
-        </button>
+  type="button"
+  className="battle-settings-button"
+  onPointerUp={(event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsSettingsOpen(true);
+  }}
+  aria-label="設定を開く"
+>
+  ⚙
+</button>
 
         <h1>CHAOS CARDS</h1>
 
@@ -1445,26 +1449,31 @@ async function surrender() {
       </div>
 
       {isSettingsOpen && (
-        <div
-          className="battle-settings-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="戦闘設定"
-          onClick={(event) => {
-  if (event.target === event.currentTarget) {
-    setIsSettingsOpen(false);
-  }
-}}
-        >
-          <div className="battle-settings-modal">
-            <Settings
-              isModal
-              onClose={() => setIsSettingsOpen(false)}
-              onSurrender={surrender}
-            />
-          </div>
-        </div>
-      )}
+  <div
+    className="battle-settings-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="戦闘設定"
+    onPointerDown={(event) => {
+      if (event.target === event.currentTarget) {
+        setIsSettingsOpen(false);
+      }
+    }}
+  >
+    <div
+      className="battle-settings-modal"
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      <Settings
+        isModal
+        onClose={() => setIsSettingsOpen(false)}
+        onSurrender={surrender}
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 }

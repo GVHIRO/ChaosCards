@@ -1,15 +1,17 @@
 import { getSettings } from "./settings";
+
 const defaultVolumes = {
   bgm: 0.15,
 
-  card: 0.40,
-  damage: 0.60,
-  heal: 0.60,
+  card: 0.4,
+  damage: 0.6,
+  heal: 0.6,
   shield: 0.35,
   turn: 0.25,
-  victory: 0.60,
+  victory: 0.6,
   defeat: 0.45,
 };
+
 const soundPaths = {
   card: "/sounds/card.mp3",
   damage: "/sounds/damage.mp3",
@@ -36,12 +38,20 @@ export function playSound(name) {
     }
 
     const audio = audioCache[name].cloneNode();
+    const settings = getSettings();
 
-const settings = getSettings();
+    const settingVolume = Math.max(
+      0,
+      Math.min(1, Number(settings.seVolume) / 100)
+    );
 
-audio.volume =
-  (defaultVolumes[name] ?? 0.6) *
-  (settings.seVolume / 100);
+    const baseVolume = defaultVolumes[name] ?? 0.5;
+
+    audio.volume = Math.max(
+      0,
+      Math.min(1, baseVolume * settingVolume)
+    );
+
     audio.play().catch((error) => {
       console.warn("SE再生エラー:", error);
     });
@@ -60,9 +70,12 @@ export function startBattleBgm() {
 
   const settings = getSettings();
 
-battleBgm.volume =
-  defaultVolumes.bgm *
-  (settings.bgmVolume / 100);
+  const settingVolume = Math.max(
+    0,
+    Math.min(1, Number(settings.bgmVolume) / 100)
+  );
+
+  battleBgm.volume = defaultVolumes.bgm * settingVolume;
 
   battleBgm.play().catch((error) => {
     console.warn("BGM再生エラー:", error);
@@ -76,17 +89,14 @@ export function stopBattleBgm() {
   battleBgm.currentTime = 0;
 }
 
-export function setBattleBgmVolume(
-  settingsVolume
-) {
-  if (!battleBgm) return;
-
-  battleBgm.volume = Math.max(
+export function setBattleBgmVolume(volume) {
+  const settingVolume = Math.max(
     0,
-    Math.min(
-      1,
-      defaultVolumes.bgm *
-        (settingsVolume / 100)
-    )
+    Math.min(1, Number(volume) / 100)
   );
+
+  if (battleBgm) {
+    battleBgm.volume =
+      defaultVolumes.bgm * settingVolume;
+  }
 }
