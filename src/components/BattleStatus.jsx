@@ -1,12 +1,9 @@
-import "./BattleStatus.css";
 export default function BattleStatus({
   name,
   icon,
   hp,
   maxHp,
   shield = 0,
-  energy,
-  maxEnergy,
   active = false,
   effect,
   enemy = false,
@@ -97,36 +94,6 @@ export default function BattleStatus({
             <strong>{shield}</strong>
           </div>
         </div>
-
-        {typeof energy === "number" && (
-          <div className="battle-energy">
-            <div className="battle-energy-label">
-              <small>ENERGY</small>
-
-              <strong>
-                {energy}/{maxEnergy}
-              </strong>
-            </div>
-
-            <div className="battle-energy-gems">
-              {Array.from(
-                { length: maxEnergy },
-                (_, index) => (
-                  <span
-                    key={index}
-                    className={
-                      index < energy
-                        ? "energy-gem filled"
-                        : "energy-gem"
-                    }
-                  >
-                    ◆
-                  </span>
-                ),
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );

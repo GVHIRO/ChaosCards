@@ -1470,8 +1470,6 @@ async function surrender() {
             hp={playerHP}
             maxHp={MAX_HP}
             shield={playerShield}
-            energy={energy}
-            maxEnergy={MAX_ENERGY}
             active={isMyTurn}
             effect={playerEffect}
           />
