@@ -15,24 +15,21 @@ export default function Settings({
   const [settings, setSettings] = useState(getSettings());
 
   function updateSetting(key, value) {
+  setSettings((previousSettings) => {
     const nextSettings = {
-      ...settings,
+      ...previousSettings,
       [key]: value,
     };
 
-    setSettings(nextSettings);
     saveSettings(nextSettings);
 
     if (key === "bgmVolume") {
       setBattleBgmVolume(value);
     }
 
-    window.dispatchEvent(
-      new CustomEvent("chaos-settings-change", {
-        detail: nextSettings,
-      })
-    );
-  }
+    return nextSettings;
+  });
+}
 
   function handleClose() {
     if (isModal) {

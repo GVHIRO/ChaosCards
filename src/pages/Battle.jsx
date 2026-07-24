@@ -1,9 +1,10 @@
 import { getSettings } from "../lib/settings";
 import Settings from "./Settings";
 import {
-  playSound,
   startBattleBgm,
   stopBattleBgm,
+  unlockAudio,
+  playSound,
 } from "../lib/sound";
 import { updateStatus } from "../lib/status";
 import BattleStatus from "../components/BattleStatus";
@@ -219,9 +220,6 @@ export default function Battle({
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
   const previousTurnRef = useRef(null);
-useEffect(() => {
-  energyRef.current = energy;
-}, [energy]);
   useEffect(() => {
     handRef.current = hand;
   }, [hand]);
@@ -238,9 +236,12 @@ useEffect(() => {
   energyRef.current = energy;
 }, [energy]);
 
-  useEffect(() => {
-  function handleSettingsChange() {
-    setGameSettings(getSettings());
+useEffect(() => {
+  function handleSettingsChange(event) {
+    const nextSettings =
+      event.detail ?? getSettings();
+
+    setGameSettings(nextSettings);
   }
 
   window.addEventListener(
@@ -275,8 +276,13 @@ useEffect(() => {
   gameSettings.cardAnimation,
   gameSettings.screenShake,
 ]);
-  useEffect(() => {
-  startBattleBgm();
+ useEffect(() => {
+  async function initAudio() {
+    await unlockAudio();
+    startBattleBgm();
+  }
+
+  initAudio();
 
   return () => {
     stopBattleBgm();

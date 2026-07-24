@@ -8,17 +8,19 @@ const DEFAULT_SETTINGS = {
 };
 
 export function getSettings() {
-  const savedSettings =
-    localStorage.getItem(STORAGE_KEY);
-
-  if (!savedSettings) {
-    return DEFAULT_SETTINGS;
-  }
-
   try {
+    const savedSettings =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (!savedSettings) {
+      return { ...DEFAULT_SETTINGS };
+    }
+
+    const parsed = JSON.parse(savedSettings);
+
     return {
       ...DEFAULT_SETTINGS,
-      ...JSON.parse(savedSettings),
+      ...parsed,
     };
   } catch (error) {
     console.error(
@@ -26,7 +28,7 @@ export function getSettings() {
       error
     );
 
-    return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS };
   }
 }
 
@@ -38,7 +40,9 @@ export function saveSettings(settings) {
     );
 
     window.dispatchEvent(
-      new Event("chaos-settings-change")
+      new CustomEvent("chaos-settings-change", {
+        detail: settings,
+      })
     );
   } catch (error) {
     console.error(

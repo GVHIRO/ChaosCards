@@ -2,7 +2,6 @@ import { getSettings } from "./settings";
 
 const defaultVolumes = {
   bgm: 0.15,
-
   card: 0.4,
   damage: 0.6,
   heal: 0.6,
@@ -13,6 +12,7 @@ const defaultVolumes = {
 };
 
 const soundPaths = {
+  bgm: "/sounds/battle-bgm.mp3",
   card: "/sounds/card.mp3",
   damage: "/sounds/damage.mp3",
   heal: "/sounds/heal.mp3",
@@ -22,41 +22,135 @@ const soundPaths = {
   defeat: "/sounds/defeat.mp3",
 };
 
-const audioCache = {};
+let audioContext = null;
 
-export function playSound(name) {
+const audioBuffers = {};
+
+let battleBgmSource = null;
+let battleBgmGain = null;
+
+function getAudioContext() {
+  if (!audioContext) {
+    const AudioContextClass =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContextClass) {
+      console.warn(
+        "このブラウザはWeb Audio APIに対応していません"
+      );
+
+      return null;
+    }
+
+    audioContext = new AudioContextClass();
+  }
+
+  return audioContext;
+}
+
+export async function unlockAudio() {
+  const context = getAudioContext();
+
+  if (!context) return;
+
+  if (context.state === "suspended") {
+    try {
+      await context.resume();
+    } catch (error) {
+      console.warn(
+        "音声の有効化に失敗しました:",
+        error
+      );
+    }
+  }
+}
+
+async function loadAudioBuffer(name) {
+  if (audioBuffers[name]) {
+    return audioBuffers[name];
+  }
+
   const path = soundPaths[name];
 
   if (!path) {
+    throw new Error(
+      `存在しないサウンドです: ${name}`
+    );
+  }
+
+  const context = getAudioContext();
+
+  if (!context) return null;
+
+  const response = await fetch(path);
+
+  if (!response.ok) {
+    throw new Error(
+      `音声ファイルを取得できませんでした: ${path}`
+    );
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+
+  const decodedBuffer =
+    await context.decodeAudioData(arrayBuffer);
+
+  audioBuffers[name] = decodedBuffer;
+
+  return decodedBuffer;
+}
+
+function clampVolume(value) {
+  return Math.max(
+    0,
+    Math.min(1, Number(value) || 0)
+  );
+}
+
+export async function playSound(name) {
+  if (!soundPaths[name] || name === "bgm") {
     console.warn(`存在しないSEです: ${name}`);
     return;
   }
 
   try {
-    if (!audioCache[name]) {
-      audioCache[name] = new Audio(path);
-    }
+    await unlockAudio();
 
-    const audio = audioCache[name].cloneNode();
+    const context = getAudioContext();
+
+    if (!context) return;
+
+    const buffer = await loadAudioBuffer(name);
+
+    if (!buffer) return;
+
     const settings = getSettings();
 
-    const settingVolume = Math.max(
-      0,
-      Math.min(1, Number(settings.seVolume) / 100)
+    const settingVolume = clampVolume(
+      Number(settings.seVolume) / 100
     );
 
-    const baseVolume = defaultVolumes[name] ?? 0.5;
+    const baseVolume =
+      defaultVolumes[name] ?? 0.5;
 
-    audio.volume = Math.max(
-      0,
-      Math.min(1, baseVolume * settingVolume)
+    const source =
+      context.createBufferSource();
+
+    const gainNode = context.createGain();
+
+    source.buffer = buffer;
+
+    gainNode.gain.value = clampVolume(
+      baseVolume * settingVolume
     );
 
-    audio.play().catch((error) => {
-      console.warn("SE再生エラー:", error);
-    });
+    source.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    source.start(0);
   } catch (error) {
-    console.error("SE作成エラー:", error);
+    console.warn("SE再生エラー:", error);
   }
 }
 
@@ -70,16 +164,11 @@ export function startBattleBgm() {
 
   const settings = getSettings();
 
-  const settingVolume = Math.max(
-    0,
-    Math.min(1, Number(settings.bgmVolume) / 100)
-  );
+  battleBgm.volume =
+    defaultVolumes.bgm *
+    (settings.bgmVolume / 100);
 
-  battleBgm.volume = defaultVolumes.bgm * settingVolume;
-
-  battleBgm.play().catch((error) => {
-    console.warn("BGM再生エラー:", error);
-  });
+  battleBgm.play().catch(console.warn);
 }
 
 export function stopBattleBgm() {
@@ -90,13 +179,9 @@ export function stopBattleBgm() {
 }
 
 export function setBattleBgmVolume(volume) {
-  const settingVolume = Math.max(
-    0,
-    Math.min(1, Number(volume) / 100)
-  );
+  if (!battleBgm) return;
 
-  if (battleBgm) {
-    battleBgm.volume =
-      defaultVolumes.bgm * settingVolume;
-  }
+  battleBgm.volume =
+    defaultVolumes.bgm *
+    (Number(volume) / 100);
 }
