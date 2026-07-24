@@ -8362,10 +8362,102 @@ filter:brightness(1);
   position: fixed;
   inset: 0;
   z-index: 99999;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
+  display: grid;
+  place-items: center;
   pointer-events: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.turn-popup-content {
+  min-width: 420px;
+  padding: 28px 54px;
+
+  border: 2px solid currentColor;
+  border-radius: 20px;
+
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-align: center;
+
+  box-shadow:
+    0 0 30px rgba(255, 70, 90, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.turn-popup-content.player {
+  color: #55d8ff;
+  background: rgba(7, 35, 58, 0.96);
+}
+
+.turn-popup-content.enemy {
+  color: #ff5f68;
+  background: rgba(55, 11, 17, 0.96);
+}
+
+/* ターン通知の全画面レイヤーは完全に透明 */
+.turn-popup-layer {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  pointer-events: none !important;
+
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  opacity: 1 !important;
+}
+
+/* 疑似要素で暗くしている場合も消す */
+.turn-popup-layer::before,
+.turn-popup-layer::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 中央の通知ボックスだけ表示 */
+.turn-popup-layer .turn-popup-content {
+  position: relative !important;
+  inset: auto !important;
+
+  width: auto !important;
+  min-width: 420px;
+  max-width: calc(100vw - 32px);
+
+  padding: 28px 54px;
+
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 768px) {
+  .turn-popup-layer .turn-popup-content {
+    min-width: 0;
+    width: calc(100vw - 40px);
+    padding: 22px 20px;
+    font-size: 1.7rem;
+  }
 }

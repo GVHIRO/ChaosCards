@@ -1573,39 +1573,42 @@ async function surrender() {
         <BattleLog logs={logs} />
       </div>
 
-      {isSettingsOpen && (
-  <div
-  className="battle-settings-overlay"
-  onClick={(event) => {
-    if (event.target === event.currentTarget) {
-      setIsSettingsOpen(false);
-    }
-  }}
->
-  <div className="battle-settings-modal">
-    <Settings
-      isModal
-      onClose={() => setIsSettingsOpen(false)}
-      onSurrender={surrender}
-    />
-  </div>
-</div>
-)}
-{turnPopup && (
-  <div className="turn-popup">
-    <div className={`turn-popup-content ${turnPopup}`}>
-      <span className="turn-icon">
-        {turnPopup === "player" ? "⚡" : "⌛"}
-      </span>
+            {isSettingsOpen && (
+        <div
+          className="battle-settings-overlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsSettingsOpen(false);
+            }
+          }}
+        >
+          <div className="battle-settings-modal">
+            <Settings
+              isModal
+              onClose={() => setIsSettingsOpen(false)}
+              onSurrender={surrender}
+            />
+          </div>
+        </div>
+      )}
 
-      <span>
-        {turnPopup === "player"
-          ? "YOUR TURN"
-          : "ENEMY TURN"}
-      </span>
-    </div>
-  </div>
-)}
+      {turnPopup && (
+        <div className="turn-popup-layer">
+          <div
+            className={`turn-popup-content ${turnPopup}`}
+          >
+            <span className="turn-icon">
+              {turnPopup === "player" ? "⚡" : "⌛"}
+            </span>
+
+            <span>
+              {turnPopup === "player"
+                ? "YOUR TURN"
+                : "ENEMY TURN"}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
