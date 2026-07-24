@@ -93,7 +93,56 @@ function summarizeCards(selectedCards) {
     { damage: 0, heal: 0, shield: 0, names: [] }
   );
 }
+function createCardEffectLogs(
+  actor,
+  target,
+  selectedCards,
+  targetHp,
+  targetShield,
+  myHp
+) {
+  if (
+    !Array.isArray(selectedCards) ||
+    selectedCards.length === 0
+  ) {
+    return [
+      `⏭️ ${actor}は何もせずターン終了`,
+    ];
+  }
 
+  const logs = [];
+
+  selectedCards.forEach((selected) => {
+    const card = selected.card ?? selected;
+    const hits = Number(card.hits || 1);
+    const damage =
+      Number(card.damage || 0) * hits;
+    const heal = Number(card.heal || 0);
+    const shield = getShieldValue(card);
+
+    logs.push(`🎴 ${actor}：${card.name}`);
+
+    if (damage > 0) {
+      logs.push(
+        `　└ ⚔️ ${target}に${damage}ダメージ`
+      );
+    }
+
+    if (heal > 0) {
+      logs.push(
+        `　└ 💚 ${actor}が${heal}回復`
+      );
+    }
+
+    if (shield > 0) {
+      logs.push(
+        `　└ 🛡️ ${actor}がシールド${shield}獲得`
+      );
+    }
+  });
+
+  return logs;
+}
 function applyDamage(hp, shield, damage) {
   const blocked = Math.min(shield, damage);
   const hpDamage = Math.max(0, damage - blocked);
@@ -113,35 +162,39 @@ function nextRole(role) {
 function roleLabel(role, myRole) {
   return role === myRole ? "YOU" : "相手";
 }
+function createCardLogs(actor, usedCards) {
+  if (!Array.isArray(usedCards) || usedCards.length === 0) {
+    return [`⏭️ ${actor}はカードを使用しなかった`];
+  }
+
+  return usedCards.map((selected) => {
+    const card = selected.card ?? selected;
+
+    return `🎴 ${actor}：${card.name}`;
+  });
+}
 function getCardsFromBattleLogs(battleLogs) {
   if (!Array.isArray(battleLogs)) {
     return [];
   }
 
-  const playLog = battleLogs.find((log) =>
-    typeof log === "string" &&
-    log.startsWith("🎴")
-  );
+  const cardNames = battleLogs
+    .filter(
+      (log) =>
+        typeof log === "string" &&
+        log.startsWith("🎴")
+    )
+    .map((log) => {
+      const separatorIndex = log.indexOf("：");
 
-  if (!playLog) {
-    return [];
-  }
+      if (separatorIndex === -1) {
+        return "";
+      }
 
-  const separatorIndex = playLog.indexOf("：");
-
-  if (separatorIndex === -1) {
-    return [];
-  }
-
-  const namesText = playLog.slice(separatorIndex + 1);
-
-  if (!namesText) {
-    return [];
-  }
-
-  const cardNames = namesText
-    .split("、")
-    .map((name) => name.trim())
+      return log
+        .slice(separatorIndex + 1)
+        .trim();
+    })
     .filter(Boolean);
 
   return cardNames
@@ -843,15 +896,12 @@ function showTurnPopup(myTurn) {
     setSelectedCards(nextSelected);
     setEnergy(nextEnergy);
 
-    addLogs([
-      `↩️ ${card.name}の選択を解除`,
-    ]);
+    
     return;
   }
 
   // 最新値でエネルギー判定
   if (energyRef.current < cardCost) {
-    addLogs(["⚡ エネルギーが足りない！"]);
     return;
   }
 
@@ -874,10 +924,6 @@ function showTurnPopup(myTurn) {
 
   setEnergy(nextEnergy);
   setSelectedCards(nextSelected);
-
-  addLogs([
-    `✅ ${card.name}を選択（⚡-${cardCost}）`,
-  ]);
 }
 
   function chooseCpuCards(availableEnergy) {
@@ -927,13 +973,16 @@ await new Promise((resolve) => {
     setEnemyShield((value) => value + summary.shield);
     setCpuEnergy(remaining);
 
-    const turnLogs = [
-      chosen.length > 0
-        ? `🤖 CPU：${summary.names.join("、")}`
-        : "🤖 CPUは何もしなかった",
-    ];
+    const turnLogs = createCardEffectLogs(
+  "CPU",
+  "YOU",
+  chosen,
+  playerHP,
+  playerShield,
+  enemyHP
+);
 
-    if (damaged.blocked > 0) turnLogs.push(`🛡️ YOUの盾が${damaged.blocked}ダメージ防御`);
+    if (damaged.blocked > 0) turnLogs.push(`YOUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
   playSound("damage");
 
@@ -944,8 +993,6 @@ await new Promise((resolve) => {
     setScreenShake(false);
   }, 300);
 }
-
-  turnLogs.push(`⚔️ YOUに${damaged.hpDamage}ダメージ`);
   showPlayerEffect(`-${damaged.hpDamage}`, "damage");
 }
     if (summary.heal > 0) {
@@ -953,13 +1000,12 @@ await new Promise((resolve) => {
       if (actual > 0) {
   playSound("heal");
 
-  turnLogs.push(`💚 CPUが${actual}回復`);
+  
   showEnemyEffect(`+${actual}`, "heal");
 }
     }
     if (summary.shield > 0) {
   playSound("shield");
-  turnLogs.push(`🛡️ CPUがシールド${summary.shield}獲得`);
 }
 
     addLogs(turnLogs);
@@ -1036,13 +1082,16 @@ setIsProcessing(false);
     setPlayerHP(healedPlayer);
     setPlayerShield((value) => value + summary.shield);
 
-    const turnLogs = [
-      selectedCards.length > 0
-        ? `🎴 YOU：${summary.names.join("、")}`
-        : "⏭️ YOUは何もせずターン終了",
-    ];
+    const turnLogs = createCardEffectLogs(
+  "YOU",
+  "CPU",
+  selectedRef.current,
+  enemyHP,
+  enemyShield,
+  playerHP
+);
 
-    if (damaged.blocked > 0) turnLogs.push(`🛡️ CPUの盾が${damaged.blocked}ダメージ防御`);
+    if (damaged.blocked > 0) turnLogs.push(`CPUの盾が${damaged.blocked}ダメージ防御`);
     if (damaged.hpDamage > 0) {
       playSound("damage");
   if (gameSettings.screenShake) {
@@ -1053,7 +1102,6 @@ setIsProcessing(false);
   }, 300);
 }
 
-  turnLogs.push(`⚔️ CPUに${damaged.hpDamage}ダメージ`);
   showEnemyEffect(`-${damaged.hpDamage}`, "damage");
 }
     if (summary.heal > 0) {
@@ -1061,13 +1109,11 @@ setIsProcessing(false);
       if (actual > 0) {
   playSound("heal");
 
-  turnLogs.push(`💚 YOUが${actual}回復`);
   showPlayerEffect(`+${actual}`, "heal");
 }
     }
     if (summary.shield > 0) {
   playSound("shield");
-  turnLogs.push(`🛡️ YOUがシールド${summary.shield}獲得`);
 }
 
     addLogs(turnLogs);
@@ -1150,14 +1196,17 @@ const remainingEnergy = Math.max(
 const isSecondPlayerFirstTurn =
   Number(match.turn_number) === 1 &&
   match.current_player === match.first_player;
-    const turnLogs = [
-      selectedRef.current.length > 0
-        ? `🎴 ${playerRole}：${summary.names.join("、")}`
-        : `⏭️ ${playerRole}は何もせずターン終了`,
-    ];
+    const turnLogs = createCardEffectLogs(
+  roleLabel(playerRole, playerRole),
+  roleLabel(followingPlayer, playerRole),
+  selectedRef.current,
+  opponentHp,
+  opponentShield,
+  myHp
+);
 
     if (damageResult.blocked > 0) {
-      turnLogs.push(`🛡️ ${followingPlayer}の盾が${damageResult.blocked}ダメージ防御`);
+      turnLogs.push(`${followingPlayer}の盾が${damageResult.blocked}ダメージ防御`);
     }
     if (damageResult.hpDamage > 0) {
        playSound("damage");
@@ -1168,17 +1217,16 @@ const isSecondPlayerFirstTurn =
     setScreenShake(false);
   }, 300);
 }
-      turnLogs.push(`⚔️ ${followingPlayer}に${damageResult.hpDamage}ダメージ`);
     }
     const actualHeal = healedHp - myHp;
 
 if (actualHeal > 0) {
   playSound("heal");
-  turnLogs.push(`💚 ${playerRole}が${actualHeal}回復`);
+  turnLogs.push(`${playerRole}が${actualHeal}回復`);
 }
     if (summary.shield > 0) {
   playSound("shield");
-  turnLogs.push(`🛡️ ${playerRole}がシールド${summary.shield}獲得`);
+  turnLogs.push(`${playerRole}がシールド${summary.shield}獲得`);
 }
 
     let matchWinner = null;

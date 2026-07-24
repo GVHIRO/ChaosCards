@@ -7282,7 +7282,6 @@ filter:brightness(1);
 
   /* スマホ手札 */
   .hand-mobile {
-    display: flex;
     justify-content: flex-start;
     align-items: stretch;
     gap: 14px;
@@ -7294,8 +7293,6 @@ filter:brightness(1);
 
     margin: 0;
     padding: 18px 11vw 28px;
-
-    overflow-x: auto;
     overflow-y: hidden;
 
     scroll-snap-type: x mandatory;
@@ -7316,8 +7313,6 @@ filter:brightness(1);
   .hand-mobile .hand-card-wrapper {
     position: relative;
     inset: auto;
-
-    flex: 0 0 74vw;
 
     width: 74vw;
     max-width: 280px;
@@ -8459,5 +8454,454 @@ filter:brightness(1);
     width: calc(100vw - 40px);
     padding: 22px 20px;
     font-size: 1.7rem;
+  }
+}
+
+/* ================================
+   BATTLE LOG
+================================ */
+
+.battle-log-panel {
+  width: min(100%, 900px);
+  margin: 26px auto 0;
+  overflow: hidden;
+  border: 1px solid rgba(135, 163, 255, 0.2);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(17, 23, 43, 0.95),
+      rgba(8, 12, 26, 0.98)
+    );
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.battle-log-header {
+  width: 100%;
+  min-height: 78px;
+  padding: 15px 20px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.battle-log-header:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.battle-log-title-area {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.battle-log-title-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    145deg,
+    rgba(71, 105, 255, 0.25),
+    rgba(124, 73, 255, 0.18)
+  );
+  border: 1px solid rgba(125, 150, 255, 0.25);
+  color: #b9c8ff;
+  font-size: 19px;
+}
+
+.battle-log-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: rgba(184, 198, 255, 0.58);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.battle-log-header h2 {
+  margin: 0;
+  color: #f5f7ff;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+}
+
+.battle-log-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.battle-log-count {
+  min-width: 30px;
+  height: 25px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(115, 142, 255, 0.15);
+  color: #becaff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.battle-log-chevron {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 17px;
+}
+
+.battle-log-list {
+  max-height: 360px;
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(125, 150, 255, 0.35)
+    transparent;
+}
+
+.battle-log-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.battle-log-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.battle-log-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(125, 150, 255, 0.3);
+}
+
+.battle-log-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.battle-log-item + .battle-log-item {
+  margin-top: 5px;
+}
+
+.battle-log-item:hover {
+  transform: translateX(3px);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.battle-log-item.is-latest {
+  background: rgba(104, 132, 255, 0.075);
+  border-color: rgba(113, 143, 255, 0.17);
+  animation: battle-log-enter 350ms ease;
+}
+
+.battle-log-marker {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.battle-log-marker::after {
+  content: "";
+  position: absolute;
+  top: 38px;
+  bottom: -22px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.battle-log-item:last-child
+  .battle-log-marker::after {
+  display: none;
+}
+
+.battle-log-marker span {
+  position: relative;
+  z-index: 1;
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #cad3ff;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.battle-log-body {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.battle-log-meta {
+  min-height: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.battle-log-type {
+  color: rgba(194, 205, 255, 0.55);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.battle-log-new {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(108, 137, 255, 0.17);
+  color: #aebeff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.battle-log-body p {
+  margin: 0;
+  color: rgba(245, 247, 255, 0.91);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* 種類ごとの色 */
+
+.log-turn .battle-log-marker span {
+  background: rgba(87, 116, 255, 0.16);
+  border-color: rgba(103, 132, 255, 0.32);
+  color: #9db0ff;
+}
+
+.log-turn .battle-log-body p {
+  color: #b6c3ff;
+  font-weight: 800;
+}
+
+.log-damage .battle-log-marker span {
+  background: rgba(255, 77, 91, 0.14);
+  border-color: rgba(255, 87, 100, 0.28);
+  color: #ff7e89;
+}
+
+.log-damage .battle-log-body p {
+  color: #ffb0b7;
+}
+
+.log-heal .battle-log-marker span {
+  background: rgba(41, 210, 127, 0.13);
+  border-color: rgba(52, 224, 142, 0.25);
+  color: #65e8a7;
+}
+
+.log-heal .battle-log-body p {
+  color: #9bf1c5;
+}
+
+.log-shield .battle-log-marker span {
+  background: rgba(54, 165, 255, 0.14);
+  border-color: rgba(73, 177, 255, 0.27);
+  color: #76c6ff;
+}
+
+.log-shield .battle-log-body p {
+  color: #a8ddff;
+}
+
+.log-card .battle-log-marker span {
+  background: rgba(171, 94, 255, 0.14);
+  border-color: rgba(181, 113, 255, 0.27);
+  color: #c59aff;
+}
+
+.log-card .battle-log-body p {
+  color: #dbc1ff;
+}
+
+.log-victory .battle-log-marker span {
+  background: rgba(255, 196, 58, 0.15);
+  border-color: rgba(255, 201, 69, 0.3);
+  color: #ffd463;
+}
+
+.log-danger .battle-log-marker span {
+  background: rgba(255, 69, 83, 0.14);
+  border-color: rgba(255, 84, 97, 0.3);
+  color: #ff7882;
+}
+
+.log-warning .battle-log-marker span {
+  background: rgba(255, 184, 52, 0.14);
+  border-color: rgba(255, 192, 71, 0.28);
+  color: #ffd06c;
+}
+
+.log-selection .battle-log-marker span {
+  background: rgba(61, 210, 153, 0.12);
+  border-color: rgba(73, 223, 166, 0.24);
+  color: #75e4b8;
+}
+
+.log-system .battle-log-marker span {
+  background: rgba(139, 151, 188, 0.12);
+  border-color: rgba(155, 168, 207, 0.22);
+  color: #b8c2e2;
+}
+
+.battle-log-empty {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  color: rgba(204, 213, 244, 0.45);
+  text-align: center;
+}
+
+.battle-log-empty span {
+  font-size: 25px;
+}
+
+.battle-log-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+
+@keyframes battle-log-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-log-panel {
+    margin-top: 18px;
+    border-radius: 18px;
+  }
+
+  .battle-log-header {
+    min-height: 68px;
+    padding: 12px 14px;
+  }
+
+  .battle-log-title-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 12px;
+  }
+
+  .battle-log-header h2 {
+    font-size: 15px;
+  }
+
+  .battle-log-list {
+    max-height: 290px;
+    padding: 7px;
+  }
+
+  .battle-log-item {
+    grid-template-columns: 37px minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .battle-log-marker span {
+    width: 31px;
+    height: 31px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .battle-log-marker::after {
+    top: 34px;
+  }
+
+  .battle-log-body p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* PCと同じように扇形 */
+  .hand {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0;
+    overflow: visible;
+    min-height: 145px;
+    padding-top: 4px;
+  }
+
+  .hand-card-wrapper {
+    width: 72px;
+    margin-left: -16px;
+    transform:
+      rotate(var(--card-angle))
+      translateY(var(--card-offset-y));
+    transition: .2s;
+  }
+
+  .hand-card-wrapper:first-child {
+    margin-left: 0;
+  }
+
+  /* カードを小さく */
+  .hand-card-wrapper .card {
+    width: 72px;
+    min-height: 102px;
+    font-size: 0.58rem;
+  }
+
+  /* 選択時 */
+  .card-selected {
+    transform:
+      rotate(var(--card-angle))
+      translateY(calc(var(--card-offset-y) - 12px))
+      !important;
+  }
+
+  /* カード内文字 */
+  .card-name {
+    font-size: 10px;
+  }
+
+  .card-description {
+    font-size: 7px;
+    line-height: 1.15;
+  }
+
+  .card-cost,
+  .card-value {
+    font-size: 11px;
   }
 }
