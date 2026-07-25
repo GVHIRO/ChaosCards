@@ -4481,3 +4481,37 @@ body,
     overflow-y: visible !important;
   }
 }
+
+/* =========================================================
+   スマホ：手札をバトルログより上に表示
+========================================================= */
+
+@media (max-width: 768px) {
+  .battle-page .battle-bottom-layout {
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 手札を先に表示 */
+  .battle-page
+  .battle-bottom-layout
+  > .hand-section {
+    order: 1 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* バトルログを手札の下に表示 */
+  .battle-page
+  .battle-bottom-layout
+  > .battle-log-column {
+    order: 2 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
