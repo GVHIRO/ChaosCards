@@ -369,10 +369,14 @@ export default function DeckBuilder({ onBack }) {
       return;
     }
 
-    localStorage.setItem(
-      "chaosCardsDeck",
-      JSON.stringify(deck)
-    );
+    const deckIds = deck.map(
+  (card) => card.id
+);
+
+localStorage.setItem(
+  "chaosCardsDeck",
+  JSON.stringify(deckIds)
+);
 
     setMessage(
       "デッキを保存しました！"

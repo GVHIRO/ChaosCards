@@ -55,16 +55,50 @@ function createDefaultDeck() {
 }
 
 function loadDeck() {
-  const savedDeck = localStorage.getItem("chaosCardsDeck");
+  const savedDeck =
+    localStorage.getItem("chaosCardsDeck");
 
   if (savedDeck) {
     try {
-      const parsed = JSON.parse(savedDeck);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return shuffle(parsed);
+      const parsedDeck =
+        JSON.parse(savedDeck);
+
+      if (
+        Array.isArray(parsedDeck) &&
+        parsedDeck.length > 0
+      ) {
+        /*
+          保存データからIDだけを取り出し、
+          cards.jsの最新データへ置き換える。
+
+          古い形式：{ id, name, description... }
+          新しい形式：idだけ
+          どちらにも対応。
+        */
+        const latestDeck = parsedDeck
+          .map((savedCard) => {
+            const savedId =
+              typeof savedCard === "object"
+                ? savedCard.id
+                : savedCard;
+
+            return cards.find(
+              (currentCard) =>
+                String(currentCard.id) ===
+                String(savedId)
+            );
+          })
+          .filter(Boolean);
+
+        if (latestDeck.length > 0) {
+          return shuffle(latestDeck);
+        }
       }
     } catch (error) {
-      console.error("デッキ読込エラー:", error);
+      console.error(
+        "デッキ読込エラー:",
+        error
+      );
     }
   }
 
@@ -379,7 +413,7 @@ useEffect(() => {
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
 
-const RESULT_DELAY = 1400;
+const RESULT_DELAY = 1850;
 
 function finishBattle(result) {
   if (battleEndingRef.current) {
@@ -850,45 +884,136 @@ setEnergy(nextEnergy);
           filter: `id=eq.${matchId}`,
         },
         (payload) => {
-  console.log("Realtime UPDATE", payload);
+  console.log(
+    "Realtime UPDATE",
+    payload
+  );
 
-  const previous = matchRef.current;
-  const next = payload.new;
+  const previous =
+    matchRef.current;
 
-  // 最優先で試合状態を同期する
+  const next =
+    payload.new;
+
+  const previousLogs =
+    Array.isArray(previous?.battle_logs)
+      ? previous.battle_logs
+      : [];
+
+  const nextLogs =
+    Array.isArray(next?.battle_logs)
+      ? next.battle_logs
+      : [];
+
+  /*
+    ターン数ではなく、バトルログが変化したかで
+    カード使用を判定する。
+
+    決着時はturn_numberが増えないため、
+    この判定が必要。
+  */
+  const battleLogsChanged =
+    JSON.stringify(previousLogs) !==
+    JSON.stringify(nextLogs);
+
+  /*
+    自分のHPがどれだけ減ったかを、
+    同期前のデータから計算する。
+  */
+  const previousMyHp =
+    !previous
+      ? null
+      : playerRole === "host"
+        ? Number(previous.host_hp)
+        : Number(previous.guest_hp);
+
+  const nextMyHp =
+    playerRole === "host"
+      ? Number(next.host_hp)
+      : Number(next.guest_hp);
+
+  const receivedDamage =
+    previousMyHp === null
+      ? 0
+      : Math.max(
+          0,
+          previousMyHp - nextMyHp
+        );
+
+  /*
+    更新前に相手のターンだった場合、
+    この更新は相手のカード使用によるもの。
+  */
+  const opponentActed =
+    Boolean(
+      previous &&
+      previous.current_player !==
+        playerRole &&
+      battleLogsChanged
+    );
+const previousEnemyShield =
+  !previous
+    ? 0
+    : playerRole === "host"
+      ? Number(
+          previous.guest_shield || 0
+        )
+      : Number(
+          previous.host_shield || 0
+        );
+
+const nextEnemyShield =
+  playerRole === "host"
+    ? Number(next.guest_shield || 0)
+    : Number(next.host_shield || 0);
+
+const gainedEnemyShield =
+  Math.max(
+    0,
+    nextEnemyShield -
+      previousEnemyShield
+  );
+  /*
+    まずHPなどを最新状態へ反映する。
+  */
   syncMatchToView(next);
 
-if (previousTurnRef.current !== next.current_player) {
-  previousTurnRef.current = next.current_player;
-  showTurnPopup(next.current_player === playerRole);
-}
-if (
-  next.phase === "finished" &&
-  next.finish_reason === "disconnect"
-) {
-  addLogs([
-    next.winner === playerRole
-      ? "🏆 相手が切断しました"
-      : "❌ 接続が切断されました",
-  ]);
-}
+  /*
+    ターン表示
+  */
   if (
-    previous &&
-    Number(next.turn_number) >
-      Number(previous.turn_number)
+    previousTurnRef.current !==
+    next.current_player
   ) {
-    playSound("turn");
+    previousTurnRef.current =
+      next.current_player;
+
+    showTurnPopup(
+      next.current_player ===
+        playerRole
+    );
+  }
+
+  /*
+    相手のカード演出。
+    決着時も必ず実行される。
+  */
+  if (opponentActed) {
+    if (gainedEnemyShield > 0) {
+  playSound("shield");
+
+  showEnemyEffect(
+    `🛡 +${gainedEnemyShield}`,
+    "shield"
+  );
+}
     try {
       const usedCards =
         getCardsFromBattleLogs(
-          next.battle_logs
+          nextLogs
         );
 
-      if (
-        previous.current_player !==
-          playerRole &&
-        usedCards.length > 0
-      ) {
+      if (usedCards.length > 0) {
         showCardAnimation(
           "enemy",
           usedCards
@@ -901,22 +1026,73 @@ if (
       );
     }
 
-    const battleLogs =
-      Array.isArray(next.battle_logs)
-        ? next.battle_logs
-        : [];
+    /*
+      被ダメージ演出
+  */
+    if (receivedDamage > 0) {
+      playSound("damage");
 
+      showPlayerEffect(
+        `-${receivedDamage}`,
+        "damage"
+      );
+
+      if (
+        gameSettings.screenShake
+      ) {
+        setScreenShake(true);
+
+        window.setTimeout(() => {
+          setScreenShake(false);
+        }, 300);
+      }
+    }
+  }
+
+  if (
+    next.phase === "finished" &&
+    next.finish_reason ===
+      "disconnect"
+  ) {
     addLogs([
-      `🔄 ターン${next.turn_number}：${
-        roleLabel(
-  next.current_player,
-  playerRole,
-  playerName,
-  opponentName
-)
-      }の番`,
-      ...battleLogs,
+      next.winner === playerRole
+        ? "🏆 相手が切断しました"
+        : "❌ 接続が切断されました",
     ]);
+  }
+
+  const turnAdvanced =
+    Boolean(
+      previous &&
+      Number(next.turn_number) >
+        Number(previous.turn_number)
+    );
+
+  if (turnAdvanced) {
+    playSound("turn");
+  }
+
+  /*
+    決着時はターン数が変わらなくても、
+    最後の攻撃ログを表示する。
+  */
+  if (battleLogsChanged) {
+    const newLogs = [];
+
+    if (turnAdvanced) {
+      newLogs.push(
+        `🔄 ターン${next.turn_number}：${roleLabel(
+          next.current_player,
+          playerRole,
+          playerName,
+          opponentName
+        )}の番`
+      );
+    }
+
+    newLogs.push(...nextLogs);
+
+    addLogs(newLogs);
   }
 }
       )
@@ -1240,6 +1416,11 @@ await new Promise((resolve) => {
     }
     if (summary.shield > 0) {
   playSound("shield");
+
+  showEnemyEffect(
+    `🛡 +${summary.shield}`,
+    "shield"
+  );
 }
 
     addLogs(turnLogs);
@@ -1348,6 +1529,11 @@ setIsProcessing(false);
     }
     if (summary.shield > 0) {
   playSound("shield");
+
+  showPlayerEffect(
+    `🛡 +${summary.shield}`,
+    "shield"
+  );
 }
 
     addLogs(turnLogs);
@@ -1550,6 +1736,12 @@ if (actualHeal > 0) {
 
     if (damageResult.hpDamage > 0) showEnemyEffect(`-${damageResult.hpDamage}`, "damage");
     if (actualHeal > 0) showPlayerEffect(`+${actualHeal}`, "heal");
+    if (summary.shield > 0) {
+  showPlayerEffect(
+    `🛡 +${summary.shield}`,
+    "shield"
+  );
+}
 
     setIsProcessing(false);
   }
@@ -1745,12 +1937,10 @@ return (
       <span className="turn-summary-dot" />
 
       {isProcessing
-        ? "PROCESSING..."
-        : isMyTurn
-          ? "YOUR TURN"
-          : mode === "cpu"
-            ? "CPU THINKING..."
-            : "OPPONENT TURN"}
+  ? "PROCESSING..."
+  : isMyTurn
+    ? "YOUR TURN"
+    : "ENEMY TURN"}
     </div>
   </div>
 

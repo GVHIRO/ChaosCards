@@ -97,10 +97,26 @@ export default function BattleStatus({
             🛡️
           </span>
 
-          <div>
-            <small>SHIELD</small>
-            <strong>{shield}</strong>
-          </div>
+          <div
+  className={`battle-shield-panel ${
+    shield > 0
+      ? "has-shield"
+      : "no-shield"
+  }`}
+>
+
+  <div className="battle-shield-content">
+    <div className="battle-shield-heading">
+      <span>SHIELD</span>
+
+      <small>
+        次の相手ターン終了まで有効
+      </small>
+    </div>
+
+    <strong>{shield}</strong>
+  </div>
+</div>
         </div>
       </div>
     </section>
