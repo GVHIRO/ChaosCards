@@ -3,6 +3,70 @@ import { useEffect, useMemo, useState } from "react";
 import cards from "../data/cards";
 
 const DECK_SIZE = 20;
+const PRESET_COUNT = 3;
+
+const PRESET_STORAGE_KEY =
+  "chaosCardsDeckPresets";
+
+const ACTIVE_PRESET_KEY =
+  "chaosCardsActivePreset";
+
+const BATTLE_DECK_KEY =
+  "chaosCardsDeck";
+
+function createDefaultPresets() {
+  return Array.from(
+    { length: PRESET_COUNT },
+    (_, index) => ({
+      id: `preset-${index + 1}`,
+      name: `デッキ${index + 1}`,
+      cardIds: [],
+    })
+  );
+}
+
+function getSavedCardId(savedCard) {
+  if (
+    typeof savedCard === "object" &&
+    savedCard !== null
+  ) {
+    return savedCard.id;
+  }
+
+  return savedCard;
+}
+
+function sanitizeCardIds(savedCards) {
+  if (!Array.isArray(savedCards)) {
+    return [];
+  }
+
+  return savedCards
+    .map(getSavedCardId)
+    .filter((savedId) =>
+      cards.some(
+        (card) =>
+          String(card.id) ===
+          String(savedId)
+      )
+    );
+}
+
+function cardIdsToDeck(cardIds) {
+  return sanitizeCardIds(cardIds)
+    .map((cardId) =>
+      cards.find(
+        (card) =>
+          String(card.id) ===
+          String(cardId)
+      )
+    )
+    .filter(Boolean);
+}
+
+function deckToCardIds(deck) {
+  return deck.map((card) => card.id);
+}
 const RARITY_RULES = {
   Common: { maxCopies: 3, deckLimit: Infinity },
   Rare: { maxCopies: 2, deckLimit: Infinity },
@@ -168,74 +232,200 @@ function getCardEffectText(card) {
     : "特殊な効果を発動する";
 }
 
-export default function DeckBuilder({ onBack }) {
+export default function DeckBuilder({
+  onBack,
+}) {
   const [deck, setDeck] = useState([]);
-  const [message, setMessage] = useState("");
-  const [rarityFilter, setRarityFilter] =
-    useState("All");
-  const [typeFilter, setTypeFilter] =
-    useState("All");
-  const [searchText, setSearchText] =
+
+  const [presets, setPresets] =
+    useState(createDefaultPresets);
+
+  const [
+    selectedPresetId,
+    setSelectedPresetId,
+  ] = useState("preset-1");
+
+  const [
+    activePresetId,
+    setActivePresetId,
+  ] = useState("preset-1");
+
+  const [message, setMessage] =
     useState("");
 
+  const [
+    rarityFilter,
+    setRarityFilter,
+  ] = useState("All");
+
+  const [
+    typeFilter,
+    setTypeFilter,
+  ] = useState("All");
+
+  const [
+    searchText,
+    setSearchText,
+  ] = useState("");
+
   useEffect(() => {
-    const savedDeck = localStorage.getItem(
-      "chaosCardsDeck"
-    );
-
-    if (!savedDeck) return;
-
     try {
-      const parsedDeck = JSON.parse(savedDeck);
+      const defaultPresets =
+        createDefaultPresets();
 
-      if (
-        Array.isArray(parsedDeck) &&
-        parsedDeck.length === DECK_SIZE
-      ) {
-        const latestDeck = parsedDeck
-          .map((savedCard) =>
-            cards.find(
-              (card) =>
-                card.id === savedCard.id
-            )
-          )
-          .filter(Boolean);
+      const savedPresetsText =
+        localStorage.getItem(
+          PRESET_STORAGE_KEY
+        );
 
-        if (
-          latestDeck.length === DECK_SIZE
-        ) {
-          setDeck(latestDeck);
-        } else {
-          localStorage.removeItem(
-            "chaosCardsDeck"
-          );
-          setDeck([]);
-          setMessage(
-            "カードデータが更新されたため、デッキを選び直してください。"
-          );
+      let nextPresets = defaultPresets;
+
+      if (savedPresetsText) {
+        const savedPresets =
+          JSON.parse(savedPresetsText);
+
+        if (Array.isArray(savedPresets)) {
+          nextPresets =
+            defaultPresets.map(
+              (defaultPreset, index) => {
+                const savedPreset =
+                  savedPresets.find(
+                    (preset) =>
+                      preset?.id ===
+                      defaultPreset.id
+                  ) ??
+                  savedPresets[index];
+
+                const savedName =
+                  typeof savedPreset?.name ===
+                  "string"
+                    ? savedPreset.name
+                        .trim()
+                        .slice(0, 16)
+                    : "";
+
+                return {
+                  id: defaultPreset.id,
+
+                  name:
+                    savedName ||
+                    defaultPreset.name,
+
+                  cardIds:
+                    sanitizeCardIds(
+                      savedPreset?.cardIds
+                    ),
+                };
+              }
+            );
         }
       } else {
-        localStorage.removeItem(
-          "chaosCardsDeck"
-        );
-        setDeck([]);
-        setMessage(
-          "古いデッキデータをリセットしました。20枚選び直してください。"
-        );
+        /*
+          旧形式の1デッキを
+          プリセット1へ自動移行
+        */
+        const legacyDeckText =
+          localStorage.getItem(
+            BATTLE_DECK_KEY
+          );
+
+        if (legacyDeckText) {
+          const legacyDeck =
+            JSON.parse(legacyDeckText);
+
+          const legacyCardIds =
+            sanitizeCardIds(legacyDeck);
+
+          if (legacyCardIds.length > 0) {
+            nextPresets[0] = {
+              ...nextPresets[0],
+              name: "メインデッキ",
+              cardIds: legacyCardIds,
+            };
+          }
+        }
       }
+
+      const savedActivePresetId =
+        localStorage.getItem(
+          ACTIVE_PRESET_KEY
+        );
+
+      const initialPresetId =
+        nextPresets.some(
+          (preset) =>
+            preset.id ===
+            savedActivePresetId
+        )
+          ? savedActivePresetId
+          : "preset-1";
+
+      const initialPreset =
+        nextPresets.find(
+          (preset) =>
+            preset.id ===
+            initialPresetId
+        ) ?? nextPresets[0];
+
+      setPresets(nextPresets);
+
+      setSelectedPresetId(
+        initialPreset.id
+      );
+
+      setActivePresetId(
+        initialPreset.id
+      );
+
+      setDeck(
+        cardIdsToDeck(
+          initialPreset.cardIds
+        )
+      );
+
+      localStorage.setItem(
+        PRESET_STORAGE_KEY,
+        JSON.stringify(nextPresets)
+      );
+
+      localStorage.setItem(
+        ACTIVE_PRESET_KEY,
+        initialPreset.id
+      );
     } catch (error) {
       console.error(
-        "デッキ読み込みエラー:",
+        "プリセット読み込みエラー:",
         error
       );
 
-      localStorage.removeItem(
-        "chaosCardsDeck"
-      );
+      const defaultPresets =
+        createDefaultPresets();
+
+      setPresets(defaultPresets);
+      setSelectedPresetId("preset-1");
+      setActivePresetId("preset-1");
       setDeck([]);
+
+      localStorage.setItem(
+        PRESET_STORAGE_KEY,
+        JSON.stringify(defaultPresets)
+      );
+
+      localStorage.setItem(
+        ACTIVE_PRESET_KEY,
+        "preset-1"
+      );
+
+      setMessage(
+        "デッキプリセットを初期化しました"
+      );
     }
   }, []);
-
+const currentPreset =
+  presets.find(
+    (preset) =>
+      preset.id === selectedPresetId
+  ) ?? presets[0];
   const cardTypes = useMemo(() => {
     return [
       ...new Set(
@@ -298,7 +488,101 @@ export default function DeckBuilder({ onBack }) {
     typeFilter,
     searchText,
   ]);
+function persistPresets(nextPresets) {
+  setPresets(nextPresets);
 
+  localStorage.setItem(
+    PRESET_STORAGE_KEY,
+    JSON.stringify(nextPresets)
+  );
+}
+
+function updateCurrentPresetDeck(
+  nextDeck
+) {
+  const nextCardIds =
+    deckToCardIds(nextDeck);
+
+  setDeck(nextDeck);
+
+  setPresets((currentPresets) => {
+    const nextPresets =
+      currentPresets.map((preset) =>
+        preset.id === selectedPresetId
+          ? {
+              ...preset,
+              cardIds: nextCardIds,
+            }
+          : preset
+      );
+
+    localStorage.setItem(
+      PRESET_STORAGE_KEY,
+      JSON.stringify(nextPresets)
+    );
+
+    return nextPresets;
+  });
+}
+
+function selectPreset(presetId) {
+  const targetPreset =
+    presets.find(
+      (preset) =>
+        preset.id === presetId
+    );
+
+  if (!targetPreset) {
+    return;
+  }
+
+  setSelectedPresetId(presetId);
+
+  setDeck(
+    cardIdsToDeck(
+      targetPreset.cardIds
+    )
+  );
+
+  setMessage(
+    presetId === activePresetId
+      ? `${targetPreset.name}を開きました（使用中）`
+      : `${targetPreset.name}を開きました`
+  );
+}
+
+function renameCurrentPreset(nextName) {
+  const limitedName =
+    nextName.slice(0, 16);
+
+  const nextPresets =
+    presets.map((preset) =>
+      preset.id === selectedPresetId
+        ? {
+            ...preset,
+            name: limitedName,
+          }
+        : preset
+    );
+
+  persistPresets(nextPresets);
+}
+
+function restoreDefaultPresetName() {
+  if (currentPreset?.name.trim()) {
+    return;
+  }
+
+  const presetIndex =
+    presets.findIndex(
+      (preset) =>
+        preset.id === selectedPresetId
+    );
+
+  renameCurrentPreset(
+    `デッキ${presetIndex + 1}`
+  );
+}
   function countCard(cardId) {
     return deck.filter(
       (card) => card.id === cardId
@@ -344,10 +628,10 @@ export default function DeckBuilder({ onBack }) {
       return;
     }
 
-    setDeck((currentDeck) => [
-      ...currentDeck,
-      card,
-    ]);
+    updateCurrentPresetDeck([
+  ...deck,
+  card,
+]);
   }
 
   function removeCard(index) {
@@ -362,33 +646,74 @@ export default function DeckBuilder({ onBack }) {
   }
 
   function saveDeck() {
-    if (deck.length !== DECK_SIZE) {
-      setMessage(
-        `あと${DECK_SIZE - deck.length}枚選んでください`
-      );
-      return;
-    }
-
-    const deckIds = deck.map(
-  (card) => card.id
-);
-
-localStorage.setItem(
-  "chaosCardsDeck",
-  JSON.stringify(deckIds)
-);
-
+  if (deck.length !== DECK_SIZE) {
     setMessage(
-      "デッキを保存しました！"
+      `あと${
+        DECK_SIZE - deck.length
+      }枚選んでください`
     );
+
+    return;
   }
+
+  const cardIds =
+    deckToCardIds(deck);
+
+  const nextPresets =
+    presets.map((preset) =>
+      preset.id === selectedPresetId
+        ? {
+            ...preset,
+            name:
+              preset.name.trim() ||
+              "名称未設定",
+            cardIds,
+          }
+        : preset
+    );
+
+  persistPresets(nextPresets);
+
+  /*
+    対戦で使用するデッキ。
+    最新のcards.jsを参照できるよう
+    カードIDだけ保存する。
+  */
+  localStorage.setItem(
+    BATTLE_DECK_KEY,
+    JSON.stringify(cardIds)
+  );
+
+  localStorage.setItem(
+    ACTIVE_PRESET_KEY,
+    selectedPresetId
+  );
+
+  setActivePresetId(
+    selectedPresetId
+  );
+
+  const savedPreset =
+    nextPresets.find(
+      (preset) =>
+        preset.id === selectedPresetId
+    );
+
+  setMessage(
+    `${
+      savedPreset?.name ??
+      "デッキ"
+    }を保存して使用デッキに設定しました！`
+  );
+}
 
   function clearDeck() {
-    setDeck([]);
-    setMessage(
-      "デッキを空にしました"
-    );
-  }
+  updateCurrentPresetDeck([]);
+
+  setMessage(
+    `${currentPreset?.name ?? "デッキ"}を空にしました`
+  );
+}
 
   return (
     <main className="deck-builder deck-builder-v2">
@@ -416,7 +741,113 @@ localStorage.setItem(
           保存
         </button>
       </header>
+<section className="deck-preset-panel">
+  <div className="deck-section-heading">
+    <div>
+      <span className="deck-section-label">
+        DECK PRESETS
+      </span>
 
+      <h2>デッキプリセット</h2>
+    </div>
+
+    <span className="deck-preset-help">
+      選択したデッキを編集
+    </span>
+  </div>
+
+  <div className="deck-preset-tabs">
+    {presets.map(
+      (preset, index) => {
+        const isSelected =
+          preset.id ===
+          selectedPresetId;
+
+        const isActive =
+          preset.id ===
+          activePresetId;
+
+        return (
+          <button
+            key={preset.id}
+            type="button"
+            className={[
+              "deck-preset-tab",
+              isSelected
+                ? "is-selected"
+                : "",
+              isActive
+                ? "is-active"
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={() =>
+              selectPreset(preset.id)
+            }
+          >
+            <span className="deck-preset-number">
+              PRESET {index + 1}
+            </span>
+
+            <strong>
+              {preset.name ||
+                `デッキ${index + 1}`}
+            </strong>
+
+            <small>
+              {preset.cardIds.length}/
+              {DECK_SIZE}枚
+
+              {isActive
+                ? " ・ 使用中"
+                : ""}
+            </small>
+          </button>
+        );
+      }
+    )}
+  </div>
+
+  <div className="deck-preset-name-row">
+    <label>
+      <span>PRESET NAME</span>
+
+      <input
+        type="text"
+        value={
+          currentPreset?.name ?? ""
+        }
+        maxLength={16}
+        placeholder="デッキ名"
+        onChange={(event) =>
+          renameCurrentPreset(
+            event.target.value
+          )
+        }
+        onBlur={
+          restoreDefaultPresetName
+        }
+      />
+    </label>
+
+    <div
+      className={`deck-active-indicator ${
+        selectedPresetId ===
+        activePresetId
+          ? "is-active"
+          : ""
+      }`}
+    >
+      <span />
+
+      {selectedPresetId ===
+      activePresetId
+        ? "現在使用中"
+        : "保存すると使用中になります"}
+    </div>
+  </div>
+</section>
       <section className="deck-status-panel">
         <div className="deck-count-area">
           <div className="deck-count-number">
@@ -589,12 +1020,16 @@ localStorage.setItem(
           <span>{deck.length === DECK_SIZE ? "完成" : `あと${DECK_SIZE - deck.length}枚`}</span>
         </div>
         <button
-          type="button"
-          onClick={saveDeck}
-          disabled={deck.length !== DECK_SIZE}
-        >
-          デッキを保存
-        </button>
+  type="button"
+  className="deck-save-top"
+  onClick={saveDeck}
+  disabled={deck.length !== DECK_SIZE}
+>
+  {selectedPresetId ===
+  activePresetId
+    ? "上書き保存"
+    : "保存して使用"}
+</button>
       </div>
     </main>
   );
