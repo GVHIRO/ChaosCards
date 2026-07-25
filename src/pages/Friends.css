@@ -1907,3 +1907,258 @@
     font-size: 11px !important;
   }
 }
+
+/* =========================================================
+   フレンドカードを引き伸ばさない
+========================================================= */
+
+.friends-main-panel .friends-card-list {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+
+  gap: 10px !important;
+
+  min-height: 0 !important;
+  height: auto !important;
+
+  padding: 0 !important;
+}
+
+/* 1人でも一覧全体の高さまで伸ばさない */
+.friends-main-panel .friends-player-card {
+  flex: 0 0 auto !important;
+
+  width: 100% !important;
+
+  height: 76px !important;
+  min-height: 76px !important;
+  max-height: 76px !important;
+
+  padding: 10px 12px !important;
+
+  box-sizing: border-box !important;
+
+  align-self: stretch !important;
+}
+
+/* アイコン */
+.friends-main-panel .friends-player-avatar {
+  flex: 0 0 48px !important;
+
+  width: 48px !important;
+  height: 48px !important;
+
+  font-size: 22px !important;
+}
+
+/* 名前部分 */
+.friends-main-panel .friends-player-info {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+/* ボタン部分 */
+.friends-main-panel .friend-actions {
+  flex: 0 0 auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 8px !important;
+}
+
+.friends-main-panel .friends-invite-button {
+  height: 40px !important;
+
+  padding: 0 16px !important;
+}
+
+.friends-main-panel .delete-friend-button {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* =========================================================
+   フレンド画面：コンパクトなポップアップ通知
+========================================================= */
+
+.friends-page .friends-notification {
+  position: fixed !important;
+
+  top: 18px !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: auto !important;
+
+  z-index: 9999 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  gap: 14px !important;
+
+  width: auto !important;
+  min-width: 260px !important;
+  max-width:
+    min(
+      390px,
+      calc(100vw - 32px)
+    ) !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+
+  padding:
+    12px
+    14px !important;
+
+  box-sizing: border-box !important;
+
+  border:
+    1px solid rgba(
+      74,
+      196,
+      255,
+      0.38
+    ) !important;
+
+  border-radius: 12px !important;
+
+  color: #e9f7ff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 29, 46, 0.97),
+      rgba(8, 20, 36, 0.98)
+    ) !important;
+
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.42),
+    0 0 18px rgba(47, 188, 255, 0.12) !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+
+  line-height: 1.4 !important;
+
+  animation:
+    friends-toast-in
+    180ms
+    ease-out !important;
+}
+
+/* 通知文 */
+.friends-page
+.friends-notification
+> span {
+  flex: 1 1 auto !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 閉じるボタン */
+.friends-page
+.friends-notification-close {
+  flex: 0 0 auto !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  width: 26px !important;
+  height: 26px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border:
+    1px solid rgba(
+      255,
+      255,
+      255,
+      0.12
+    ) !important;
+
+  border-radius: 7px !important;
+
+  color: #b9cbd9 !important;
+  background:
+    rgba(255, 255, 255, 0.05) !important;
+
+  font-size: 17px !important;
+  line-height: 1 !important;
+
+  cursor: pointer !important;
+}
+
+.friends-page
+.friends-notification-close:hover {
+  color: #ffffff !important;
+
+  background:
+    rgba(255, 255, 255, 0.11) !important;
+}
+
+@keyframes friends-toast-in {
+  from {
+    opacity: 0;
+    transform:
+      translateY(-10px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+/* スマホでは画面上部中央 */
+@media (max-width: 768px) {
+  .friends-page .friends-notification {
+    top:
+      max(
+        12px,
+        env(safe-area-inset-top)
+      ) !important;
+
+    right: 12px !important;
+    left: 12px !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}
+
+/* ニックネーム入力欄の文字を確実に表示 */
+.friends-page .friends-input {
+  color: #eef7ff !important;
+
+  -webkit-text-fill-color:
+    #eef7ff !important;
+
+  caret-color: #62cfff !important;
+
+  opacity: 1 !important;
+
+  background-color:
+    rgba(3, 12, 28, 0.92) !important;
+}
+
+.friends-page .friends-input::placeholder {
+  color:
+    rgba(174, 194, 216, 0.5) !important;
+
+  -webkit-text-fill-color:
+    rgba(174, 194, 216, 0.5) !important;
+}

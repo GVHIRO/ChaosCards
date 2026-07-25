@@ -377,17 +377,31 @@ useEffect(() => {
   const previousTurnRef = useRef(null);
   const battleEndingRef = useRef(false);
 const resultTimerRef = useRef(null);
+const resultFrameRef = useRef(null);
 
-const RESULT_DELAY = 800;
+const RESULT_DELAY = 1400;
 
 function finishBattle(result) {
-  if (battleEndingRef.current) return;
+  if (battleEndingRef.current) {
+    return;
+  }
 
   battleEndingRef.current = true;
 
-  resultTimerRef.current = setTimeout(() => {
-    setWinner(result);
-  }, RESULT_DELAY);
+  /*
+    HPを0にするReactの更新が画面へ描画されてから、
+    結果画面への切り替えを開始する。
+  */
+  resultFrameRef.current =
+    window.requestAnimationFrame(() => {
+      resultFrameRef.current =
+        window.requestAnimationFrame(() => {
+          resultTimerRef.current =
+            window.setTimeout(() => {
+              setWinner(result);
+            }, RESULT_DELAY);
+        });
+    });
 }
 useEffect(() => {
   const updateBattleUiScale = () => {
@@ -1065,7 +1079,15 @@ useEffect(() => {
 useEffect(() => {
   return () => {
     if (resultTimerRef.current) {
-      clearTimeout(resultTimerRef.current);
+      window.clearTimeout(
+        resultTimerRef.current
+      );
+    }
+
+    if (resultFrameRef.current) {
+      window.cancelAnimationFrame(
+        resultFrameRef.current
+      );
     }
   };
 }, []);

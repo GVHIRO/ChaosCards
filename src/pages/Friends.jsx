@@ -33,7 +33,13 @@ function createRoomCode() {
 
   return code;
 }
-
+function getProfileName(profile) {
+  return (
+    profile?.username?.trim() ||
+    profile?.nickname?.trim() ||
+    "PLAYER"
+  );
+}
 export default function Friends({
   onBack,
   onMatchStart,
@@ -44,10 +50,6 @@ export default function Friends({
   const [
   nicknameInput,
   setNicknameInput,
-] = useState("");
-  const [
-  searchNickname,
-  setSearchNickname,
 ] = useState("");
   const [friendCodeInput, setFriendCodeInput] =
     useState("");
@@ -515,7 +517,7 @@ setNicknameInput(
 }
 
   async function createProfile() {
-    const trimmedNickname = searchNickname.trim();
+    const trimmedNickname = nicknameInput.trim();
 
     if (!user) {
       setMessage("ユーザー情報がありません");
@@ -589,13 +591,17 @@ setNicknameInput(
     trimmedNickname.length < 1 ||
     trimmedNickname.length > 16
   ) {
-    setMessage(
-      "ニックネームは1〜16文字にしてください"
+    showNotification(
+      "⚠️ ニックネームは1〜16文字にしてください"
     );
     return;
   }
 
-  setMessage("名前を変更しています…");
+  /*
+    以前の通常メッセージを消して、
+    レイアウトに余白が残らないようにする
+  */
+  setMessage("");
 
   const {
     data: updatedProfile,
@@ -603,12 +609,10 @@ setNicknameInput(
   } = await supabase
     .from("profiles")
     .update({
-      /*
-        新旧両方の名前列を同期する
-      */
       username: trimmedNickname,
       nickname: trimmedNickname,
-      updated_at: new Date().toISOString(),
+      updated_at:
+        new Date().toISOString(),
     })
     .eq("id", user.id)
     .select(`
@@ -628,14 +632,14 @@ setNicknameInput(
     );
 
     if (error.code === "23505") {
-      setMessage(
-        "そのニックネームは既に使用されています"
+      showNotification(
+        "❌ そのニックネームは既に使用されています"
       );
       return;
     }
 
-    setMessage(
-      `名前変更エラー：${error.message}`
+    showNotification(
+      `❌ 名前を変更できませんでした：${error.message}`
     );
     return;
   }
@@ -649,12 +653,15 @@ setNicknameInput(
   );
 
   /*
-    App.jsx側のcurrentProfileも更新する
+    App.jsx側にも変更を反映
   */
   onProfileUpdated?.(updatedProfile);
 
-  setMessage(
-    "ニックネームを変更しました！"
+  /*
+    通常メッセージではなくポップアップ通知
+  */
+  showNotification(
+    "✅ ニックネームを変更しました！"
   );
 }
 
@@ -883,36 +890,110 @@ setNicknameInput(
   }
 
   async function loadFriends(userId) {
-    const { data, error } = await supabase
-      .from("friends")
-      .select(`
-        friend_id,
-        friend:profiles!friends_friend_id_fkey (
-  id,
-  nickname,
-  friend_code,
-  status
-)
-      `)
-      .eq("user_id", userId);
+  /*
+    user_id・friend_idのどちら側に自分がいても
+    正しく相手のIDを取り出す
+  */
+  const {
+    data: friendshipRows,
+    error: friendshipError,
+  } = await supabase
+    .from("friends")
+    .select("user_id, friend_id")
+    .or(
+      `user_id.eq.${userId},friend_id.eq.${userId}`
+    );
 
-    if (error) {
-      console.error(
-        "フレンド一覧取得エラー:",
-        error
-      );
-      setMessage(
-        `フレンド一覧取得エラー：${error.message}`
-      );
-      return;
-    }
+  if (friendshipError) {
+    console.error(
+      "フレンド関係取得エラー:",
+      friendshipError
+    );
 
-    const friendProfiles = (data ?? [])
-      .map((row) => row.friend)
-      .filter(Boolean);
-
-    setFriends(friendProfiles);
+    setMessage(
+      `フレンド一覧取得エラー：${friendshipError.message}`
+    );
+    return;
   }
+
+  /*
+    各行から「自分ではない方」のIDだけを取得。
+    自分自身を指す壊れた行も除外する。
+  */
+  const friendIds = [
+    ...new Set(
+      (friendshipRows ?? [])
+        .map((row) => {
+          const userIsMe =
+            String(row.user_id) ===
+            String(userId);
+
+          return userIsMe
+            ? row.friend_id
+            : row.user_id;
+        })
+        .filter(
+          (friendId) =>
+            friendId &&
+            String(friendId) !==
+              String(userId)
+        )
+    ),
+  ];
+
+  if (friendIds.length === 0) {
+    setFriends([]);
+    return;
+  }
+
+  const {
+    data: friendProfiles,
+    error: profilesError,
+  } = await supabase
+    .from("profiles")
+    .select(`
+      id,
+      username,
+      nickname,
+      friend_code,
+      status,
+      avatar_id
+    `)
+    .in("id", friendIds);
+
+  if (profilesError) {
+    console.error(
+      "フレンドプロフィール取得エラー:",
+      profilesError
+    );
+
+    setMessage(
+      `フレンドプロフィール取得エラー：${profilesError.message}`
+    );
+    return;
+  }
+
+  /*
+    friendIdsの順番を維持しつつ、
+    自分自身が紛れ込まないよう再確認する。
+  */
+  const orderedProfiles = friendIds
+    .map((friendId) =>
+      (friendProfiles ?? []).find(
+        (friendProfile) =>
+          String(friendProfile.id) ===
+          String(friendId)
+      )
+    )
+    .filter(
+      (friendProfile) =>
+        friendProfile &&
+        String(friendProfile.id) !==
+          String(userId)
+    );
+
+  setFriends(orderedProfiles);
+}
 
   async function loadMatchInvites(userId) {
     const { data, error } = await supabase
@@ -953,7 +1034,7 @@ async function deleteFriend(friend) {
   if (!user) return;
 
   const confirmed = window.confirm(
-    `${friend.nickname}さんをフレンドから削除しますか？`
+    `${getProfileName(friend)}さんをフレンドから削除しますか？`
   );
 
   if (!confirmed) return;
@@ -981,7 +1062,7 @@ async function deleteFriend(friend) {
   );
 
   showNotification(
-    `🗑️ ${friend.nickname}さんをフレンドから削除しました`
+    `🗑️ ${getProfileName(friend)}さんをフレンドから削除しました`
   );
 }
   async function sendMatchInvite(friend) {
@@ -1016,7 +1097,7 @@ async function deleteFriend(friend) {
 
     if (existingInvite) {
       showNotification(
-        `⏳ ${friend.nickname}の返事を待っています…`
+        `⏳ ${getProfileName(friend)}の返事を待っています…`
       );
       return;
     }
@@ -1034,7 +1115,7 @@ async function deleteFriend(friend) {
     if (error) {
       if (error.code === "23505") {
         showNotification(
-          `⏳ ${friend.nickname}の返事を待っています…`
+          `⏳ ${getProfileName(friend)}の返事を待っています…`
         );
         return;
       }
@@ -1052,7 +1133,7 @@ async function deleteFriend(friend) {
     console.log("作成した対戦招待:", data);
 
     showNotification(
-      `⚔️ ${friend.nickname}に対戦招待を送りました！`
+      `⚔️ ${getProfileName(friend)}に対戦招待を送りました！`
     );
   }
 
@@ -1339,20 +1420,21 @@ if (message && !profile) {
             ニックネームを設定してください。
           </p>
 
-          <label className="friends-input-label">
-  NICKNAME
+         <label className="friends-input-label">
+  CHANGE NICKNAME
 
   <input
-    className="friends-input"
-    type="text"
-    value={nicknameInput}
-    maxLength={16}
-    onChange={(event) =>
-      setNicknameInput(
-        event.target.value
-      )
-    }
-  />
+  className="friends-input"
+  type="text"
+  value={nicknameInput}
+  maxLength={16}
+  autoComplete="off"
+  onChange={(event) => {
+    setNicknameInput(
+      event.target.value
+    );
+  }}
+/>
 </label>
 
 <button
@@ -1360,15 +1442,16 @@ if (message && !profile) {
   type="button"
   onClick={updateNickname}
   disabled={
+    !nicknameInput.trim() ||
     nicknameInput.trim() ===
-    (
-      profile.username ??
-      profile.nickname ??
-      ""
-    )
+      (
+        profile.username ??
+        profile.nickname ??
+        ""
+      )
   }
 >
-  名前を変更
+  変更を確定
 </button>
 
           {message && (
@@ -1456,29 +1539,34 @@ if (message && !profile) {
               </div>
 
               <label className="friends-input-label">
-                CHANGE NICKNAME
-                <input
-                  className="friends-input"
-                  type="text"
-                  value={searchNickname}
-                  maxLength={16}
-                  onChange={(event) =>
-  setNicknameInput(event.target.value)
-}
-                />
-              </label>
+  CHANGE NICKNAME
 
-              <button
-                className="friends-secondary-button"
-                type="button"
-                onClick={updateNickname}
-                disabled={
-                  searchNickname.trim() ===
-                  profile.nickname
-                }
-              >
-                変更を確定
-              </button>
+  <input
+    className="friends-input"
+    type="text"
+    value={nicknameInput}
+    maxLength={16}
+    autoComplete="off"
+    onChange={(event) => {
+      setNicknameInput(
+        event.target.value
+      );
+    }}
+  />
+</label>
+
+<button
+  className="friends-secondary-button"
+  type="button"
+  onClick={updateNickname}
+  disabled={
+    !nicknameInput.trim() ||
+    nicknameInput.trim() ===
+      getProfileName(profile)
+  }
+>
+  変更を確定
+</button>
 
               <div className="friend-code-box">
                 <span>YOUR FRIEND CODE</span>
@@ -1557,9 +1645,9 @@ if (message && !profile) {
                     key={friend.id}
                   >
                     <div className="friends-player-avatar">
-                      {friend.nickname
-                        ?.charAt(0)
-                        .toUpperCase() || "?"}
+                      {getProfileName(friend)
+  .charAt(0)
+  .toUpperCase()}
 
                       <span
   className={`friends-status-dot ${
@@ -1571,9 +1659,7 @@ if (message && !profile) {
                     <div className="friends-player-info">
                       <div className="friends-player-name-row">
                         <strong>
-  {profile.username ??
-    profile.nickname ??
-    "PLAYER"}
+  {getProfileName(friend)}
 </strong>
 
                         <span className="friends-status-label">
@@ -1607,7 +1693,7 @@ if (message && !profile) {
                         onClick={() =>
                           deleteFriend(friend)
                         }
-                        aria-label={`${friend.nickname}を削除`}
+                        aria-label={`${getProfileName(friend)}を削除`}
                       >
                         🗑
                       </button>
