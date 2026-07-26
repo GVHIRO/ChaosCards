@@ -274,6 +274,7 @@ export default function Battle({
   playerRole,
   currentUserId,
   playerName = "YOU",
+  playerAvatarUrl = "",
   restartGame,
   goToMenu,
 }) {
@@ -1906,7 +1907,7 @@ return (
 
       <BattleStatus
         name={playerName}
-        icon="😀"
+        avatarUrl={playerAvatarUrl}
         hp={playerHP}
         maxHp={MAX_HP}
         shield={playerShield}

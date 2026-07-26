@@ -458,7 +458,9 @@ if (
     currentProfile?.username ??
     "YOU"
   }
-
+playerAvatarUrl={
+  currentProfile?.avatar_url ?? ""
+}
   restartGame={() => {
     setBattleKey(
       (currentKey) =>
@@ -486,7 +488,9 @@ if (
     currentProfile?.username ??
     "YOU"
   }
-
+playerAvatarUrl={
+  currentProfile?.avatar_url ?? ""
+}
   restartGame={() => {
     setOnlineRoom(null);
     setScreen("online");

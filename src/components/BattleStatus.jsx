@@ -2,7 +2,8 @@ import "./BattleStatus.css";
 
 export default function BattleStatus({
   name,
-  icon,
+  avatarUrl = "",
+  fallbackAvatar = "🤖",
   hp,
   maxHp,
   shield = 0,
@@ -44,9 +45,19 @@ export default function BattleStatus({
     >
       <div className="battle-status-heading">
         <div className="battle-status-player">
-          <span className="battle-status-avatar">
-            {icon}
-          </span>
+          <div className="battle-player-avatar">
+  {avatarUrl ? (
+    <img
+      className="battle-player-avatar-image"
+      src={avatarUrl}
+      alt={`${name}のプロフィール画像`}
+    />
+  ) : (
+    <span className="battle-player-avatar-fallback">
+      {fallbackAvatar}
+    </span>
+  )}
+</div>
 
           <div className="battle-status-player-info">
             <small>

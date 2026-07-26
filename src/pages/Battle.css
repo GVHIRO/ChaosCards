@@ -4753,3 +4753,97 @@ small {
 .battle-page .battle-shield-panel {
   gap: 0 !important;
 }
+
+/* =========================================================
+   ゲーム中のプロフィール画像
+========================================================= */
+
+.battle-page .battle-player-avatar {
+  position: relative;
+
+  flex: 0 0 46px;
+
+  width: 46px;
+  height: 46px;
+
+  min-width: 46px;
+  min-height: 46px;
+
+  max-width: 46px;
+  max-height: 46px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(73, 190, 255, 0.65);
+
+  border-radius: 14px;
+
+  background:
+    rgba(4, 18, 38, 0.9);
+
+  box-shadow:
+    0 0 15px
+    rgba(44, 171, 240, 0.18);
+}
+
+.battle-page .battle-player-avatar-image {
+  position: absolute;
+
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  max-width: none;
+  max-height: none;
+
+  margin: 0;
+  padding: 0;
+
+  border-radius: inherit;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+.battle-page .battle-player-avatar-fallback {
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  height: 100%;
+
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* スマホ */
+@media (max-width: 768px) {
+  .battle-page .battle-player-avatar {
+    flex-basis: 38px;
+
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+    min-height: 38px;
+
+    max-width: 38px;
+    max-height: 38px;
+
+    border-radius: 11px;
+  }
+
+  .battle-page .battle-player-avatar-fallback {
+    font-size: 20px;
+  }
+}
