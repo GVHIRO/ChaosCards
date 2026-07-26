@@ -310,10 +310,132 @@ export default function Battle({
   const [gameSettings, setGameSettings] = useState(getSettings());
   const [turnPopup, setTurnPopup] = useState(null);
   const [battleUiScale, setBattleUiScale] =
-  useState(1);
-const [opponentName, setOpponentName] =
-  useState("ENEMY");
+  useState(1)
+const [
+  opponentName,
+  setOpponentName,
+] = useState(
+  mode === "online"
+    ? "ENEMY"
+    : "CPU"
+);
 
+const [
+  opponentAvatarUrl,
+  setOpponentAvatarUrl,
+] = useState("");
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadOpponentProfile() {
+    /*
+      CPU戦ではプロフィールを取得しない
+    */
+    if (mode !== "online") {
+      setOpponentName("CPU");
+      setOpponentAvatarUrl("");
+      return;
+    }
+
+    if (!roomId || !playerRole) {
+      setOpponentName("ENEMY");
+      setOpponentAvatarUrl("");
+      return;
+    }
+
+    try {
+      const {
+        data: room,
+        error: roomError,
+      } = await supabase
+        .from("rooms")
+        .select(`
+          host_id,
+          guest_id
+        `)
+        .eq("id", roomId)
+        .maybeSingle();
+
+      if (roomError) {
+        throw roomError;
+      }
+
+      if (!room) {
+        throw new Error(
+          "対戦部屋を取得できませんでした"
+        );
+      }
+
+      /*
+        自分がhostなら相手はguest、
+        自分がguestなら相手はhost
+      */
+      const opponentUserId =
+        playerRole === "host"
+          ? room.guest_id
+          : room.host_id;
+
+      if (!opponentUserId) {
+        setOpponentName("ENEMY");
+        setOpponentAvatarUrl("");
+        return;
+      }
+
+      const {
+        data: opponentProfile,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          username,
+          nickname,
+          avatar_url
+        `)
+        .eq("id", opponentUserId)
+        .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      const displayName =
+        opponentProfile?.username?.trim() ||
+        opponentProfile?.nickname?.trim() ||
+        "ENEMY";
+
+      setOpponentName(displayName);
+
+      setOpponentAvatarUrl(
+        opponentProfile?.avatar_url ?? ""
+      );
+    } catch (error) {
+      console.error(
+        "相手プロフィール取得エラー:",
+        error
+      );
+
+      if (!cancelled) {
+        setOpponentName("ENEMY");
+        setOpponentAvatarUrl("");
+      }
+    }
+  }
+
+  loadOpponentProfile();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  mode,
+  roomId,
+  playerRole,
+]);
 /* ここから追加 */
 useEffect(() => {
   if (mode !== "online") {
@@ -1895,25 +2017,38 @@ return (
   <div className="battle-stage-layout">
     <div className="battle-status-grid">
       <BattleStatus
-        name={opponentName}
-        icon={mode === "online" ? "🌐" : "🤖"}
-        hp={enemyHP}
-        maxHp={MAX_HP}
-        shield={enemyShield}
-        active={!isMyTurn}
-        effect={enemyEffect}
-        enemy
-      />
+  name={opponentName}
+
+  icon={
+    mode === "online"
+      ? "🌐"
+      : "🤖"
+  }
+
+  avatarUrl={
+    mode === "online"
+      ? opponentAvatarUrl
+      : ""
+  }
+
+  hp={enemyHP}
+  maxHp={MAX_HP}
+  shield={enemyShield}
+  active={!isMyTurn}
+  effect={enemyEffect}
+  enemy
+/>
 
       <BattleStatus
-        name={playerName}
-        avatarUrl={playerAvatarUrl}
-        hp={playerHP}
-        maxHp={MAX_HP}
-        shield={playerShield}
-        active={isMyTurn}
-        effect={playerEffect}
-      />
+  name={playerName}
+  icon="😀"
+  avatarUrl={playerAvatarUrl}
+  hp={playerHP}
+  maxHp={MAX_HP}
+  shield={playerShield}
+  active={isMyTurn}
+  effect={playerEffect}
+/>
     </div>
 
     <div className="battle-stage-field">

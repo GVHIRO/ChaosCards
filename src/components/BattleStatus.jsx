@@ -2,16 +2,16 @@ import "./BattleStatus.css";
 
 export default function BattleStatus({
   name,
+  icon,
   avatarUrl = "",
-  fallbackAvatar = "🤖",
   hp,
   maxHp,
-  shield = 0,
+  shield,
   energy,
   maxEnergy,
-  active = false,
+  active,
   effect,
-  enemy = false,
+  enemy,
 }) {
   const safeMaxHp = Math.max(1, maxHp);
 
@@ -45,16 +45,16 @@ export default function BattleStatus({
     >
       <div className="battle-status-heading">
         <div className="battle-status-player">
-          <div className="battle-player-avatar">
+          <div className="battle-status-avatar battle-status-avatar-frame">
   {avatarUrl ? (
     <img
-      className="battle-player-avatar-image"
+      className="battle-status-avatar-image"
       src={avatarUrl}
       alt={`${name}のプロフィール画像`}
     />
   ) : (
-    <span className="battle-player-avatar-fallback">
-      {fallbackAvatar}
+    <span className="battle-status-avatar-fallback">
+      {icon}
     </span>
   )}
 </div>
