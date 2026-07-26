@@ -310,135 +310,118 @@ export default function Battle({
   const [gameSettings, setGameSettings] = useState(getSettings());
   const [turnPopup, setTurnPopup] = useState(null);
   const [battleUiScale, setBattleUiScale] =
-  useState(1)
-const [
-  opponentName,
-  setOpponentName,
-] = useState(
-  mode === "online"
-    ? "ENEMY"
-    : "CPU"
-);
+    useState(1);
+  const [opponentName, setOpponentName] = useState(
+    mode === "online" ? "ENEMY" : "CPU",
+  );
+  const [opponentAvatarUrl, setOpponentAvatarUrl] =
+    useState("");
 
-const [
-  opponentAvatarUrl,
-  setOpponentAvatarUrl,
-] = useState("");
+  useEffect(() => {
+    let cancelled = false;
 
-useEffect(() => {
-  let cancelled = false;
-
-  async function loadOpponentProfile() {
-    /*
-      CPU戦では従来のCPU表示を使う。
-    */
-    if (mode !== "online") {
-      setOpponentName("CPU");
-      setOpponentAvatarUrl("");
-      return;
-    }
-
-    if (!roomId || !currentUserId) {
-      setOpponentName("ENEMY");
-      setOpponentAvatarUrl("");
-      return;
-    }
-
-    try {
-      const {
-        data: room,
-        error: roomError,
-      } = await supabase
-        .from("rooms")
-        .select("host_id, guest_id")
-        .eq("id", roomId)
-        .maybeSingle();
-
-      if (roomError) {
-        throw roomError;
+    async function loadOpponentProfile() {
+      if (mode !== "online") {
+        setOpponentName("CPU");
+        setOpponentAvatarUrl("");
+        return;
       }
 
-      if (!room) {
-        throw new Error(
-          "対戦部屋を取得できませんでした"
-        );
-      }
-
-      let opponentUserId = null;
-
-      if (
-        String(room.host_id) ===
-        String(currentUserId)
-      ) {
-        opponentUserId = room.guest_id;
-      } else if (
-        String(room.guest_id) ===
-        String(currentUserId)
-      ) {
-        opponentUserId = room.host_id;
-      } else {
-        throw new Error(
-          "この対戦部屋の参加者ではありません"
-        );
-      }
-
-      if (!opponentUserId) {
+      if (!roomId || !currentUserId) {
         setOpponentName("ENEMY");
         setOpponentAvatarUrl("");
         return;
       }
 
-      const {
-        data: opponentProfile,
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .select(
-          "username, nickname, avatar_url"
-        )
-        .eq("id", opponentUserId)
-        .maybeSingle();
+      try {
+        const { data: room, error: roomError } =
+          await supabase
+            .from("rooms")
+            .select("host_id, guest_id")
+            .eq("id", roomId)
+            .maybeSingle();
 
-      if (profileError) {
-        throw profileError;
-      }
+        if (roomError) {
+          throw roomError;
+        }
 
-      if (cancelled) {
-        return;
-      }
+        if (!room) {
+          throw new Error(
+            "対戦部屋を取得できませんでした",
+          );
+        }
 
-      setOpponentName(
-        opponentProfile?.username?.trim() ||
-          opponentProfile?.nickname?.trim() ||
-          "ENEMY"
-      );
+        let opponentUserId = null;
 
-      setOpponentAvatarUrl(
-        opponentProfile?.avatar_url ?? ""
-      );
-    } catch (error) {
-      console.error(
-        "相手プロフィール取得エラー:",
-        error
-      );
+        if (
+          String(room.host_id) ===
+          String(currentUserId)
+        ) {
+          opponentUserId = room.guest_id;
+        } else if (
+          String(room.guest_id) ===
+          String(currentUserId)
+        ) {
+          opponentUserId = room.host_id;
+        } else {
+          throw new Error(
+            "この対戦部屋の参加者ではありません",
+          );
+        }
 
-      if (!cancelled) {
-        setOpponentName("ENEMY");
-        setOpponentAvatarUrl("");
+        if (!opponentUserId) {
+          setOpponentName("ENEMY");
+          setOpponentAvatarUrl("");
+          return;
+        }
+
+        const {
+          data: opponentProfile,
+          error: profileError,
+        } = await supabase
+          .from("profiles")
+          .select(
+            "username, nickname, avatar_url",
+          )
+          .eq("id", opponentUserId)
+          .maybeSingle();
+
+        if (profileError) {
+          throw profileError;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setOpponentName(
+          opponentProfile?.username?.trim() ||
+            opponentProfile?.nickname?.trim() ||
+            "ENEMY",
+        );
+        setOpponentAvatarUrl(
+          opponentProfile?.avatar_url ?? "",
+        );
+      } catch (error) {
+        console.error(
+          "相手プロフィール取得エラー:",
+          error,
+        );
+
+        if (!cancelled) {
+          setOpponentName("ENEMY");
+          setOpponentAvatarUrl("");
+        }
       }
     }
-  }
 
-  loadOpponentProfile();
+    loadOpponentProfile();
 
-  return () => {
-    cancelled = true;
-  };
-}, [
-  mode,
-  roomId,
-  currentUserId,
-]);
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, roomId, currentUserId]);
+
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
   const deckRef = useRef(deck);
@@ -1828,6 +1811,16 @@ async function surrender() {
   if (winner) {
     const playerWon = winner === "player";
     const isDraw = winner === "draw";
+    const playerResultClass = isDraw
+      ? "result-player-draw"
+      : playerWon
+        ? "result-player-winner"
+        : "result-player-loser";
+    const opponentResultClass = isDraw
+      ? "result-player-draw"
+      : playerWon
+        ? "result-player-loser"
+        : "result-player-winner";
 
     return (
       <div className="app battle-page">
@@ -1843,6 +1836,83 @@ async function surrender() {
                 ? "YOU WIN!"
                 : "YOU LOSE..."}
           </h1>
+
+          <div className="result-players">
+            <article
+              className={`result-player-card ${playerResultClass}`}
+            >
+              <span className="result-player-side">
+                PLAYER
+              </span>
+
+              <div className="result-player-avatar">
+                {playerAvatarUrl ? (
+                  <img
+                    src={playerAvatarUrl}
+                    alt={`${playerName}のプロフィール画像`}
+                  />
+                ) : (
+                  <span>😀</span>
+                )}
+              </div>
+
+              <strong className="result-player-name">
+                {playerName}
+              </strong>
+
+              <span className="result-player-hp">
+                HP {Math.max(0, playerHP)} / {MAX_HP}
+              </span>
+
+              <span className="result-player-outcome">
+                {isDraw
+                  ? "DRAW"
+                  : playerWon
+                    ? "WIN"
+                    : "LOSE"}
+              </span>
+            </article>
+
+            <div className="result-versus">VS</div>
+
+            <article
+              className={`result-player-card ${opponentResultClass}`}
+            >
+              <span className="result-player-side">
+                {mode === "online" ? "ENEMY" : "CPU"}
+              </span>
+
+              <div className="result-player-avatar">
+                {mode === "online" &&
+                opponentAvatarUrl ? (
+                  <img
+                    src={opponentAvatarUrl}
+                    alt={`${opponentName}のプロフィール画像`}
+                  />
+                ) : (
+                  <span>
+                    {mode === "online" ? "🌐" : "🤖"}
+                  </span>
+                )}
+              </div>
+
+              <strong className="result-player-name">
+                {opponentName}
+              </strong>
+
+              <span className="result-player-hp">
+                HP {Math.max(0, enemyHP)} / {MAX_HP}
+              </span>
+
+              <span className="result-player-outcome">
+                {isDraw
+                  ? "DRAW"
+                  : playerWon
+                    ? "LOSE"
+                    : "WIN"}
+              </span>
+            </article>
+          </div>
 
           <p>
             {match?.finish_reason === "disconnect"
