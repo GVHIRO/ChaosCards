@@ -633,7 +633,46 @@ function restoreDefaultPresetName() {
   card,
 ]);
   }
+function toggleCatalogCard(card) {
+  setMessage("");
 
+  const copies = countCard(card.id);
+
+  const isSingleCopyCard =
+    card.rarity === "Epic" ||
+    card.rarity === "Legend";
+
+  /*
+    Epic・Legendをすでに選択している場合は
+    カード一覧をもう一度押すと解除
+  */
+  if (isSingleCopyCard && copies > 0) {
+    const removeIndex = deck.findIndex(
+      (deckCard) =>
+        String(deckCard.id) ===
+        String(card.id)
+    );
+
+    if (removeIndex === -1) {
+      return;
+    }
+
+    const nextDeck = deck.filter(
+      (_, index) =>
+        index !== removeIndex
+    );
+
+    updateCurrentPresetDeck(nextDeck);
+
+    setMessage(
+      `${card.name}をデッキから外しました`
+    );
+
+    return;
+  }
+
+  addCard(card);
+}
   function removeCard(index) {
     setMessage("");
 
@@ -982,22 +1021,51 @@ function restoreDefaultPresetName() {
 
         <div className="deck-card-list deck-card-grid-v2">
           {filteredCards.map((card) => {
-            const copies = countCard(card.id);
-            const rule = getRarityRule(card);
-            const rarityCount = countRarity(card.rarity);
-            const cannotAdd =
-              deck.length >= DECK_SIZE ||
-              copies >= rule.maxCopies ||
-              rarityCount >= rule.deckLimit;
+  const copies = countCard(card.id);
+  const rule = getRarityRule(card);
 
-            return (
-              <button
-                type="button"
-                className={`deck-card-item deck-card-v2 rarity-${card.rarity.toLowerCase()}`}
-                key={card.id}
-                onClick={() => addCard(card)}
-                disabled={cannotAdd}
-              >
+  const rarityCount =
+    countRarity(card.rarity);
+
+  const isSingleCopyCard =
+    card.rarity === "Epic" ||
+    card.rarity === "Legend";
+
+  const canRemove =
+    isSingleCopyCard &&
+    copies > 0;
+
+  const cannotAdd =
+    deck.length >= DECK_SIZE ||
+    copies >= rule.maxCopies ||
+    rarityCount >= rule.deckLimit;
+
+  /*
+    追加上限に達していても、
+    選択済みのEpic・Legendは解除できる
+  */
+  const isDisabled =
+    cannotAdd && !canRemove;
+
+  return (
+    <button
+      type="button"
+      className={[
+        "deck-card-item",
+        "deck-card-v2",
+        `rarity-${card.rarity.toLowerCase()}`,
+        canRemove
+          ? "is-selected-card"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      key={card.id}
+      onClick={() =>
+        toggleCatalogCard(card)
+      }
+      disabled={isDisabled}
+    >
                 <span className="deck-card-cost">⚡{card.cost}</span>
                 <span className="deck-card-rarity">{card.rarity}</span>
                 <span className="deck-card-emoji">{card.emoji || "🃏"}</span>
@@ -1006,7 +1074,13 @@ function restoreDefaultPresetName() {
                 <span className="deck-card-effect">{getCardEffectText(card)}</span>
                 <span className="deck-card-footer">
                   <span>同名 {copies}/{rule.maxCopies}</span>
-                  <span>{cannotAdd ? "追加不可" : "+ 追加"}</span>
+                  <span>
+  {canRemove
+    ? "− 選択解除"
+    : isDisabled
+      ? "追加不可"
+      : "+ 追加"}
+</span>
                 </span>
               </button>
             );

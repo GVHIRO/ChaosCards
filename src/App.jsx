@@ -43,9 +43,17 @@ async function fetchUserProfile(user) {
     error: profileError,
   } = await supabase
     .from("profiles")
-    .select(
-      "id, username, avatar_id, bio"
-    )
+    .select(`
+      id,
+      username,
+      nickname,
+      friend_code,
+      avatar_id,
+      avatar_url,
+      avatar_path,
+      bio,
+      status
+    `)
     .eq("id", user.id)
     .maybeSingle();
 
@@ -53,7 +61,9 @@ async function fetchUserProfile(user) {
     throw profileError;
   }
 
-  setCurrentProfile(profile ?? null);
+  setCurrentProfile(
+    profile ?? null
+  );
 
   return profile ?? null;
 }
@@ -416,14 +426,16 @@ if (
  if (screen === "friends") {
   return (
     <Friends
-  onBack={() =>
-    setScreen("menu")
-  }
-  onMatchStart={startOnlineBattle}
-  onProfileUpdated={(updatedProfile) => {
-    setCurrentProfile(updatedProfile);
-  }}
-/>
+      onBack={() =>
+        setScreen("menu")
+      }
+      onMatchStart={
+        startOnlineBattle
+      }
+      onProfileUpdated={
+        setCurrentProfile
+      }
+    />
   );
 }
 
@@ -499,9 +511,13 @@ if (
         "ゲスト"
       }
       avatarId={
-        currentProfile?.avatar_id ??
-        "default"
-      }
+  currentProfile?.avatar_id ??
+  "default"
+}
+avatarUrl={
+  currentProfile?.avatar_url ??
+  ""
+}
     />
   );
 }

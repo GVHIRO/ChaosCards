@@ -64,7 +64,12 @@ export default function Friends({
   const [notification, setNotification] =
     useState("");
 
-  
+  const avatarInputRef = useRef(null);
+
+const [
+  uploadingAvatar,
+  setUploadingAvatar,
+] = useState(false);
 
   const notificationTimerRef = useRef(null);
   
@@ -497,13 +502,16 @@ setNicknameInput(
   } = await supabase
     .from("profiles")
     .select(`
-      id,
-      username,
-      nickname,
-      friend_code,
-      avatar_id,
-      bio
-    `)
+  id,
+  username,
+  nickname,
+  friend_code,
+  avatar_id,
+  avatar_url,
+  avatar_path,
+  bio,
+  status
+`)
     .eq("id", userId)
     .maybeSingle();
 
@@ -616,13 +624,16 @@ setNicknameInput(
     })
     .eq("id", user.id)
     .select(`
-      id,
-      username,
-      nickname,
-      friend_code,
-      avatar_id,
-      bio
-    `)
+  id,
+  username,
+  nickname,
+  friend_code,
+  avatar_id,
+  avatar_url,
+  avatar_path,
+  bio,
+  status
+`)
     .single();
 
   if (error) {
@@ -664,7 +675,207 @@ setNicknameInput(
     "✅ ニックネームを変更しました！"
   );
 }
+async function uploadProfilePhoto(event) {
+  const file =
+    event.target.files?.[0];
 
+  /*
+    同じ画像を続けて選択した場合も
+    changeイベントが動くようにリセット
+  */
+  event.target.value = "";
+
+  if (!file) {
+    return;
+  }
+
+  if (!user || !profile) {
+    showNotification(
+      "❌ プロフィールを読み込めません"
+    );
+    return;
+  }
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ];
+
+  if (
+    !allowedTypes.includes(file.type)
+  ) {
+    showNotification(
+      "❌ JPG・PNG・WebP画像を選択してください"
+    );
+    return;
+  }
+
+  const maxFileSize =
+    5 * 1024 * 1024;
+
+  if (file.size > maxFileSize) {
+    showNotification(
+      "❌ 画像は5MB以下にしてください"
+    );
+    return;
+  }
+
+  if (uploadingAvatar) {
+    return;
+  }
+
+  setUploadingAvatar(true);
+  setMessage("");
+
+  let uploadedPath = null;
+
+  try {
+    const extensionMap = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+
+    const extension =
+      extensionMap[file.type];
+
+    const uniqueName =
+      `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`;
+
+    /*
+      必ずユーザーIDのフォルダへ保存する。
+      RLSポリシーもこの構造を前提としている。
+    */
+    uploadedPath =
+      `${user.id}/${uniqueName}.${extension}`;
+
+    const oldAvatarPath =
+      profile.avatar_path;
+
+    const {
+      error: uploadError,
+    } = await supabase.storage
+      .from("avatars")
+      .upload(
+        uploadedPath,
+        file,
+        {
+          cacheControl: "31536000",
+          contentType: file.type,
+          upsert: false,
+        }
+      );
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    /*
+      公開バケットの画像URLを取得
+    */
+    const {
+      data: publicUrlData,
+    } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(uploadedPath);
+
+    const avatarUrl =
+      publicUrlData?.publicUrl;
+
+    if (!avatarUrl) {
+      throw new Error(
+        "画像URLを取得できませんでした"
+      );
+    }
+
+    const {
+      data: updatedProfile,
+      error: profileError,
+    } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: avatarUrl,
+        avatar_path: uploadedPath,
+      })
+      .eq("id", user.id)
+      .select(`
+        id,
+        username,
+        nickname,
+        friend_code,
+        avatar_id,
+        avatar_url,
+        avatar_path,
+        bio,
+        status
+      `)
+      .single();
+
+    if (profileError) {
+      /*
+        DB保存に失敗した場合は、
+        今アップロードした画像を削除
+      */
+      await supabase.storage
+        .from("avatars")
+        .remove([uploadedPath]);
+
+      uploadedPath = null;
+
+      throw profileError;
+    }
+
+    setProfile(updatedProfile);
+
+    onProfileUpdated?.(
+      updatedProfile
+    );
+
+    showNotification(
+      "✅ プロフィール写真を変更しました！"
+    );
+
+    /*
+      新しい写真の保存が成功したあとに
+      古い写真を削除する
+    */
+    if (
+      oldAvatarPath &&
+      oldAvatarPath !== uploadedPath
+    ) {
+      const {
+        error: removeError,
+      } = await supabase.storage
+        .from("avatars")
+        .remove([oldAvatarPath]);
+
+      if (removeError) {
+        console.warn(
+          "古いプロフィール画像を削除できませんでした:",
+          removeError
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      "プロフィール写真変更エラー:",
+      error
+    );
+
+    showNotification(
+      `❌ 写真を変更できませんでした：${
+        error instanceof Error
+          ? error.message
+          : String(error)
+      }`
+    );
+  } finally {
+    setUploadingAvatar(false);
+  }
+}
   async function sendFriendRequest() {
     if (!user || !profile) return;
 
@@ -947,18 +1158,18 @@ setNicknameInput(
   }
 
   const {
-    data: friendProfiles,
-    error: profilesError,
-  } = await supabase
-    .from("profiles")
-    .select(`
-      id,
-      username,
-      nickname,
-      friend_code,
-      status,
-      avatar_id
-    `)
+  data: friendProfiles,
+} = await supabase
+  .from("profiles")
+  .select(`
+    id,
+    username,
+    nickname,
+    friend_code,
+    status,
+    avatar_id,
+    avatar_url
+  `)
     .in("id", friendIds);
 
   if (profilesError) {
@@ -1519,14 +1730,53 @@ if (message && !profile) {
                 </div>
               </div>
 
-              <div className="friends-avatar">
-  {(
-    profile.username ??
-    profile.nickname ??
-    "?"
-  )
-    .charAt(0)
-    .toUpperCase()}
+              <div className="friends-photo-editor">
+  <button
+    type="button"
+    className="friends-avatar friends-photo-button"
+    onClick={() =>
+      avatarInputRef.current?.click()
+    }
+    disabled={uploadingAvatar}
+    aria-label="プロフィール写真を変更"
+  >
+    {profile.avatar_url ? (
+      <img
+        className="friends-profile-photo"
+        src={profile.avatar_url}
+        alt={`${getProfileName(
+          profile
+        )}のプロフィール写真`}
+      />
+    ) : (
+      <span className="friends-avatar-fallback">
+        {getProfileName(profile)
+          .charAt(0)
+          .toUpperCase()}
+      </span>
+    )}
+
+    <span className="friends-photo-edit-badge">
+      {uploadingAvatar
+        ? "…"
+        : "📷"}
+    </span>
+  </button>
+
+  <input
+    ref={avatarInputRef}
+    className="friends-photo-input"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    onChange={uploadProfilePhoto}
+    disabled={uploadingAvatar}
+  />
+
+  <small className="friends-photo-help">
+    {uploadingAvatar
+      ? "アップロード中..."
+      : "クリックして写真を変更"}
+  </small>
 </div>
 
               <div className="friends-profile-name">
@@ -1645,16 +1895,26 @@ if (message && !profile) {
                     key={friend.id}
                   >
                     <div className="friends-player-avatar">
-                      {getProfileName(friend)
-  .charAt(0)
-  .toUpperCase()}
+  {friend.avatar_url ? (
+    <img
+      className="friends-player-photo"
+      src={friend.avatar_url}
+      alt=""
+    />
+  ) : (
+    <span>
+      {getProfileName(friend)
+        .charAt(0)
+        .toUpperCase()}
+    </span>
+  )}
 
-                      <span
-  className={`friends-status-dot ${
-    friend.status ?? "offline"
-  }`}
-/>
-                    </div>
+  <span
+    className={`friends-status-dot ${
+      friend.status ?? "offline"
+    }`}
+  />
+</div>
 
                     <div className="friends-player-info">
                       <div className="friends-player-name-row">

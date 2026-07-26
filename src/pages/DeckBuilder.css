@@ -2038,3 +2038,28 @@
     justify-content: center;
   }
 }
+
+.deck-builder-v2
+.deck-card-v2.is-selected-card {
+  opacity: 1 !important;
+
+  cursor: pointer !important;
+
+  border-color:
+    rgba(255, 103, 126, 0.85) !important;
+
+  box-shadow:
+    0 0 0 2px
+      rgba(255, 82, 112, 0.12),
+    0 0 22px
+      rgba(255, 82, 112, 0.16) !important;
+}
+
+.deck-builder-v2
+.deck-card-v2.is-selected-card
+.deck-card-footer
+span:last-child {
+  color: #ff8296;
+
+  font-weight: 900;
+}

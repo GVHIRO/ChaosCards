@@ -413,7 +413,7 @@ useEffect(() => {
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
 
-const RESULT_DELAY = 1850;
+const RESULT_DELAY = 1150;
 
 function finishBattle(result) {
   if (battleEndingRef.current) {
