@@ -324,12 +324,13 @@ const [
   opponentAvatarUrl,
   setOpponentAvatarUrl,
 ] = useState("");
+
 useEffect(() => {
   let cancelled = false;
 
   async function loadOpponentProfile() {
     /*
-      CPU戦ではプロフィールを取得しない
+      CPU戦では従来のCPU表示を使う。
     */
     if (mode !== "online") {
       setOpponentName("CPU");
@@ -337,7 +338,7 @@ useEffect(() => {
       return;
     }
 
-    if (!roomId || !playerRole) {
+    if (!roomId || !currentUserId) {
       setOpponentName("ENEMY");
       setOpponentAvatarUrl("");
       return;
@@ -349,10 +350,7 @@ useEffect(() => {
         error: roomError,
       } = await supabase
         .from("rooms")
-        .select(`
-          host_id,
-          guest_id
-        `)
+        .select("host_id, guest_id")
         .eq("id", roomId)
         .maybeSingle();
 
@@ -366,14 +364,23 @@ useEffect(() => {
         );
       }
 
-      /*
-        自分がhostなら相手はguest、
-        自分がguestなら相手はhost
-      */
-      const opponentUserId =
-        playerRole === "host"
-          ? room.guest_id
-          : room.host_id;
+      let opponentUserId = null;
+
+      if (
+        String(room.host_id) ===
+        String(currentUserId)
+      ) {
+        opponentUserId = room.guest_id;
+      } else if (
+        String(room.guest_id) ===
+        String(currentUserId)
+      ) {
+        opponentUserId = room.host_id;
+      } else {
+        throw new Error(
+          "この対戦部屋の参加者ではありません"
+        );
+      }
 
       if (!opponentUserId) {
         setOpponentName("ENEMY");
@@ -386,12 +393,9 @@ useEffect(() => {
         error: profileError,
       } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          username,
-          nickname,
-          avatar_url
-        `)
+        .select(
+          "username, nickname, avatar_url"
+        )
         .eq("id", opponentUserId)
         .maybeSingle();
 
@@ -403,12 +407,11 @@ useEffect(() => {
         return;
       }
 
-      const displayName =
+      setOpponentName(
         opponentProfile?.username?.trim() ||
-        opponentProfile?.nickname?.trim() ||
-        "ENEMY";
-
-      setOpponentName(displayName);
+          opponentProfile?.nickname?.trim() ||
+          "ENEMY"
+      );
 
       setOpponentAvatarUrl(
         opponentProfile?.avatar_url ?? ""
@@ -434,95 +437,8 @@ useEffect(() => {
 }, [
   mode,
   roomId,
-  playerRole,
-]);
-/* ここから追加 */
-useEffect(() => {
-  if (mode !== "online") {
-    setOpponentName("CPU");
-    return undefined;
-  }
-
-  if (!roomId || !currentUserId) {
-    setOpponentName("対戦相手");
-    return undefined;
-  }
-
-  let cancelled = false;
-
-  async function loadOpponentName() {
-    try {
-      const {
-        data: room,
-        error: roomError,
-      } = await supabase
-        .from("rooms")
-        .select("host_id, guest_id")
-        .eq("id", roomId)
-        .single();
-
-      if (roomError) {
-        throw roomError;
-      }
-
-      const isHost =
-        String(room.host_id) ===
-        String(currentUserId);
-
-      const opponentId = isHost
-        ? room.guest_id
-        : room.host_id;
-
-      if (!opponentId) {
-        if (!cancelled) {
-          setOpponentName("対戦相手");
-        }
-
-        return;
-      }
-
-      const {
-        data: profile,
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", opponentId)
-        .maybeSingle();
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      if (!cancelled) {
-        setOpponentName(
-          profile?.username ??
-            "対戦相手"
-        );
-      }
-    } catch (error) {
-      console.error(
-        "対戦相手の名前取得エラー:",
-        error
-      );
-
-      if (!cancelled) {
-        setOpponentName("対戦相手");
-      }
-    }
-  }
-
-  loadOpponentName();
-
-  return () => {
-    cancelled = true;
-  };
-}, [
-  mode,
-  roomId,
   currentUserId,
 ]);
-/* ここまで追加 */
   const cardAnimationTimerRef = useRef(null);
   const handRef = useRef(hand);
   const deckRef = useRef(deck);
