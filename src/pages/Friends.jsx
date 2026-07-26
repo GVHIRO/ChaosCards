@@ -498,26 +498,26 @@ setNicknameInput(
   async function loadProfile(userId) {
   const {
     data,
-    error,
+    error: profileError,
   } = await supabase
     .from("profiles")
     .select(`
-  id,
-  username,
-  nickname,
-  friend_code,
-  avatar_id,
-  avatar_url,
-  avatar_path,
-  bio,
-  status
-`)
+      id,
+      username,
+      nickname,
+      friend_code,
+      avatar_id,
+      avatar_url,
+      avatar_path,
+      bio,
+      status
+    `)
     .eq("id", userId)
     .maybeSingle();
 
-  if (error) {
+  if (profileError) {
     throw new Error(
-      `プロフィール取得エラー：${error.message}`
+      `プロフィール取得エラー：${profileError.message}`
     );
   }
 
@@ -1159,6 +1159,7 @@ async function uploadProfilePhoto(event) {
 
   const {
   data: friendProfiles,
+  error: friendProfilesError,
 } = await supabase
   .from("profiles")
   .select(`
@@ -1170,19 +1171,20 @@ async function uploadProfilePhoto(event) {
     avatar_id,
     avatar_url
   `)
-    .in("id", friendIds);
+  .in("id", friendIds);
 
-  if (profilesError) {
-    console.error(
-      "フレンドプロフィール取得エラー:",
-      profilesError
-    );
+if (friendProfilesError) {
+  console.error(
+    "フレンドプロフィール取得エラー:",
+    friendProfilesError
+  );
 
-    setMessage(
-      `フレンドプロフィール取得エラー：${profilesError.message}`
-    );
-    return;
-  }
+  setMessage(
+    `フレンドプロフィール取得エラー：${friendProfilesError.message}`
+  );
+
+  return;
+}
 
   /*
     friendIdsの順番を維持しつつ、
