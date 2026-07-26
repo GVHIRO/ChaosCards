@@ -2299,3 +2299,59 @@
   object-fit: cover;
   object-position: center;
 }
+
+/* フレンドのプロフィール画像を正方形に固定 */
+.friends-page .friends-player-avatar {
+  position: relative !important;
+
+  flex: 0 0 48px !important;
+
+  width: 48px !important;
+  height: 48px !important;
+
+  min-width: 48px !important;
+  min-height: 48px !important;
+
+  max-width: 48px !important;
+  max-height: 48px !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  border-radius: 14px !important;
+}
+
+.friends-page .friends-player-photo {
+  position: absolute !important;
+
+  inset: 0 !important;
+
+  display: block !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  max-width: none !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+
+  border-radius: inherit !important;
+
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* オンライン状態の丸を画像より前に表示 */
+.friends-page .friends-status-dot {
+  position: absolute !important;
+
+  z-index: 2 !important;
+
+  top: -2px !important;
+  right: -2px !important;
+}
