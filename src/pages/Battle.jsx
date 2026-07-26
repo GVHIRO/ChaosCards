@@ -1477,10 +1477,18 @@ const opponentEnergy = useMemo(() => {
       id: Date.now(),
     });
 
-    cardAnimationTimerRef.current =
-      window.setTimeout(() => {
-        setCardAnimation(null);
-      }, 1600);
+    const animationDisplayTime =
+  2350 +
+  Math.max(
+    0,
+    usedCards.length - 1,
+  ) *
+    220;
+
+cardAnimationTimerRef.current =
+  window.setTimeout(() => {
+    setCardAnimation(null);
+  }, animationDisplayTime);
   },
   [gameSettings.cardAnimation]
 );
@@ -3803,8 +3811,79 @@ async function endCpuPlayerTurn() {
     );
   }
 
+    setIsProcessing(false);
+}
+
+async function surrender() {
+  const confirmed =
+    window.confirm(
+      "本当に降参しますか？",
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  /*
+    CPU対戦
+  */
+  if (mode === "cpu") {
+    setIsSettingsOpen(false);
+    finishBattle("enemy");
+    return;
+  }
+
+  /*
+    オンライン対戦で必要な情報が
+    欠けている場合は処理しない。
+  */
+  if (
+    mode !== "online" ||
+    !matchId ||
+    !playerRole
+  ) {
+    addLogs([
+      "❌ 降参処理に必要な試合情報がありません",
+    ]);
+
+    return;
+  }
+
+  setIsProcessing(true);
+
+  const { error } =
+    await supabase
+      .from("matches")
+      .update({
+        winner:
+          nextRole(playerRole),
+
+        phase: "finished",
+
+        finish_reason:
+          "surrender",
+      })
+      .eq("id", matchId)
+      .eq("phase", "playing");
+
+  if (error) {
+    console.error(
+      "降参エラー:",
+      error,
+    );
+
+    addLogs([
+      `❌ 降参エラー：${error.message}`,
+    ]);
+
+    setIsProcessing(false);
+    return;
+  }
+
+  setIsSettingsOpen(false);
   setIsProcessing(false);
 }
+
 async function requestRematch() {
   if (
     mode !== "online" ||
@@ -4144,6 +4223,18 @@ const rematchStatusText =
 
 return (
   <div className="app battle-page">
+    <button
+      type="button"
+      className="battle-settings-button"
+      onClick={() => {
+        setIsSettingsOpen(true);
+      }}
+      aria-label="設定を開く"
+      title="設定"
+    >
+      ⚙
+    </button>
+
     <div
       className={`battle-content ${
         screenShake ? "screen-shake" : ""
@@ -4154,20 +4245,7 @@ return (
           `${100 / battleUiScale}%`,
       }}
     >
-        <button
-  type="button"
-  className="battle-settings-button"
-  onPointerUp={(event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsSettingsOpen(true);
-  }}
-  aria-label="設定を開く"
->
-  ⚙
-</button>
-
-        <h1 className="battle-title">
+      <h1 className="battle-title">
   <span>CHAOS</span>
   <strong>CARDS</strong>
 </h1>
@@ -4468,23 +4546,32 @@ return (
       </div>
 
             {isSettingsOpen && (
-        <div
-          className="battle-settings-overlay"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setIsSettingsOpen(false);
-            }
-          }}
-        >
-          <div className="battle-settings-modal">
-            <Settings
-              isModal
-              onClose={() => setIsSettingsOpen(false)}
-              onSurrender={surrender}
-            />
-          </div>
-        </div>
-      )}
+  <div
+    className="battle-settings-overlay"
+    role="presentation"
+    onClick={() => {
+      setIsSettingsOpen(false);
+    }}
+  >
+    <div
+      className="battle-settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="バトル設定"
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      <Settings
+        isModal
+        onClose={() => {
+          setIsSettingsOpen(false);
+        }}
+        onSurrender={surrender}
+      />
+    </div>
+  </div>
+)}
 
       {turnPopup && (
         <div className="turn-popup-layer">

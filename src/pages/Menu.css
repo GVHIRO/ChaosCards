@@ -507,3 +507,63 @@
     min-height: 108px;
   }
 }
+
+/* =========================================================
+   PCフルスクリーン推奨表示
+========================================================= */
+
+.home-fullscreen-note {
+  display: none;
+}
+
+/*
+  マウス操作ができるPC画面でのみ表示
+*/
+@media (
+  min-width: 801px
+) and (
+  hover: hover
+) and (
+  pointer: fine
+) {
+  .home-fullscreen-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    width: fit-content;
+    max-width: 100%;
+    margin: 4px auto 18px;
+    padding: 9px 15px;
+
+    color: #9fb6d2;
+
+    background:
+      rgba(28, 63, 101, 0.24);
+
+    border:
+      1px solid
+      rgba(100, 181, 255, 0.2);
+
+    border-radius: 999px;
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 255, 255, 0.035);
+  }
+
+  .home-fullscreen-note > span {
+    flex-shrink: 0;
+    font-size: 15px;
+  }
+
+  .home-fullscreen-note p {
+    margin: 0;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+  }
+}

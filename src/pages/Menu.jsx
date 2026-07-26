@@ -146,7 +146,18 @@ export default function Menu({
 
   <span className="home-mode-arrow">›</span>
 </button>
-        </section>
+                </section>
+
+        <div
+          className="home-fullscreen-note"
+          role="note"
+        >
+          <span>🖥️</span>
+
+          <p>
+            ※PCでは、フルスクリーン表示でのプレイを推奨します。
+          </p>
+        </div>
 
         <footer className="home-footer">
           <div className="home-tip">

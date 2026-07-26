@@ -509,3 +509,619 @@
     transform: translateY(-10px) !important;
   }
 }
+
+/* =========================================================
+   CARD ELEMENT / EFFECT TAGS
+   属性・特殊効果表示
+========================================================= */
+
+.card {
+  position: relative;
+  width: 180px;
+  height: 390px;
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 7px;
+
+  overflow: hidden;
+
+  --element-color: #94a3b8;
+  --element-soft: rgba(148, 163, 184, 0.16);
+  --element-glow: rgba(148, 163, 184, 0.25);
+
+  color: #f8fbff;
+
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      var(--element-soft),
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      #17253a 0%,
+      #0b1526 58%,
+      #07101d 100%
+    );
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/*
+  レアリティの枠色はそのまま残し、
+  カード上部のラインと背景光で属性を表す。
+*/
+.card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--element-color),
+      transparent
+    );
+
+  border-radius: 999px;
+
+  box-shadow:
+    0 0 12px var(--element-glow);
+
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+
+  filter:
+    drop-shadow(
+      0 0 12px
+      var(--element-glow)
+    );
+}
+
+/* =========================================================
+   属性カラー
+========================================================= */
+
+.card.element-physical {
+  --element-color: #cbd5e1;
+  --element-soft: rgba(148, 163, 184, 0.18);
+  --element-glow: rgba(203, 213, 225, 0.35);
+}
+
+.card.element-fire {
+  --element-color: #fb923c;
+  --element-soft: rgba(249, 115, 22, 0.22);
+  --element-glow: rgba(251, 146, 60, 0.48);
+}
+
+.card.element-water {
+  --element-color: #38bdf8;
+  --element-soft: rgba(14, 165, 233, 0.2);
+  --element-glow: rgba(56, 189, 248, 0.45);
+}
+
+.card.element-thunder {
+  --element-color: #fde047;
+  --element-soft: rgba(234, 179, 8, 0.2);
+  --element-glow: rgba(253, 224, 71, 0.48);
+}
+
+.card.element-nature {
+  --element-color: #4ade80;
+  --element-soft: rgba(34, 197, 94, 0.2);
+  --element-glow: rgba(74, 222, 128, 0.44);
+}
+
+.card.element-light {
+  --element-color: #fef3c7;
+  --element-soft: rgba(250, 204, 21, 0.16);
+  --element-glow: rgba(254, 243, 199, 0.5);
+}
+
+.card.element-dark {
+  --element-color: #c084fc;
+  --element-soft: rgba(126, 34, 206, 0.22);
+  --element-glow: rgba(192, 132, 252, 0.48);
+}
+
+.card.element-chaos {
+  --element-color: #f472b6;
+  --element-soft: rgba(219, 39, 119, 0.22);
+  --element-glow: rgba(244, 114, 182, 0.5);
+
+  background:
+    radial-gradient(
+      circle at 30% 16%,
+      rgba(244, 114, 182, 0.2),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 75% 35%,
+      rgba(139, 92, 246, 0.18),
+      transparent 40%
+    ),
+    linear-gradient(
+      180deg,
+      #291438,
+      #120d26 58%,
+      #090817
+    );
+}
+
+/* =========================================================
+   ヘッダー
+========================================================= */
+
+.card-header {
+  position: relative;
+  z-index: 1;
+
+  min-height: 42px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.card-header .card-name {
+  flex: 1;
+  min-width: 0;
+
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+}
+
+.card-cost {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  min-width: 36px;
+  min-height: 28px;
+  padding: 3px 7px;
+
+  color: #fff3a3;
+  font-size: 14px;
+  font-weight: 950;
+
+  background:
+    rgba(8, 16, 31, 0.82);
+
+  border:
+    1px solid
+    rgba(250, 204, 21, 0.35);
+
+  border-radius: 9px;
+
+  box-shadow:
+    0 0 10px
+    rgba(250, 204, 21, 0.12);
+}
+
+/* =========================================================
+   属性ラベル
+========================================================= */
+
+.card-element {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+
+  min-height: 22px;
+  padding: 3px 7px;
+
+  color: var(--element-color);
+
+  background:
+    var(--element-soft);
+
+  border:
+    1px solid
+    var(--element-glow);
+
+  border-radius: 999px;
+}
+
+.card-element span {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.card-element strong {
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   カード画像
+========================================================= */
+
+.card-image {
+  position: relative;
+  z-index: 1;
+
+  height: 68px;
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 55px;
+  line-height: 1;
+
+  filter:
+    drop-shadow(
+      0 7px 9px
+      rgba(0, 0, 0, 0.35)
+    )
+    drop-shadow(
+      0 0 10px
+      var(--element-glow)
+    );
+}
+
+/* =========================================================
+   レアリティ・種類
+========================================================= */
+
+.card-meta-row {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.card-meta-row .rarity {
+  min-width: 0;
+  padding: 3px 7px;
+
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  background:
+    rgba(5, 13, 26, 0.58);
+
+  border:
+    1px solid
+    rgba(148, 163, 184, 0.18);
+
+  border-radius: 999px;
+}
+
+.card-meta-row .card-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  padding: 3px 7px;
+
+  color: #c7d6e8;
+  font-size: 9px;
+  font-weight: 900;
+
+  background:
+    rgba(5, 13, 26, 0.58);
+
+  border:
+    1px solid
+    rgba(148, 163, 184, 0.18);
+
+  border-radius: 999px;
+}
+
+/* =========================================================
+   説明文
+========================================================= */
+
+.card-description {
+  position: relative;
+  z-index: 1;
+
+  flex: 1;
+  min-height: 50px;
+  margin: 0;
+  padding: 7px 8px;
+
+  overflow: hidden;
+
+  color: #bfd0e3;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  background:
+    rgba(5, 13, 26, 0.42);
+
+  border:
+    1px solid
+    rgba(100, 140, 180, 0.14);
+
+  border-radius: 9px;
+}
+
+/* =========================================================
+   効果タグ
+========================================================= */
+
+.card-effect-tags {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+
+  min-height: 48px;
+  padding-top: 2px;
+}
+
+.card-effect-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  min-height: 20px;
+  padding: 3px 6px;
+
+  color: #dceaff;
+  font-size: 8.5px;
+  font-weight: 900;
+  line-height: 1;
+
+  background:
+    rgba(10, 24, 43, 0.82);
+
+  border:
+    1px solid
+    rgba(116, 157, 199, 0.25);
+
+  border-radius: 7px;
+
+  white-space: nowrap;
+}
+
+.card-effect-tag > span {
+  font-size: 9px;
+}
+
+/* 通常ダメージ */
+.card-effect-tag.effect-damage {
+  color: #ffb4b4;
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+/* 回復 */
+.card-effect-tag.effect-heal {
+  color: #9ff5bd;
+  background: rgba(20, 83, 45, 0.4);
+  border-color: rgba(74, 222, 128, 0.32);
+}
+
+/* シールド */
+.card-effect-tag.effect-shield {
+  color: #9ed8ff;
+  background: rgba(30, 64, 175, 0.34);
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+/* 貫通 */
+.card-effect-tag.effect-pierce {
+  color: #d8c8ff;
+  background: rgba(76, 29, 149, 0.34);
+  border-color: rgba(167, 139, 250, 0.34);
+}
+
+/* シールド破壊 */
+.card-effect-tag.effect-shield-break {
+  color: #ffc599;
+  background: rgba(124, 45, 18, 0.38);
+  border-color: rgba(251, 146, 60, 0.38);
+}
+
+/* 炎上 */
+.card-effect-tag.effect-burn {
+  color: #ffb074;
+  background: rgba(154, 52, 18, 0.4);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+/* ドロー */
+.card-effect-tag.effect-draw {
+  color: #8de5ff;
+  background: rgba(8, 82, 117, 0.38);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* エネルギー獲得 */
+.card-effect-tag.effect-energy-gain {
+  color: #fff08a;
+  background: rgba(113, 63, 18, 0.38);
+  border-color: rgba(250, 204, 21, 0.4);
+}
+
+/* エネルギー減少 */
+.card-effect-tag.effect-energy-drain {
+  color: #d9c2ff;
+  background: rgba(76, 29, 149, 0.4);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* 弱体化 */
+.card-effect-tag.effect-weaken {
+  color: #cab9ff;
+  background: rgba(67, 34, 129, 0.4);
+  border-color: rgba(139, 92, 246, 0.36);
+}
+
+/* 浄化 */
+.card-effect-tag.effect-cleanse {
+  color: #fff9c4;
+  background: rgba(133, 77, 14, 0.3);
+  border-color: rgba(253, 224, 71, 0.38);
+}
+
+/* 反動 */
+.card-effect-tag.effect-recoil {
+  color: #ff9ba7;
+  background: rgba(136, 19, 55, 0.38);
+  border-color: rgba(244, 63, 94, 0.38);
+}
+
+/* 低HPボーナス */
+.card-effect-tag.effect-low-hp {
+  color: #ff9a9a;
+  background: rgba(127, 29, 29, 0.42);
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+/* =========================================================
+   状態
+========================================================= */
+
+.card-disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+}
+
+.card-disabled:hover {
+  transform: none;
+}
+
+.card-played {
+  pointer-events: none;
+
+  animation:
+    card-played-out
+    0.45s ease forwards;
+}
+
+@keyframes card-played-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform:
+      translateY(-90px)
+      scale(0.82);
+  }
+}
+
+/* =========================================================
+   スマホ
+========================================================= */
+
+@media (max-width: 768px) {
+  .hand-mobile .hand-card-wrapper > .card {
+    width: 100%;
+    height: 390px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .card-header .card-name {
+    font-size: 17px;
+  }
+
+  .card-image {
+    height: 72px;
+    min-height: 72px;
+    font-size: 59px;
+  }
+
+  .card-description {
+    font-size: 12px;
+  }
+
+  .card-effect-tag {
+    min-height: 22px;
+    padding: 4px 7px;
+    font-size: 9px;
+  }
+}
+
+/* 効果タグをなくしたカード構成 */
+.card {
+  grid-template-rows:
+    auto
+    auto
+    74px
+    auto
+    minmax(0, 1fr);
+}
+
+.card-description {
+  margin-bottom: 0;
+}
+
+.card.card-disabled {
+  opacity: 0.68;
+
+  filter:
+    saturate(0.28)
+    brightness(0.62)
+    contrast(0.92);
+
+  cursor: not-allowed;
+}
+
+/* 使用不可カードはホバーしても明るくしない */
+.card.card-disabled:hover {
+  transform: none !important;
+
+  filter:
+    saturate(0.28)
+    brightness(0.62)
+    contrast(0.92);
+}
+
+/* 説明文を読みやすくする */
+.card .card-description {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 750;
+  color: #e2edf8;
+}
+
+@media (max-width: 768px) {
+  .card .card-description {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+}

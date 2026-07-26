@@ -626,3 +626,700 @@
     margin: 14px 0;
   }
 }
+
+/* =========================================================
+   属性別バトルエフェクト
+========================================================= */
+
+.battle-impact-sequence {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 共通設定 */
+.battle-impact {
+  --impact-color: #edf7ff;
+  --impact-glow: rgba(205, 235, 255, 0.72);
+
+  position: absolute;
+  top: 31%;
+  left:
+  clamp(
+    90px,
+    var(--impact-left, 50%),
+    calc(100% - 90px)
+  );
+
+  width: 180px;
+  height: 180px;
+
+  color: var(--impact-color);
+
+  opacity: 0;
+
+  transform:
+    translate(-50%, -50%)
+    scale(0.3);
+
+  animation:
+    battleImpactEnter 0.72s
+    cubic-bezier(0.18, 0.85, 0.28, 1.2)
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 相手側に出す */
+.battle-impact.target-enemy {
+  top: 31%;
+}
+
+/* 自分側に出す */
+.battle-impact.target-player {
+  top: 70%;
+}
+
+/* 中央の発光 */
+.battle-impact-backdrop {
+  position: absolute;
+  inset: 27%;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      var(--impact-glow) 0%,
+      transparent 70%
+    );
+
+  filter: blur(5px);
+
+  animation:
+    battleImpactGlow 0.72s ease-out
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 広がるリング */
+.battle-impact-ring {
+  position: absolute;
+  inset: 36px;
+
+  border:
+    4px solid
+    var(--impact-color);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 14px var(--impact-glow),
+    inset 0 0 14px var(--impact-glow);
+
+  opacity: 0;
+
+  animation:
+    battleImpactRing 0.66s ease-out
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 中央アイコン */
+.battle-impact-symbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  z-index: 2;
+
+  display: grid;
+  place-items: center;
+
+  width: 84px;
+  height: 84px;
+
+  font-size: 3.35rem;
+  line-height: 1;
+
+  filter:
+    drop-shadow(
+      0 0 12px
+      var(--impact-glow)
+    );
+
+  transform:
+    translate(-50%, -50%)
+    scale(0);
+
+  animation:
+    battleImpactSymbol 0.68s
+    cubic-bezier(0.16, 0.86, 0.3, 1.28)
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 飛び散る粒子 */
+.battle-impact-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.battle-impact-particles i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background:
+    var(--impact-color);
+
+  box-shadow:
+    0 0 12px
+    var(--impact-glow);
+
+  opacity: 0;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(
+      var(--particle-angle)
+    )
+    translateX(0)
+    scale(1);
+
+  animation:
+    battleImpactParticle 0.68s
+    ease-out
+    calc(
+      var(--impact-delay, 0s) +
+      var(--particle-delay, 0s)
+    )
+    both;
+}
+
+/* 斬撃・亀裂用 */
+.battle-impact-streak {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  display: none;
+
+  width: 150px;
+  height: 7px;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--impact-color),
+      #ffffff,
+      var(--impact-color),
+      transparent
+    );
+
+  box-shadow:
+    0 0 15px
+    var(--impact-glow);
+
+  opacity: 0;
+}
+
+.battle-impact-streak-one {
+  --streak-angle: -38deg;
+}
+
+.battle-impact-streak-two {
+  --streak-angle: 38deg;
+}
+
+/* 物理 */
+.impact-physical {
+  --impact-color: #f2f7ff;
+  --impact-glow: rgba(205, 229, 255, 0.8);
+}
+
+.impact-physical .battle-impact-streak {
+  display: block;
+
+  animation:
+    battleImpactSlash 0.5s ease-out
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 炎 */
+.impact-fire {
+  --impact-color: #ff743d;
+  --impact-glow: rgba(255, 79, 31, 0.82);
+}
+
+.impact-fire .battle-impact-particles i {
+  border-radius:
+    70% 20%
+    70% 30%;
+}
+
+/* 水 */
+.impact-water {
+  --impact-color: #48c9ff;
+  --impact-glow: rgba(45, 174, 255, 0.8);
+}
+
+.impact-water .battle-impact-particles i {
+  width: 7px;
+  height: 13px;
+
+  border-radius:
+    60% 60%
+    70% 70%;
+}
+
+/* 雷 */
+.impact-thunder {
+  --impact-color: #ffe357;
+  --impact-glow: rgba(255, 222, 42, 0.86);
+}
+
+.impact-thunder .battle-impact-streak {
+  display: block;
+  height: 5px;
+
+  animation:
+    battleImpactLightning 0.46s steps(2)
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 自然 */
+.impact-nature {
+  --impact-color: #70e58b;
+  --impact-glow: rgba(68, 224, 108, 0.76);
+}
+
+.impact-nature .battle-impact-particles i {
+  width: 12px;
+  height: 7px;
+
+  border-radius:
+    90% 10%
+    90% 10%;
+}
+
+/* 光 */
+.impact-light {
+  --impact-color: #fff4a8;
+  --impact-glow: rgba(255, 240, 137, 0.9);
+}
+
+.impact-light .battle-impact-ring {
+  border-width: 2px;
+
+  box-shadow:
+    0 0 22px
+    var(--impact-glow),
+    inset 0 0 22px
+    var(--impact-glow);
+}
+
+/* 闇 */
+.impact-dark {
+  --impact-color: #b879ff;
+  --impact-glow: rgba(126, 53, 255, 0.83);
+}
+
+.impact-dark .battle-impact-backdrop {
+  inset: 16%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(44, 0, 75, 0.95),
+      var(--impact-glow) 42%,
+      transparent 72%
+    );
+
+  filter: blur(10px);
+}
+
+/* カオス */
+.impact-chaos {
+  --impact-color: #ff5be7;
+  --impact-glow: rgba(167, 52, 255, 0.87);
+}
+
+.impact-chaos .battle-impact-streak {
+  display: block;
+  height: 4px;
+
+  animation:
+    battleImpactChaosSlash 0.6s steps(3)
+    var(--impact-delay, 0s)
+    both;
+}
+
+/* 回復 */
+.impact-heal {
+  --impact-color: #6dff9b;
+  --impact-glow: rgba(58, 255, 124, 0.8);
+}
+
+.impact-heal .battle-impact-particles i {
+  animation-name:
+    battleImpactHealParticle;
+}
+
+/* 防御 */
+.impact-shield {
+  --impact-color: #65c9ff;
+  --impact-glow: rgba(57, 165, 255, 0.82);
+}
+
+.impact-shield .battle-impact-ring {
+  inset: 25px;
+
+  border-width: 5px;
+  border-radius: 22%;
+
+  clip-path:
+    polygon(
+      50% 0%,
+      93% 25%,
+      86% 74%,
+      50% 100%,
+      14% 74%,
+      7% 25%
+    );
+}
+
+/* =========================================================
+   エフェクトアニメーション
+========================================================= */
+
+@keyframes battleImpactEnter {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(0.25);
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.05);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.3);
+  }
+}
+
+@keyframes battleImpactGlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  38% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
+@keyframes battleImpactRing {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+@keyframes battleImpactSymbol {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(0)
+      rotate(-18deg);
+  }
+
+  36% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.15)
+      rotate(4deg);
+  }
+
+  72% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1)
+      rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.3)
+      rotate(0);
+  }
+}
+
+@keyframes battleImpactParticle {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--particle-angle)
+      )
+      translateX(4px)
+      scale(1.25);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--particle-angle)
+      )
+      translateX(92px)
+      scale(0.15);
+  }
+}
+
+@keyframes battleImpactHealParticle {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, 25px)
+      scale(0.65);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -100px)
+      scale(1.2);
+  }
+}
+
+@keyframes battleImpactSlash {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(0);
+  }
+
+  35% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.15);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.5);
+  }
+}
+
+@keyframes battleImpactLightning {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(0.2);
+  }
+
+  25%,
+  48% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.1);
+  }
+
+  35%,
+  58% {
+    opacity: 0.25;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.45);
+  }
+}
+
+@keyframes battleImpactChaosSlash {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(0.15)
+      skewX(-20deg);
+  }
+
+  35% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.25)
+      skewX(15deg);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(
+        var(--streak-angle)
+      )
+      scaleX(1.6)
+      skewX(-10deg);
+  }
+}
+
+/* スマホ調整 */
+@media (max-width: 720px) {
+  .battle-impact {
+    left:
+      clamp(
+        70px,
+        var(--impact-left, 50%),
+        calc(100% - 70px)
+      );
+    width: 140px;
+    height: 140px;
+  }
+
+  .battle-impact-symbol {
+    width: 65px;
+    height: 65px;
+
+    font-size: 2.55rem;
+  }
+
+  .battle-impact-streak {
+    width: 115px;
+  }
+
+  .battle-impact-particles i {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* =========================================================
+   バトルエフェクト表示時間調整
+========================================================= */
+
+/* カード名の表示を少し長くする */
+.battle-field
+.battle-card-animation.from-player,
+.battle-field
+.battle-card-animation.from-enemy {
+  animation-duration: 2.25s;
+}
+
+/* 属性エフェクトも少し長く残す */
+.battle-field .battle-impact,
+.battle-field .battle-impact-backdrop,
+.battle-field .battle-impact-ring,
+.battle-field .battle-impact-symbol,
+.battle-field .battle-impact-particles i,
+.battle-field .battle-impact-streak {
+  animation-duration: 1.35s;
+}
