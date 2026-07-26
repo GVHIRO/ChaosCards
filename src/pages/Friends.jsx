@@ -40,6 +40,49 @@ function getProfileName(profile) {
     "PLAYER"
   );
 }
+const EMPTY_BATTLE_STATS = {
+  total_battles: 0,
+  wins: 0,
+  losses: 0,
+  draws: 0,
+  win_rate: 0,
+  current_win_streak: 0,
+  best_win_streak: 0,
+};
+
+function getBattleResultLabel(result) {
+  if (result === "win") {
+    return "WIN";
+  }
+
+  if (result === "loss") {
+    return "LOSE";
+  }
+
+  return "DRAW";
+}
+
+function formatBattleDate(value) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat(
+    "ja-JP",
+    {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  ).format(date);
+}
 export default function Friends({
   onBack,
   onMatchStart,
@@ -59,7 +102,19 @@ export default function Friends({
   const [friends, setFriends] = useState([]);
   const [matchInvites, setMatchInvites] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+const [
+  battleStats,
+  setBattleStats,
+] = useState(
+  EMPTY_BATTLE_STATS
+);
+
+const [
+  battleHistory,
+  setBattleHistory,
+] = useState([]);
+
+const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [notification, setNotification] =
     useState("");
@@ -455,10 +510,12 @@ setNicknameInput(
       1つ失敗しても、ほかの読み込みを止めない
     */
     const results = await Promise.allSettled([
-      loadReceivedRequests(currentUser.id),
-      loadFriends(currentUser.id),
-      loadMatchInvites(currentUser.id),
-    ]);
+  loadReceivedRequests(currentUser.id),
+  loadFriends(currentUser.id),
+  loadMatchInvites(currentUser.id),
+  loadBattleStats(),
+  loadBattleHistory(currentUser.id),
+]);
 
     const rejectedResult = results.find(
       (result) =>
@@ -523,7 +580,98 @@ setNicknameInput(
 
   return data;
 }
+async function loadBattleStats() {
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "get_my_battle_stats"
+  );
 
+  if (error) {
+    throw new Error(
+      `戦績取得エラー：${error.message}`
+    );
+  }
+
+  const stats =
+    Array.isArray(data)
+      ? data[0]
+      : data;
+
+  if (!stats) {
+    setBattleStats({
+      ...EMPTY_BATTLE_STATS,
+    });
+
+    return;
+  }
+
+  setBattleStats({
+    total_battles:
+      Number(stats.total_battles) || 0,
+
+    wins:
+      Number(stats.wins) || 0,
+
+    losses:
+      Number(stats.losses) || 0,
+
+    draws:
+      Number(stats.draws) || 0,
+
+    win_rate:
+      Number(stats.win_rate) || 0,
+
+    current_win_streak:
+      Number(
+        stats.current_win_streak
+      ) || 0,
+
+    best_win_streak:
+      Number(
+        stats.best_win_streak
+      ) || 0,
+  });
+}
+
+async function loadBattleHistory(userId) {
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("battle_history")
+    .select(`
+      id,
+      match_id,
+      rematch_count,
+      result,
+      user_final_hp,
+      opponent_final_hp,
+      opponent_name,
+      opponent_avatar_url,
+      finish_reason,
+      finished_at
+    `)
+    .eq("user_id", userId)
+    .order(
+      "finished_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(10);
+
+  if (error) {
+    throw new Error(
+      `対戦履歴取得エラー：${error.message}`
+    );
+  }
+
+  setBattleHistory(
+    data ?? []
+  );
+}
   async function createProfile() {
     const trimmedNickname = nicknameInput.trim();
 
@@ -2115,6 +2263,171 @@ if (message && !profile) {
                             拒否
                           </button>
                         </div>
+                      </article>
+                    )
+                  )}
+                </div>
+              )}
+                        </section>
+
+            <section className="friends-panel friends-history-panel">
+              <div className="friends-panel-heading">
+                <div>
+                  <span>BATTLE RECORD</span>
+                  <h2>オンライン戦績</h2>
+                </div>
+
+                <div className="friends-count-badge">
+                  {battleStats.total_battles}
+                </div>
+              </div>
+
+              <div className="friends-battle-summary">
+                <div className="friends-win-rate-card">
+                  <div>
+                    <span>WIN RATE</span>
+
+                    <small>
+                      ONLINE BATTLE
+                    </small>
+                  </div>
+
+                  <strong>
+                    {Number(
+                      battleStats.win_rate
+                    ).toFixed(1)}
+                    %
+                  </strong>
+                </div>
+
+                <div className="friends-stats-grid">
+                  <div className="friends-stat-item">
+                    <span>PLAY</span>
+                    <strong>
+                      {
+                        battleStats.total_battles
+                      }
+                    </strong>
+                  </div>
+
+                  <div className="friends-stat-item friends-stat-win">
+                    <span>WIN</span>
+                    <strong>
+                      {battleStats.wins}
+                    </strong>
+                  </div>
+
+                  <div className="friends-stat-item friends-stat-loss">
+                    <span>LOSE</span>
+                    <strong>
+                      {battleStats.losses}
+                    </strong>
+                  </div>
+
+                  <div className="friends-stat-item friends-stat-draw">
+                    <span>DRAW</span>
+                    <strong>
+                      {battleStats.draws}
+                    </strong>
+                  </div>
+
+                  <div className="friends-stat-item">
+                    <span>STREAK</span>
+                    <strong>
+                      {
+                        battleStats.current_win_streak
+                      }
+                    </strong>
+                  </div>
+
+                  <div className="friends-stat-item">
+                    <span>BEST</span>
+                    <strong>
+                      {
+                        battleStats.best_win_streak
+                      }
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="friends-history-heading">
+                <span>RECENT MATCHES</span>
+                <small>最新10試合</small>
+              </div>
+
+              {battleHistory.length === 0 ? (
+                <div className="friends-mini-empty friends-history-empty">
+                  <span>📊</span>
+
+                  <p>
+                    まだオンライン対戦の
+                    履歴がありません。
+                  </p>
+                </div>
+              ) : (
+                <div className="friends-history-list">
+                  {battleHistory.map(
+                    (battle) => (
+                      <article
+                        className={`friends-history-item friends-history-${battle.result}`}
+                        key={battle.id}
+                      >
+                        <div className="friends-history-avatar">
+                          {battle.opponent_avatar_url ? (
+                            <img
+                              src={
+                                battle.opponent_avatar_url
+                              }
+                              alt=""
+                            />
+                          ) : (
+                            <span>
+                              {battle.opponent_name
+                                ?.charAt(0)
+                                .toUpperCase() ||
+                                "?"}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="friends-history-info">
+                          <strong>
+                            {battle.opponent_name ||
+                              "PLAYER"}
+                          </strong>
+
+                          <div className="friends-history-meta">
+                            <span className="friends-history-hp">
+                              HP{" "}
+                              {
+                                battle.user_final_hp
+                              }
+                              -
+                              {
+                                battle.opponent_final_hp
+                              }
+                            </span>
+
+                            <time
+                              dateTime={
+                                battle.finished_at
+                              }
+                            >
+                              {formatBattleDate(
+                                battle.finished_at
+                              )}
+                            </time>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`friends-history-result friends-history-result-${battle.result}`}
+                        >
+                          {getBattleResultLabel(
+                            battle.result
+                          )}
+                        </span>
                       </article>
                     )
                   )}
