@@ -1742,21 +1742,23 @@ if (message && !profile) {
     disabled={uploadingAvatar}
     aria-label="プロフィール写真を変更"
   >
-    {profile.avatar_url ? (
-      <img
-        className="friends-profile-photo"
-        src={profile.avatar_url}
-        alt={`${getProfileName(
-          profile
-        )}のプロフィール写真`}
-      />
-    ) : (
-      <span className="friends-avatar-fallback">
-        {getProfileName(profile)
-          .charAt(0)
-          .toUpperCase()}
-      </span>
-    )}
+    <span className="friends-photo-frame">
+  {profile.avatar_url ? (
+    <img
+      className="friends-profile-photo"
+      src={profile.avatar_url}
+      alt={`${getProfileName(
+        profile
+      )}のプロフィール写真`}
+    />
+  ) : (
+    <span className="friends-avatar-fallback">
+      {getProfileName(profile)
+        .charAt(0)
+        .toUpperCase()}
+    </span>
+  )}
+</span>
 
     <span className="friends-photo-edit-badge">
       {uploadingAvatar

@@ -42,61 +42,120 @@ export default function AuthMenu({ onClose }) {
     }
   }
 
-  async function handleRegister(event) {
-    event.preventDefault();
-    setLoading(true);
-    setMessage("");
+ async function handleRegister(event) {
+  event.preventDefault();
 
-    try {
+  const normalizedEmail =
+    email.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    setMessage(
+      "メールアドレスを入力してください"
+    );
+    return;
+  }
+
+  if (password.length < 6) {
+    setMessage(
+      "パスワードは6文字以上にしてください"
+    );
+    return;
+  }
+
+  setLoading(true);
+  setMessage("");
+
+  try {
+    const {
+      data: { user: currentUser },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      throw userError;
+    }
+
+    /*
+      ゲストアカウントを正式アカウントへ昇格
+    */
+    if (currentUser?.is_anonymous) {
+      /*
+        App.jsxがメール確認後に
+        パスワード設定で使用する
+      */
+      sessionStorage.setItem(
+        "pendingAccountPassword",
+        password
+      );
+
+      /*
+        ここではメールだけを追加する。
+        パスワードはメール確認後に設定する。
+      */
       const {
-        data: { user: currentUser },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        throw userError;
-      }
-
-      if (currentUser?.is_anonymous) {
-        const { error } =
-          await supabase.auth.updateUser({
-            email,
-            password,
-          });
-
-        if (error) {
-          throw error;
-        }
-
-        setMessage(
-          "確認メールを送りました。メール内のリンクを開いてください。"
-        );
-        return;
-      }
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        error: updateEmailError,
+      } = await supabase.auth.updateUser({
+        email: normalizedEmail,
       });
 
-      if (error) {
-        throw error;
+      if (updateEmailError) {
+        sessionStorage.removeItem(
+          "pendingAccountPassword"
+        );
+
+        throw updateEmailError;
       }
 
       setMessage(
-        "確認メールを送りました。メール内のリンクを開いてください。"
+        "確認メールを送りました。メール内のリンクを開くと、ゲストデータを引き継いだまま登録が完了します。"
       );
-    } catch (error) {
-      console.error("登録エラー:", error);
-      setMessage(
-        `登録失敗：${
-          error?.message || "登録できませんでした"
-        }`
-      );
-    } finally {
-      setLoading(false);
+
+      return;
     }
+
+    /*
+      すでに正式アカウントへログインしている場合
+    */
+    if (currentUser) {
+      throw new Error(
+        "すでにアカウントへログインしています"
+      );
+    }
+
+    /*
+      セッション自体がない場合の通常登録
+    */
+    const {
+      error: signUpError,
+    } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+    });
+
+    if (signUpError) {
+      throw signUpError;
+    }
+
+    setMessage(
+      "確認メールを送りました。メール内のリンクを開いてください。"
+    );
+  } catch (error) {
+    console.error(
+      "登録エラー:",
+      error
+    );
+
+    setMessage(
+      `登録失敗：${
+        error instanceof Error
+          ? error.message
+          : "登録できませんでした"
+      }`
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="auth-overlay">
