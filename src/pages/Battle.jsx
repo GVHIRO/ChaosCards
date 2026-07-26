@@ -113,81 +113,762 @@ function getShieldValue(card) {
   return 4 + Number(card.cost || 0) * 3;
 }
 
-function summarizeCards(selectedCards) {
+function getCardDamage(card, actorHp) {
+  const hits = Math.max(
+    1,
+    Number(card.hits || 1),
+  );
+
+  let damage =
+    Number(card.damage || 0) * hits;
+
+  const threshold =
+    Number(card.lowHpThreshold || 0);
+
+  const bonus =
+    Number(card.lowHpBonusDamage || 0);
+
+  if (
+    bonus > 0 &&
+    threshold > 0 &&
+    Number(actorHp) <= threshold
+  ) {
+    damage += bonus;
+  }
+
+  return Math.max(0, damage);
+}
+
+function summarizeCards(
+  selectedCards,
+  actorHp,
+) {
   return selectedCards.reduce(
     (summary, selected) => {
-      const card = selected.card ?? selected;
-      const hits = Number(card.hits || 1);
+      const card =
+        selected.card ?? selected;
 
-      summary.damage += Number(card.damage || 0) * hits;
-      summary.heal += Number(card.heal || 0);
-      summary.shield += getShieldValue(card);
+      const cardDamage =
+        getCardDamage(
+          card,
+          actorHp,
+        );
+
+      const cardBurn =
+        Math.max(
+          0,
+          Number(card.burn || 0),
+        );
+
+      const cardBurnTurns =
+        Math.max(
+          0,
+          Number(card.burnTurns || 0),
+        );
+
+      summary.damage += cardDamage;
+
+      summary.heal += Math.max(
+        0,
+        Number(card.heal || 0),
+      );
+
+      summary.shield += Math.max(
+        0,
+        getShieldValue(card),
+      );
+
+      summary.pierce += Math.min(
+        cardDamage,
+        Math.max(
+          0,
+          Number(card.pierce || 0),
+        ),
+      );
+
+      summary.shieldBreak +=
+        Math.max(
+          0,
+          Number(
+            card.shieldBreak || 0,
+          ),
+        );
+
+      summary.draw += Math.max(
+        0,
+        Number(card.draw || 0),
+      );
+
+      summary.energyGain +=
+        Math.max(
+          0,
+          Number(
+            card.energyGain || 0,
+          ),
+        );
+
+      summary.energyDrain +=
+        Math.max(
+          0,
+          Number(
+            card.energyDrain || 0,
+          ),
+        );
+
+      summary.recoil += Math.max(
+        0,
+        Number(card.recoil || 0),
+      );
+
+      /*
+        弱体化は加算せず、
+        一番強い値だけを採用する。
+      */
+      summary.weaken = Math.max(
+        summary.weaken,
+        Math.max(
+          0,
+          Number(card.weaken || 0),
+        ),
+      );
+
+      summary.cleanse =
+        summary.cleanse ||
+        Boolean(card.cleanse);
+
+      /*
+        炎上は単純加算しない。
+        合計予定ダメージが強い方を残す。
+      */
+      const currentBurnTotal =
+        summary.burn *
+        summary.burnTurns;
+
+      const cardBurnTotal =
+        cardBurn *
+        cardBurnTurns;
+
+      if (
+        cardBurnTotal >
+          currentBurnTotal ||
+        (
+          cardBurnTotal ===
+            currentBurnTotal &&
+          cardBurn > summary.burn
+        )
+      ) {
+        summary.burn =
+          cardBurn;
+
+        summary.burnTurns =
+          cardBurnTurns;
+      }
+
       summary.names.push(card.name);
+
       return summary;
     },
-    { damage: 0, heal: 0, shield: 0, names: [] }
+    {
+      damage: 0,
+      heal: 0,
+      shield: 0,
+      pierce: 0,
+      shieldBreak: 0,
+      burn: 0,
+      burnTurns: 0,
+      draw: 0,
+      energyGain: 0,
+      energyDrain: 0,
+      weaken: 0,
+      cleanse: false,
+      recoil: 0,
+      names: [],
+    },
   );
 }
+
+function mergeBurn(
+  currentDamage,
+  currentTurns,
+  newDamage,
+  newTurns,
+) {
+  const current = {
+    damage: Math.max(
+      0,
+      Number(currentDamage || 0),
+    ),
+
+    turns: Math.max(
+      0,
+      Number(currentTurns || 0),
+    ),
+  };
+
+  const incoming = {
+    damage: Math.max(
+      0,
+      Number(newDamage || 0),
+    ),
+
+    turns: Math.max(
+      0,
+      Number(newTurns || 0),
+    ),
+  };
+
+  const currentTotal =
+    current.damage *
+    current.turns;
+
+  const incomingTotal =
+    incoming.damage *
+    incoming.turns;
+
+  if (
+    incomingTotal > currentTotal ||
+    (
+      incomingTotal === currentTotal &&
+      incoming.damage >
+        current.damage
+    )
+  ) {
+    return incoming;
+  }
+
+  return current;
+}
+
+function applyAdvancedDamage(
+  hp,
+  shield,
+  damage,
+  pierce,
+  shieldBreak,
+) {
+  const safeHp =
+    Math.max(
+      0,
+      Number(hp || 0),
+    );
+
+  const safeShield =
+    Math.max(
+      0,
+      Number(shield || 0),
+    );
+
+  const safeDamage =
+    Math.max(
+      0,
+      Number(damage || 0),
+    );
+
+  const safePierce =
+    Math.min(
+      safeDamage,
+      Math.max(
+        0,
+        Number(pierce || 0),
+      ),
+    );
+
+  /*
+    シールド破壊を先に処理する。
+  */
+  const brokenShield =
+    Math.min(
+      safeShield,
+      Math.max(
+        0,
+        Number(shieldBreak || 0),
+      ),
+    );
+
+  const shieldAfterBreak =
+    safeShield -
+    brokenShield;
+
+  /*
+    貫通分を除いたダメージだけ、
+    シールドで防御する。
+  */
+  const normalDamage =
+    safeDamage -
+    safePierce;
+
+  const blocked =
+    Math.min(
+      shieldAfterBreak,
+      normalDamage,
+    );
+
+  const requestedHpDamage =
+    safePierce +
+    Math.max(
+      0,
+      normalDamage - blocked,
+    );
+
+  const hpDamage =
+    Math.min(
+      safeHp,
+      requestedHpDamage,
+    );
+
+  return {
+    hp: Math.max(
+      0,
+      safeHp -
+        requestedHpDamage,
+    ),
+
+    shield: Math.max(
+      0,
+      shieldAfterBreak -
+        blocked,
+    ),
+
+    blocked,
+    brokenShield,
+    hpDamage,
+
+    pierceDamage:
+      Math.min(
+        safeHp,
+        safePierce,
+      ),
+  };
+}
+
+function resolveTurnEffects({
+  selectedCards,
+
+  actorHp,
+  actorShield,
+  actorEnergy,
+  actorBurnDamage,
+  actorBurnTurns,
+  actorWeaken,
+
+  targetHp,
+  targetShield,
+  targetEnergy,
+  targetBurnDamage,
+  targetBurnTurns,
+  targetWeaken,
+}) {
+  const summary =
+    summarizeCards(
+      selectedCards,
+      actorHp,
+    );
+
+  let nextActorBurnDamage =
+    Math.max(
+      0,
+      Number(
+        actorBurnDamage || 0,
+      ),
+    );
+
+  let nextActorBurnTurns =
+    Math.max(
+      0,
+      Number(
+        actorBurnTurns || 0,
+      ),
+    );
+
+  let nextActorWeaken =
+    Math.max(
+      0,
+      Number(actorWeaken || 0),
+    );
+
+  const cleansedBurn =
+    summary.cleanse &&
+    nextActorBurnTurns > 0;
+
+  const cleansedWeaken =
+    summary.cleanse &&
+    nextActorWeaken > 0;
+
+  /*
+    浄化は攻撃計算より先に処理。
+    浄化カードと攻撃カードを同時使用した場合、
+    弱体化による攻撃減少を受けない。
+  */
+  if (summary.cleanse) {
+    nextActorBurnDamage = 0;
+    nextActorBurnTurns = 0;
+    nextActorWeaken = 0;
+  }
+
+  let weakenConsumed = 0;
+  let effectiveDamage =
+    summary.damage;
+
+  /*
+    攻撃を行った場合だけ弱体化を消費。
+    回復だけのターンなら残る。
+  */
+  if (
+    effectiveDamage > 0 &&
+    nextActorWeaken > 0
+  ) {
+    weakenConsumed =
+      Math.min(
+        effectiveDamage,
+        nextActorWeaken,
+      );
+
+    effectiveDamage =
+      Math.max(
+        0,
+        effectiveDamage -
+          nextActorWeaken,
+      );
+
+    nextActorWeaken = 0;
+  }
+
+  const effectivePierce =
+    Math.min(
+      summary.pierce,
+      effectiveDamage,
+    );
+
+  const damageResult =
+    applyAdvancedDamage(
+      targetHp,
+      targetShield,
+      effectiveDamage,
+      effectivePierce,
+      summary.shieldBreak,
+    );
+
+  /*
+    回復を先に行い、その後に反動。
+  */
+  const healedActorHp =
+    Math.min(
+      MAX_HP,
+      Number(actorHp || 0) +
+        summary.heal,
+    );
+
+  const actualHeal =
+    Math.max(
+      0,
+      healedActorHp -
+        Number(actorHp || 0),
+    );
+
+  /*
+    反動ではHP1未満にならない。
+  */
+  const recoilDamage =
+    Math.min(
+      summary.recoil,
+      Math.max(
+        0,
+        healedActorHp - 1,
+      ),
+    );
+
+  let nextActorHp =
+    Math.max(
+      0,
+      healedActorHp -
+        recoilDamage,
+    );
+
+  /*
+    炎上は行動した本人の
+    ターン終了時に発生する。
+    炎上はシールドを無視する。
+  */
+  let burnTickDamage = 0;
+
+  if (
+    nextActorBurnTurns > 0 &&
+    nextActorBurnDamage > 0
+  ) {
+    burnTickDamage =
+      Math.min(
+        nextActorHp,
+        nextActorBurnDamage,
+      );
+
+    nextActorHp =
+      Math.max(
+        0,
+        nextActorHp -
+          nextActorBurnDamage,
+      );
+
+    nextActorBurnTurns =
+      Math.max(
+        0,
+        nextActorBurnTurns - 1,
+      );
+
+    if (
+      nextActorBurnTurns === 0
+    ) {
+      nextActorBurnDamage = 0;
+    }
+  }
+
+  const mergedTargetBurn =
+    mergeBurn(
+      targetBurnDamage,
+      targetBurnTurns,
+      summary.burn,
+      summary.burnTurns,
+    );
+
+  const previousTargetWeaken =
+    Math.max(
+      0,
+      Number(targetWeaken || 0),
+    );
+
+  const nextTargetWeaken =
+    Math.max(
+      previousTargetWeaken,
+      summary.weaken,
+    );
+
+  const nextActorEnergy =
+    Math.min(
+      MAX_ENERGY,
+      Math.max(
+        0,
+        Number(actorEnergy || 0),
+      ) +
+        summary.energyGain,
+    );
+
+  const nextTargetEnergy =
+    Math.max(
+      0,
+      Number(targetEnergy || 0) -
+        summary.energyDrain,
+    );
+
+  return {
+    summary,
+    damageResult,
+
+    actorHp:
+      nextActorHp,
+
+    actorShield:
+      Math.max(
+        0,
+        Number(actorShield || 0),
+      ) +
+      summary.shield,
+
+    actorEnergy:
+      nextActorEnergy,
+
+    actorBurnDamage:
+      nextActorBurnDamage,
+
+    actorBurnTurns:
+      nextActorBurnTurns,
+
+    actorWeaken:
+      nextActorWeaken,
+
+    targetHp:
+      damageResult.hp,
+
+    targetShield:
+      damageResult.shield,
+
+    targetEnergy:
+      nextTargetEnergy,
+
+    targetBurnDamage:
+      mergedTargetBurn.damage,
+
+    targetBurnTurns:
+      mergedTargetBurn.turns,
+
+    targetWeaken:
+      nextTargetWeaken,
+
+    actualHeal,
+
+    actualEnergyGain:
+      Math.max(
+        0,
+        nextActorEnergy -
+          Number(
+            actorEnergy || 0,
+          ),
+      ),
+
+    actualEnergyDrain:
+      Math.max(
+        0,
+        Number(
+          targetEnergy || 0,
+        ) -
+          nextTargetEnergy,
+      ),
+
+    recoilDamage,
+    burnTickDamage,
+    weakenConsumed,
+    cleansedBurn,
+    cleansedWeaken,
+
+    burnChanged:
+      mergedTargetBurn.damage !==
+        Math.max(
+          0,
+          Number(
+            targetBurnDamage || 0,
+          ),
+        ) ||
+      mergedTargetBurn.turns !==
+        Math.max(
+          0,
+          Number(
+            targetBurnTurns || 0,
+          ),
+        ),
+
+    weakenChanged:
+      nextTargetWeaken !==
+      previousTargetWeaken,
+  };
+}
+
 function createCardEffectLogs(
   actor,
   target,
   selectedCards,
-  targetHp,
-  targetShield,
-  myHp
+  result,
 ) {
+  const logs =
+    createCardLogs(
+      actor,
+      selectedCards,
+    );
+
   if (
-    !Array.isArray(selectedCards) ||
-    selectedCards.length === 0
+    result.cleansedBurn ||
+    result.cleansedWeaken
   ) {
-    return [
-      `⏭️ ${actor}は何もせずターン終了`,
-    ];
+    logs.push(
+      `　└ ✨ ${actor}の弱体効果を解除`,
+    );
   }
 
-  const logs = [];
+  if (
+    result.weakenConsumed > 0
+  ) {
+    logs.push(
+      `　└ ⬇️ ${actor}の攻撃が${result.weakenConsumed}減少`,
+    );
+  }
 
-  selectedCards.forEach((selected) => {
-    const card = selected.card ?? selected;
-    const hits = Number(card.hits || 1);
-    const damage =
-      Number(card.damage || 0) * hits;
-    const heal = Number(card.heal || 0);
-    const shield = getShieldValue(card);
+  if (
+    result.damageResult
+      .brokenShield > 0
+  ) {
+    logs.push(
+      `　└ 💥 ${target}のシールドを${result.damageResult.brokenShield}破壊`,
+    );
+  }
 
-    logs.push(`🎴 ${actor}：${card.name}`);
+  if (
+    result.damageResult.blocked > 0
+  ) {
+    logs.push(
+      `　└ 🛡️ ${target}のシールドが${result.damageResult.blocked}防御`,
+    );
+  }
 
-    if (damage > 0) {
-      logs.push(
-        `　└ ⚔️ ${target}に${damage}ダメージ`
-      );
-    }
+  if (
+    result.damageResult.hpDamage > 0
+  ) {
+    logs.push(
+      `　└ ⚔️ ${target}に${result.damageResult.hpDamage}ダメージ`,
+    );
+  }
 
-    if (heal > 0) {
-      logs.push(
-        `　└ 💚 ${actor}が${heal}回復`
-      );
-    }
+  if (result.actualHeal > 0) {
+    logs.push(
+      `　└ 💚 ${actor}が${result.actualHeal}回復`,
+    );
+  }
 
-    if (shield > 0) {
-      logs.push(
-        `　└ 🛡️ ${actor}がシールド${shield}獲得`
-      );
-    }
-  });
+  if (
+    result.summary.shield > 0
+  ) {
+    logs.push(
+      `　└ 🛡️ ${actor}がシールド${result.summary.shield}獲得`,
+    );
+  }
+
+  if (
+    result.actualEnergyGain > 0
+  ) {
+    logs.push(
+      `　└ ⚡ ${actor}がエネルギー${result.actualEnergyGain}獲得`,
+    );
+  }
+
+  if (
+    result.actualEnergyDrain > 0
+  ) {
+    logs.push(
+      `　└ ⚡ ${target}のエネルギーを${result.actualEnergyDrain}減少`,
+    );
+  }
+
+  if (result.summary.draw > 0) {
+    logs.push(
+      `　└ 🃏 ${actor}に追加ドロー${result.summary.draw}枚`,
+    );
+  }
+
+  if (result.burnChanged) {
+    logs.push(
+      `　└ 🔥 ${target}を${result.targetBurnDamage}ダメージ×${result.targetBurnTurns}ターンの炎上状態にした`,
+    );
+  }
+
+  if (result.weakenChanged) {
+    logs.push(
+      `　└ ⬇️ ${target}の次の攻撃を${result.targetWeaken}弱体化`,
+    );
+  }
+
+  if (
+    result.recoilDamage > 0
+  ) {
+    logs.push(
+      `　└ 💢 ${actor}が反動で${result.recoilDamage}ダメージ`,
+    );
+  }
+
+  if (
+    result.burnTickDamage > 0
+  ) {
+    logs.push(
+      `　└ 🔥 ${actor}が炎上で${result.burnTickDamage}ダメージ`,
+    );
+  }
 
   return logs;
-}
-function applyDamage(hp, shield, damage) {
-  const blocked = Math.min(shield, damage);
-  const hpDamage = Math.max(0, damage - blocked);
-
-  return {
-    hp: Math.max(0, hp - hpDamage),
-    shield: Math.max(0, shield - blocked),
-    blocked,
-    hpDamage,
-  };
 }
 
 function nextRole(role) {
@@ -303,8 +984,53 @@ const [rematchError, setRematchError] =
   const [match, setMatch] = useState(null);
   const [logs, setLogs] = useState([]);
   const [selectedCards, setSelectedCards] = useState([]);
-  const [deck, setDeck] = useState(loadDeck);
-  const [hand, setHand] = useState([]);
+  const [deck, setDeck] =
+  useState(loadDeck);
+
+const [hand, setHand] =
+  useState([]);
+
+/*
+  CPUも実際の手札とデッキを持つ。
+  プレイヤーと同じデッキ構成を
+  別々にシャッフルして使用する。
+*/
+const [cpuDeck, setCpuDeck] =
+  useState(loadDeck);
+
+const [cpuHand, setCpuHand] =
+  useState([]);
+
+const [
+  cpuDiscardPile,
+  setCpuDiscardPile,
+] = useState([]);
+
+const [
+  playerBurn,
+  setPlayerBurn,
+] = useState({
+  damage: 0,
+  turns: 0,
+});
+
+const [
+  enemyBurn,
+  setEnemyBurn,
+] = useState({
+  damage: 0,
+  turns: 0,
+});
+
+const [
+  playerWeaken,
+  setPlayerWeaken,
+] = useState(0);
+
+const [
+  enemyWeaken,
+  setEnemyWeaken,
+] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] =
   useState(false);
   const [discardPile, setDiscardPile] = useState([]);
@@ -429,10 +1155,26 @@ const [rematchError, setRematchError] =
   }, [mode, roomId, currentUserId]);
 
   const cardAnimationTimerRef = useRef(null);
-  const handRef = useRef(hand);
-  const deckRef = useRef(deck);
-  const discardRef = useRef(discardPile);
-  const selectedRef = useRef(selectedCards);
+  const handRef =
+  useRef(hand);
+
+const deckRef =
+  useRef(deck);
+
+const discardRef =
+  useRef(discardPile);
+
+const cpuHandRef =
+  useRef(cpuHand);
+
+const cpuDeckRef =
+  useRef(cpuDeck);
+
+const cpuDiscardRef =
+  useRef(cpuDiscardPile);
+
+const selectedRef =
+  useRef(selectedCards);
   const energyRef = useRef(energy);
   const matchRef = useRef(null);
   const initializedRef = useRef(false);
@@ -533,11 +1275,29 @@ useEffect(() => {
     deckRef.current = deck;
   }, [deck]);
   useEffect(() => {
-    discardRef.current = discardPile;
-  }, [discardPile]);
-  useEffect(() => {
-    selectedRef.current = selectedCards;
-  }, [selectedCards]);
+  discardRef.current =
+    discardPile;
+}, [discardPile]);
+
+useEffect(() => {
+  cpuHandRef.current =
+    cpuHand;
+}, [cpuHand]);
+
+useEffect(() => {
+  cpuDeckRef.current =
+    cpuDeck;
+}, [cpuDeck]);
+
+useEffect(() => {
+  cpuDiscardRef.current =
+    cpuDiscardPile;
+}, [cpuDiscardPile]);
+
+useEffect(() => {
+  selectedRef.current =
+    selectedCards;
+}, [selectedCards]);
   useEffect(() => {
   energyRef.current = energy;
 }, [energy]);
@@ -655,7 +1415,33 @@ const energyBeforeSelection = Math.min(
   MAX_ENERGY,
   energy + selectedEnergyCost,
 );
+const opponentEnergy = useMemo(() => {
+  if (mode === "cpu") {
+    return cpuEnergy;
+  }
 
+  if (!match || !playerRole) {
+    return 0;
+  }
+
+  const serverEnergy =
+    playerRole === "host"
+      ? match.guest_energy
+      : match.host_energy;
+
+  return Math.max(
+    0,
+    Math.min(
+      MAX_ENERGY,
+      Number(serverEnergy) || 0,
+    ),
+  );
+}, [
+  cpuEnergy,
+  match,
+  mode,
+  playerRole,
+]);
   const addLogs = useCallback((newLogs) => {
     setLogs((previous) => [...newLogs, ...previous].slice(0, 12));
   }, []);
@@ -737,39 +1523,252 @@ useEffect(() => {
     return drawn;
   }, []);
 
-  const consumeSelectedCards = useCallback(() => {
-    const usedIndexes = new Set(selectedRef.current.map((item) => item.handIndex));
-    const usedCards = selectedRef.current.map((item) => item.card);
-    const remainingHand = handRef.current.filter((_, index) => !usedIndexes.has(index));
+  const consumeSelectedCards =
+  useCallback(
+    (extraDraw = 0) => {
+      const usedIndexes =
+        new Set(
+          selectedRef.current.map(
+            (item) =>
+              item.handIndex,
+          ),
+        );
 
-    const newDiscard = [...discardRef.current, ...usedCards];
-    discardRef.current = newDiscard;
-    setDiscardPile(newDiscard);
+      const usedCards =
+        selectedRef.current.map(
+          (item) => item.card,
+        );
 
-    handRef.current = remainingHand;
-    const replacements = drawFromDeck(usedCards.length, remainingHand);
-    const nextHand = [...remainingHand, ...replacements];
+      const remainingHand =
+        handRef.current.filter(
+          (_, index) =>
+            !usedIndexes.has(index),
+        );
 
-    handRef.current = nextHand;
-    setHand(nextHand);
-    setSelectedCards([]);
-    selectedRef.current = [];
+      const newDiscard = [
+        ...discardRef.current,
+        ...usedCards,
+      ];
 
-    if (replacements.length > 0) {
-      setDrawnIndex(nextHand.length - 1);
-      window.setTimeout(() => setDrawnIndex(null), 500);
-    }
-  }, [drawFromDeck]);
+      discardRef.current =
+        newDiscard;
+
+      setDiscardPile(
+        newDiscard,
+      );
+
+      handRef.current =
+        remainingHand;
+
+      /*
+        使用枚数分の通常補充に加えて、
+        draw効果の枚数も引く。
+      */
+      const replacements =
+        drawFromDeck(
+          usedCards.length +
+            Math.max(
+              0,
+              Number(extraDraw || 0),
+            ),
+          remainingHand,
+        );
+
+      const nextHand = [
+        ...remainingHand,
+        ...replacements,
+      ];
+
+      handRef.current =
+        nextHand;
+
+      setHand(nextHand);
+      setSelectedCards([]);
+
+      selectedRef.current = [];
+
+      if (
+        replacements.length > 0
+      ) {
+        setDrawnIndex(
+          nextHand.length - 1,
+        );
+
+        window.setTimeout(
+          () =>
+            setDrawnIndex(null),
+          500,
+        );
+      }
+    },
+    [drawFromDeck],
+  );
+
+const drawFromCpuDeck =
+  useCallback(
+    (
+      count,
+      currentHand =
+        cpuHandRef.current,
+    ) => {
+      let workingDeck = [
+        ...cpuDeckRef.current,
+      ];
+
+      let workingDiscard = [
+        ...cpuDiscardRef.current,
+      ];
+
+      const drawn = [];
+
+      const slots =
+        Math.max(
+          0,
+          MAX_HAND_SIZE -
+            currentHand.length,
+        );
+
+      const drawCount =
+        Math.min(
+          count,
+          slots,
+        );
+
+      for (
+        let index = 0;
+        index < drawCount;
+        index += 1
+      ) {
+        if (
+          workingDeck.length ===
+            0 &&
+          workingDiscard.length > 0
+        ) {
+          workingDeck =
+            shuffle(
+              workingDiscard,
+            );
+
+          workingDiscard = [];
+        }
+
+        const card =
+          workingDeck.shift();
+
+        if (!card) {
+          break;
+        }
+
+        drawn.push(card);
+      }
+
+      cpuDeckRef.current =
+        workingDeck;
+
+      cpuDiscardRef.current =
+        workingDiscard;
+
+      setCpuDeck(
+        workingDeck,
+      );
+
+      setCpuDiscardPile(
+        workingDiscard,
+      );
+
+      return drawn;
+    },
+    [],
+  );
+
+const consumeCpuCards =
+  useCallback(
+    (
+      usedSelections,
+      extraDraw = 0,
+    ) => {
+      const usedIndexes =
+        new Set(
+          usedSelections.map(
+            (item) =>
+              item.handIndex,
+          ),
+        );
+
+      const usedCards =
+        usedSelections.map(
+          (item) => item.card,
+        );
+
+      const remainingHand =
+        cpuHandRef.current.filter(
+          (_, index) =>
+            !usedIndexes.has(index),
+        );
+
+      const nextDiscard = [
+        ...cpuDiscardRef.current,
+        ...usedCards,
+      ];
+
+      cpuDiscardRef.current =
+        nextDiscard;
+
+      setCpuDiscardPile(
+        nextDiscard,
+      );
+
+      const replacements =
+        drawFromCpuDeck(
+          usedCards.length +
+            Math.max(
+              0,
+              Number(extraDraw || 0),
+            ),
+          remainingHand,
+        );
+
+      const nextHand = [
+        ...remainingHand,
+        ...replacements,
+      ];
+
+      cpuHandRef.current =
+        nextHand;
+
+      setCpuHand(nextHand);
+    },
+    [drawFromCpuDeck],
+  );
 
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const openingHand = drawFromDeck(INITIAL_HAND_SIZE, []);
-    handRef.current = openingHand;
-    setHand(openingHand);
+    const openingHand =
+  drawFromDeck(
+    INITIAL_HAND_SIZE,
+    [],
+  );
 
-    if (mode === "cpu") {
+handRef.current =
+  openingHand;
+
+setHand(openingHand);
+
+if (mode === "cpu") {
+  const openingCpuHand =
+    drawFromCpuDeck(
+      INITIAL_HAND_SIZE,
+      [],
+    );
+
+  cpuHandRef.current =
+    openingCpuHand;
+
+  setCpuHand(
+    openingCpuHand,
+  );
       const first = Math.random() < 0.5 ? "player" : "cpu";
       setFirstPlayer(first);
       setCurrentPlayer(first);
@@ -780,7 +1779,13 @@ useEffect(() => {
 
       window.setTimeout(() => setCoinVisible(false), 1700);
     }
-  }, [addLogs, drawFromDeck, mode]);
+  }, [
+  addLogs,
+  drawFromDeck,
+  drawFromCpuDeck,
+  mode,
+  playerName,
+]);
 function getSelectedEnergyCost() {
   return selectedRef.current.reduce(
     (total, selected) =>
@@ -788,82 +1793,253 @@ function getSelectedEnergyCost() {
     0
   );
 }
-  const syncMatchToView = useCallback(
-    (match) => {
-      matchRef.current = match;
-      setMatch(match);
-      setTurnNumber(Number(match.turn_number || 1));
-      setCurrentPlayer(match.current_player);
-      setFirstPlayer(match.first_player);
+  const syncMatchToView =
+  useCallback(
+    (nextMatch) => {
+      matchRef.current =
+        nextMatch;
 
-      if (playerRole === "host") {
-  const serverEnergy =
-  Number(match.host_energy) || 0;
+      setMatch(nextMatch);
 
-const selectedCost =
-  match.current_player === playerRole
-    ? getSelectedEnergyCost()
-    : 0;
+      setTurnNumber(
+        Number(
+          nextMatch.turn_number ||
+            1,
+        ),
+      );
 
-const nextEnergy = Math.max(
-  0,
-  serverEnergy - selectedCost
-);
+      setCurrentPlayer(
+        nextMatch.current_player,
+      );
 
-setPlayerHP(match.host_hp);
-setEnemyHP(match.guest_hp);
-setPlayerShield(match.host_shield || 0);
-setEnemyShield(match.guest_shield || 0);
-
-energyRef.current = nextEnergy;
-setEnergy(nextEnergy);
-} else {
-  const serverEnergy =
-  Number(match.guest_energy) || 0;
-
-const selectedCost =
-  match.current_player === playerRole
-    ? getSelectedEnergyCost()
-    : 0;
-
-const nextEnergy = Math.max(
-  0,
-  serverEnergy - selectedCost
-);
-
-setPlayerHP(match.guest_hp);
-setEnemyHP(match.host_hp);
-setPlayerShield(match.guest_shield || 0);
-setEnemyShield(match.host_shield || 0);
-
-energyRef.current = nextEnergy;
-setEnergy(nextEnergy);
-}
+      setFirstPlayer(
+        nextMatch.first_player,
+      );
 
       if (
-  match.phase === "finished" &&
-  match.winner
-) {
-  const result =
-    match.winner === "draw"
-      ? "draw"
-      : match.winner === playerRole
-        ? "player"
-        : "enemy";
+        playerRole === "host"
+      ) {
+        const serverEnergy =
+          Number(
+            nextMatch.host_energy,
+          ) || 0;
 
-  const isKnockout =
-    Number(match.host_hp) <= 0 ||
-    Number(match.guest_hp) <= 0;
+        const selectedCost =
+          nextMatch.current_player ===
+          playerRole
+            ? getSelectedEnergyCost()
+            : 0;
 
-  if (isKnockout) {
-    finishBattle(result);
-  } else {
-    // 降参など、HPが0ではない決着
-    setWinner(result);
-  }
-}
+        const nextEnergy =
+          Math.max(
+            0,
+            serverEnergy -
+              selectedCost,
+          );
+
+        setPlayerHP(
+          Number(
+            nextMatch.host_hp,
+          ),
+        );
+
+        setEnemyHP(
+          Number(
+            nextMatch.guest_hp,
+          ),
+        );
+
+        setPlayerShield(
+          Number(
+            nextMatch.host_shield ||
+              0,
+          ),
+        );
+
+        setEnemyShield(
+          Number(
+            nextMatch.guest_shield ||
+              0,
+          ),
+        );
+
+        setPlayerBurn({
+          damage:
+            Number(
+              nextMatch
+                .host_burn_damage ||
+                0,
+            ),
+
+          turns:
+            Number(
+              nextMatch
+                .host_burn_turns ||
+                0,
+            ),
+        });
+
+        setEnemyBurn({
+          damage:
+            Number(
+              nextMatch
+                .guest_burn_damage ||
+                0,
+            ),
+
+          turns:
+            Number(
+              nextMatch
+                .guest_burn_turns ||
+                0,
+            ),
+        });
+
+        setPlayerWeaken(
+          Number(
+            nextMatch.host_weaken ||
+              0,
+          ),
+        );
+
+        setEnemyWeaken(
+          Number(
+            nextMatch.guest_weaken ||
+              0,
+          ),
+        );
+
+        energyRef.current =
+          nextEnergy;
+
+        setEnergy(nextEnergy);
+      } else {
+        const serverEnergy =
+          Number(
+            nextMatch.guest_energy,
+          ) || 0;
+
+        const selectedCost =
+          nextMatch.current_player ===
+          playerRole
+            ? getSelectedEnergyCost()
+            : 0;
+
+        const nextEnergy =
+          Math.max(
+            0,
+            serverEnergy -
+              selectedCost,
+          );
+
+        setPlayerHP(
+          Number(
+            nextMatch.guest_hp,
+          ),
+        );
+
+        setEnemyHP(
+          Number(
+            nextMatch.host_hp,
+          ),
+        );
+
+        setPlayerShield(
+          Number(
+            nextMatch.guest_shield ||
+              0,
+          ),
+        );
+
+        setEnemyShield(
+          Number(
+            nextMatch.host_shield ||
+              0,
+          ),
+        );
+
+        setPlayerBurn({
+          damage:
+            Number(
+              nextMatch
+                .guest_burn_damage ||
+                0,
+            ),
+
+          turns:
+            Number(
+              nextMatch
+                .guest_burn_turns ||
+                0,
+            ),
+        });
+
+        setEnemyBurn({
+          damage:
+            Number(
+              nextMatch
+                .host_burn_damage ||
+                0,
+            ),
+
+          turns:
+            Number(
+              nextMatch
+                .host_burn_turns ||
+                0,
+            ),
+        });
+
+        setPlayerWeaken(
+          Number(
+            nextMatch.guest_weaken ||
+              0,
+          ),
+        );
+
+        setEnemyWeaken(
+          Number(
+            nextMatch.host_weaken ||
+              0,
+          ),
+        );
+
+        energyRef.current =
+          nextEnergy;
+
+        setEnergy(nextEnergy);
+      }
+
+      if (
+        nextMatch.phase ===
+          "finished" &&
+        nextMatch.winner
+      ) {
+        const result =
+          nextMatch.winner ===
+          "draw"
+            ? "draw"
+            : nextMatch.winner ===
+                playerRole
+              ? "player"
+              : "enemy";
+
+        const isKnockout =
+          Number(
+            nextMatch.host_hp,
+          ) <= 0 ||
+          Number(
+            nextMatch.guest_hp,
+          ) <= 0;
+
+        if (isKnockout) {
+          finishBattle(result);
+        } else {
+          setWinner(result);
+        }
+      }
     },
-    [playerRole]
+    [playerRole],
   );
 
   useEffect(() => {
@@ -1207,9 +2383,17 @@ useEffect(() => {
         guest_energy: INITIAL_ENERGY,
 
         host_shield: 0,
-        guest_shield: 0,
+guest_shield: 0,
 
-        turn_number: 1,
+host_burn_damage: 0,
+host_burn_turns: 0,
+guest_burn_damage: 0,
+guest_burn_turns: 0,
+
+host_weaken: 0,
+guest_weaken: 0,
+
+turn_number: 1,
         phase: "playing",
 
         first_player: firstPlayer,
@@ -1520,134 +2704,422 @@ function showTurnPopup(myTurn) {
   setSelectedCards(nextSelected);
 }
 
-  function chooseCpuCards(availableEnergy) {
-    let remaining = availableEnergy;
-    const chosen = [];
-    let attempts = 0;
+  function chooseCpuCards(
+  availableEnergy,
+) {
+  let remaining =
+    availableEnergy;
 
-    while (remaining > 0 && attempts < 20) {
-      attempts += 1;
-      const affordable = cards.filter((card) => Number(card.cost) <= remaining);
-      if (affordable.length === 0) break;
+  const chosen = [];
 
-      // HPが少ないと回復・防御を少し優先する
-      let pool = affordable;
-      if (enemyHP <= 15) {
-        const survival = affordable.filter((card) => card.heal || card.shield);
-        if (survival.length > 0 && Math.random() < 0.65) pool = survival;
-      }
+  const availableCards =
+    cpuHandRef.current.map(
+      (card, handIndex) => ({
+        card,
+        handIndex,
+      }),
+    );
 
-      const card = pool[Math.floor(Math.random() * pool.length)];
-      chosen.push(card);
-      remaining -= Number(card.cost);
-    }
+  let attempts = 0;
 
-    return { chosen, remaining };
-  }
-
-  async function executeCpuTurn() {
-    if (winner || currentPlayer !== "cpu" || isProcessing) return;
-    setIsProcessing(true);
-
-    await new Promise((resolve) => window.setTimeout(resolve, 850));
-
-    const { chosen, remaining } = chooseCpuCards(cpuEnergy);
-    showCardAnimation("enemy", chosen);
-
-await new Promise((resolve) => {
-  window.setTimeout(resolve, 650);
-});
-    const summary = summarizeCards(chosen);
-    const damaged = applyDamage(playerHP, playerShield, summary.damage);
-    const healedEnemy = Math.min(MAX_HP, enemyHP + summary.heal);
-
-    setPlayerHP(damaged.hp);
-    setPlayerShield(damaged.shield);
-    setEnemyHP(healedEnemy);
-    setEnemyShield((value) => value + summary.shield);
-    setCpuEnergy(remaining);
-
-    const turnLogs = createCardEffectLogs(
-  "CPU",
-  playerName,
-  chosen,
-  playerHP,
-  playerShield,
-  enemyHP
-);
-
-    if (damaged.blocked > 0) turnLogs.push(`YOUの盾が${damaged.blocked}ダメージ防御`);
-    if (damaged.hpDamage > 0) {
-  playSound("damage");
-
-  if (gameSettings.screenShake) {
-  setScreenShake(true);
-
-  window.setTimeout(() => {
-    setScreenShake(false);
-  }, 300);
-}
-  showPlayerEffect(`-${damaged.hpDamage}`, "damage");
-}
-    if (summary.heal > 0) {
-      const actual = healedEnemy - enemyHP;
-      if (actual > 0) {
-  playSound("heal");
-
-  
-  showEnemyEffect(`+${actual}`, "heal");
-}
-    }
-    if (summary.shield > 0) {
-  playSound("shield");
-
-  showEnemyEffect(
-    `🛡 +${summary.shield}`,
-    "shield"
-  );
-}
-
-    addLogs(turnLogs);
-
-    if (damaged.hp <= 0) {
-      finishBattle("enemy");
-      setIsProcessing(false);
-      return;
-    }
-
-    const isPlayerFirstTurn =
-  firstPlayer === "cpu" &&
-  turnNumber === 1;
-playSound("turn");
-setTurnNumber((value) => value + 1);
-setCurrentPlayer("player");
-showTurnPopup(true);
-
-// CPU先攻後のプレイヤー初回ターンは初期値3のまま
-if (!isPlayerFirstTurn) {
-  setEnergy((value) =>
-    Math.min(
-      MAX_ENERGY,
-      value + ENERGY_PER_TURN
-    )
-  );
-}
-
-setPlayerShield(0);
-setIsProcessing(false);
-  }
-
-  useEffect(() => {
-  if (
-    mode === "cpu" &&
-    currentPlayer === "cpu" &&
-    !winner &&
-    !isProcessing &&
-    !coinVisible
+  while (
+    remaining > 0 &&
+    availableCards.length > 0 &&
+    attempts < 20
   ) {
-    executeCpuTurn();
+    attempts += 1;
+
+    const affordable =
+      availableCards.filter(
+        (item) =>
+          Number(
+            item.card.cost || 0,
+          ) <= remaining,
+      );
+
+    if (
+      affordable.length === 0
+    ) {
+      break;
+    }
+
+    let pool = affordable;
+
+    /*
+      炎上・弱体化中は
+      浄化を優先する。
+    */
+    if (
+      (
+        enemyBurn.turns > 0 ||
+        enemyWeaken > 0
+      ) &&
+      Math.random() < 0.75
+    ) {
+      const cleanseCards =
+        affordable.filter(
+          (item) =>
+            item.card.cleanse,
+        );
+
+      if (
+        cleanseCards.length > 0
+      ) {
+        pool = cleanseCards;
+      }
+    } else if (
+      enemyHP <= 15
+    ) {
+      const survivalCards =
+        affordable.filter(
+          (item) =>
+            item.card.heal ||
+            item.card.shield ||
+            item.card.cleanse,
+        );
+
+      if (
+        survivalCards.length > 0 &&
+        Math.random() < 0.7
+      ) {
+        pool = survivalCards;
+      }
+    } else if (
+      playerShield > 0 &&
+      Math.random() < 0.55
+    ) {
+      const antiShieldCards =
+        affordable.filter(
+          (item) =>
+            item.card.pierce ||
+            item.card.shieldBreak,
+        );
+
+      if (
+        antiShieldCards.length > 0
+      ) {
+        pool =
+          antiShieldCards;
+      }
+    }
+
+    const selected =
+      pool[
+        Math.floor(
+          Math.random() *
+            pool.length,
+        )
+      ];
+
+    chosen.push(selected);
+
+    remaining -=
+      Number(
+        selected.card.cost || 0,
+      );
+
+    const selectedPosition =
+      availableCards.findIndex(
+        (item) =>
+          item.handIndex ===
+          selected.handIndex,
+      );
+
+    if (
+      selectedPosition >= 0
+    ) {
+      availableCards.splice(
+        selectedPosition,
+        1,
+      );
+    }
   }
 
+  return {
+    chosen,
+    remaining,
+  };
+}
+
+async function executeCpuTurn() {
+  if (
+    winner ||
+    currentPlayer !== "cpu" ||
+    isProcessing
+  ) {
+    return;
+  }
+
+  setIsProcessing(true);
+
+  await new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        850,
+      );
+    },
+  );
+
+  const {
+    chosen,
+    remaining,
+  } =
+    chooseCpuCards(
+      cpuEnergy,
+    );
+
+  const chosenCards =
+    chosen.map(
+      (selected) =>
+        selected.card,
+    );
+
+  showCardAnimation(
+    "enemy",
+    chosenCards,
+  );
+
+  await new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        650,
+      );
+    },
+  );
+
+  const result =
+    resolveTurnEffects({
+      selectedCards: chosen,
+
+      actorHp: enemyHP,
+      actorShield: enemyShield,
+      actorEnergy: remaining,
+
+      actorBurnDamage:
+        enemyBurn.damage,
+
+      actorBurnTurns:
+        enemyBurn.turns,
+
+      actorWeaken:
+        enemyWeaken,
+
+      targetHp: playerHP,
+      targetShield: playerShield,
+
+      targetEnergy:
+        energyRef.current,
+
+      targetBurnDamage:
+        playerBurn.damage,
+
+      targetBurnTurns:
+        playerBurn.turns,
+
+      targetWeaken:
+        playerWeaken,
+    });
+
+  const cpuDied =
+    result.actorHp <= 0;
+
+  const playerDied =
+    result.targetHp <= 0;
+
+  let battleResult = null;
+
+  if (
+    cpuDied &&
+    playerDied
+  ) {
+    battleResult = "draw";
+  } else if (playerDied) {
+    battleResult = "enemy";
+  } else if (cpuDied) {
+    battleResult = "player";
+  }
+
+  const isPlayerFirstTurn =
+    firstPlayer === "cpu" &&
+    turnNumber === 1;
+
+  const nextPlayerEnergy =
+    battleResult
+      ? result.targetEnergy
+      : isPlayerFirstTurn
+        ? result.targetEnergy
+        : Math.min(
+            MAX_ENERGY,
+            result.targetEnergy +
+              ENERGY_PER_TURN,
+          );
+
+  setPlayerHP(
+    result.targetHp,
+  );
+
+  setPlayerShield(
+    battleResult
+      ? result.targetShield
+      : 0,
+  );
+
+  setEnemyHP(
+    result.actorHp,
+  );
+
+  setEnemyShield(
+    result.actorShield,
+  );
+
+  setCpuEnergy(
+    result.actorEnergy,
+  );
+
+  energyRef.current =
+    nextPlayerEnergy;
+
+  setEnergy(
+    nextPlayerEnergy,
+  );
+
+  setPlayerBurn({
+    damage:
+      result.targetBurnDamage,
+
+    turns:
+      result.targetBurnTurns,
+  });
+
+  setEnemyBurn({
+    damage:
+      result.actorBurnDamage,
+
+    turns:
+      result.actorBurnTurns,
+  });
+
+  setPlayerWeaken(
+    result.targetWeaken,
+  );
+
+  setEnemyWeaken(
+    result.actorWeaken,
+  );
+
+  consumeCpuCards(
+    chosen,
+    result.summary.draw,
+  );
+
+  const turnLogs =
+    createCardEffectLogs(
+      "CPU",
+      playerName,
+      chosen,
+      result,
+    );
+
+  addLogs(turnLogs);
+
+  if (
+    result.damageResult
+      .hpDamage > 0
+  ) {
+    playSound("damage");
+
+    showPlayerEffect(
+      `-${result.damageResult.hpDamage}`,
+      "damage",
+    );
+
+    if (
+      gameSettings.screenShake
+    ) {
+      setScreenShake(true);
+
+      window.setTimeout(
+        () => {
+          setScreenShake(false);
+        },
+        300,
+      );
+    }
+  }
+
+  if (
+    result.actualHeal > 0
+  ) {
+    playSound("heal");
+
+    showEnemyEffect(
+      `+${result.actualHeal}`,
+      "heal",
+    );
+  }
+
+  if (
+    result.summary.shield > 0
+  ) {
+    playSound("shield");
+
+    showEnemyEffect(
+      `🛡 +${result.summary.shield}`,
+      "shield",
+    );
+  }
+
+  const cpuSelfDamage =
+    result.recoilDamage +
+    result.burnTickDamage;
+
+  if (cpuSelfDamage > 0) {
+    showEnemyEffect(
+      `-${cpuSelfDamage}`,
+      "damage",
+    );
+  }
+
+  if (battleResult) {
+    finishBattle(
+      battleResult,
+    );
+
+    setIsProcessing(false);
+    return;
+  }
+
+  playSound("turn");
+
+  setTurnNumber(
+    (value) => value + 1,
+  );
+
+  setCurrentPlayer(
+    "player",
+  );
+
+  showTurnPopup(true);
+
+  setIsProcessing(false);
+}
+useEffect(() => {
+  if (
+    mode !== "cpu" ||
+    currentPlayer !== "cpu" ||
+    winner ||
+    isProcessing ||
+    coinVisible
+  ) {
+    return;
+  }
+
+  executeCpuTurn();
+
+  // executeCpuTurnを依存配列に入れると
+  // 毎レンダーで再実行される可能性があるため除外
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [
   currentPlayer,
@@ -1656,307 +3128,682 @@ setIsProcessing(false);
   isProcessing,
   coinVisible,
 ]);
+async function endCpuPlayerTurn() {
+  const usedSelections = [
+    ...selectedRef.current,
+  ];
 
-  async function endCpuPlayerTurn() {
-    setPlayedCards(
-  selectedCards.map((selected) => selected.handIndex)
-);
-    showCardAnimation(
-    "player",
-    selectedCards.map(
-      (selected) => selected.card
-    )
+  setPlayedCards(
+    usedSelections.map(
+      (selected) =>
+        selected.handIndex,
+    ),
   );
 
-  await new Promise((resolve) => {
-    window.setTimeout(resolve, 650);
+  showCardAnimation(
+    "player",
+
+    usedSelections.map(
+      (selected) =>
+        selected.card,
+    ),
+  );
+
+  await new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        650,
+      );
+    },
+  );
+
+  const result =
+    resolveTurnEffects({
+      selectedCards:
+        usedSelections,
+
+      actorHp: playerHP,
+      actorShield:
+        playerShield,
+
+      /*
+        選択時点ですでに
+        エネルギーは減っている。
+      */
+      actorEnergy:
+        energyRef.current,
+
+      actorBurnDamage:
+        playerBurn.damage,
+
+      actorBurnTurns:
+        playerBurn.turns,
+
+      actorWeaken:
+        playerWeaken,
+
+      targetHp: enemyHP,
+      targetShield:
+        enemyShield,
+
+      targetEnergy:
+        cpuEnergy,
+
+      targetBurnDamage:
+        enemyBurn.damage,
+
+      targetBurnTurns:
+        enemyBurn.turns,
+
+      targetWeaken:
+        enemyWeaken,
+    });
+
+  const playerDied =
+    result.actorHp <= 0;
+
+  const cpuDied =
+    result.targetHp <= 0;
+
+  let battleResult = null;
+
+  if (
+    playerDied &&
+    cpuDied
+  ) {
+    battleResult = "draw";
+  } else if (cpuDied) {
+    battleResult = "player";
+  } else if (playerDied) {
+    battleResult = "enemy";
+  }
+
+  const nextCpuEnergy =
+    battleResult
+      ? result.targetEnergy
+      : Math.min(
+          MAX_ENERGY,
+          result.targetEnergy +
+            ENERGY_PER_TURN,
+        );
+
+  setPlayerHP(
+    result.actorHp,
+  );
+
+  setPlayerShield(
+    result.actorShield,
+  );
+
+  setEnemyHP(
+    result.targetHp,
+  );
+
+  setEnemyShield(
+    battleResult
+      ? result.targetShield
+      : 0,
+  );
+
+  energyRef.current =
+    result.actorEnergy;
+
+  setEnergy(
+    result.actorEnergy,
+  );
+
+  setCpuEnergy(
+    nextCpuEnergy,
+  );
+
+  setPlayerBurn({
+    damage:
+      result.actorBurnDamage,
+
+    turns:
+      result.actorBurnTurns,
   });
 
-    const summary = summarizeCards(selectedCards);
-    const damaged = applyDamage(enemyHP, enemyShield, summary.damage);
-    const healedPlayer = Math.min(MAX_HP, playerHP + summary.heal);
+  setEnemyBurn({
+    damage:
+      result.targetBurnDamage,
 
-    setEnemyHP(damaged.hp);
-    setEnemyShield(damaged.shield);
-    setPlayerHP(healedPlayer);
-    setPlayerShield((value) => value + summary.shield);
+    turns:
+      result.targetBurnTurns,
+  });
 
-    const turnLogs = createCardEffectLogs(
-  playerName,
-  "CPU",
-  selectedRef.current,
-  enemyHP,
-  enemyShield,
-  playerHP
-);
-
-    if (damaged.blocked > 0) turnLogs.push(`CPUの盾が${damaged.blocked}ダメージ防御`);
-    if (damaged.hpDamage > 0) {
-      playSound("damage");
-  if (gameSettings.screenShake) {
-  setScreenShake(true);
-
-  window.setTimeout(() => {
-    setScreenShake(false);
-  }, 300);
-}
-
-  showEnemyEffect(`-${damaged.hpDamage}`, "damage");
-}
-    if (summary.heal > 0) {
-      const actual = healedPlayer - playerHP;
-      if (actual > 0) {
-  playSound("heal");
-
-  showPlayerEffect(`+${actual}`, "heal");
-}
-    }
-    if (summary.shield > 0) {
-  playSound("shield");
-
-  showPlayerEffect(
-    `🛡 +${summary.shield}`,
-    "shield"
+  setPlayerWeaken(
+    result.actorWeaken,
   );
-}
 
-    addLogs(turnLogs);
-    consumeSelectedCards();
-    setPlayedCards([]);
+  setEnemyWeaken(
+    result.targetWeaken,
+  );
 
-    if (damaged.hp <= 0) {
-      finishBattle("player");
-      return;
+  const turnLogs =
+    createCardEffectLogs(
+      playerName,
+      "CPU",
+      usedSelections,
+      result,
+    );
+
+  addLogs(turnLogs);
+
+  consumeSelectedCards(
+    result.summary.draw,
+  );
+
+  setPlayedCards([]);
+
+  if (
+    result.damageResult
+      .hpDamage > 0
+  ) {
+    playSound("damage");
+
+    showEnemyEffect(
+      `-${result.damageResult.hpDamage}`,
+      "damage",
+    );
+
+    if (
+      gameSettings.screenShake
+    ) {
+      setScreenShake(true);
+
+      window.setTimeout(
+        () => {
+          setScreenShake(false);
+        },
+        300,
+      );
     }
-playSound("turn");
-    setTurnNumber((value) => value + 1);
-    setCurrentPlayer("cpu");
-  showTurnPopup(false);
-    setCpuEnergy((value) => Math.min(MAX_ENERGY, value + ENERGY_PER_TURN));
-    setEnemyShield(0);
   }
+
+  if (
+    result.actualHeal > 0
+  ) {
+    playSound("heal");
+
+    showPlayerEffect(
+      `+${result.actualHeal}`,
+      "heal",
+    );
+  }
+
+  if (
+    result.summary.shield > 0
+  ) {
+    playSound("shield");
+
+    showPlayerEffect(
+      `🛡 +${result.summary.shield}`,
+      "shield",
+    );
+  }
+
+  const playerSelfDamage =
+    result.recoilDamage +
+    result.burnTickDamage;
+
+  if (
+    playerSelfDamage > 0
+  ) {
+    showPlayerEffect(
+      `-${playerSelfDamage}`,
+      "damage",
+    );
+  }
+
+  if (battleResult) {
+    finishBattle(
+      battleResult,
+    );
+
+    return;
+  }
+
+  playSound("turn");
+
+  setTurnNumber(
+    (value) => value + 1,
+  );
+
+  setCurrentPlayer("cpu");
+
+  showTurnPopup(false);
+}
 
   async function endOnlineTurn() {
-    const match = matchRef.current;
+  const currentMatch =
+    matchRef.current;
 
-    if (!match || !matchId || !playerRole) {
-      addLogs(["❌ 試合データがありません"]);
-      return;
-    }
+  if (
+    !currentMatch ||
+    !matchId ||
+    !playerRole
+  ) {
+    addLogs([
+      "❌ 試合データがありません",
+    ]);
 
-    if (match.current_player !== playerRole) {
-      addLogs(["⏳ 今は相手のターンです"]);
-      return;
-    }
-
-    setIsProcessing(true);
-
-    const actingIsHost = playerRole === "host";
-    const myHp = actingIsHost ? match.host_hp : match.guest_hp;
-    const opponentHp = actingIsHost ? match.guest_hp : match.host_hp;
-    const opponentShield = actingIsHost
-      ? Number(match.guest_shield || 0)
-      : Number(match.host_shield || 0);
-
-      setPlayedCards(
-  selectedRef.current.map((selected) => selected.handIndex)
-);
-      showCardAnimation(
-  "player",
-  selectedRef.current.map(
-    (selected) => selected.card
-  )
-);
-
-await new Promise((resolve) => {
-  window.setTimeout(resolve, 650);
-});
-    const summary = summarizeCards(selectedRef.current);
-    const spentEnergy =
-  selectedRef.current.reduce(
-    (total, selected) =>
-      total +
-      Number(selected.card?.cost || 0),
-    0
-  );
-
-const serverMyEnergy = actingIsHost
-  ? Number(match.host_energy) || 0
-  : Number(match.guest_energy) || 0;
-
-const remainingEnergy = Math.max(
-  0,
-  serverMyEnergy - spentEnergy
-);
-    const damageResult = applyDamage(opponentHp, opponentShield, summary.damage);
-    const healedHp = Math.min(MAX_HP, myHp + summary.heal);
-    const currentMyShield = actingIsHost
-      ? Number(match.host_shield || 0)
-      : Number(match.guest_shield || 0);
-    const newMyShield = currentMyShield + summary.shield;
-    const followingPlayer = nextRole(playerRole);
-    const nextTurn = Number(match.turn_number) + 1;
-// 先攻の第1ターン終了後に来る、後攻の初回ターンか
-const isSecondPlayerFirstTurn =
-  Number(match.turn_number) === 1 &&
-  match.current_player === match.first_player;
-   const turnLogs = createCardEffectLogs(
-  playerName,
-  opponentName,
-  selectedRef.current,
-  opponentHp,
-  opponentShield,
-  myHp
-);
-
-    if (damageResult.blocked > 0) {
-      turnLogs.push(
-  `${opponentName}の盾が${damageResult.blocked}ダメージ防御`
-);
-    }
-    if (damageResult.hpDamage > 0) {
-       playSound("damage");
-      if (gameSettings.screenShake) {
-  setScreenShake(true);
-
-  window.setTimeout(() => {
-    setScreenShake(false);
-  }, 300);
-}
-    }
-    const actualHeal = healedHp - myHp;
-
-if (actualHeal > 0) {
-  playSound("heal");
-  turnLogs.push(
-  `${playerName}が${actualHeal}回復`
-);
-}
-    if (summary.shield > 0) {
-  playSound("shield");
-  turnLogs.push(
-  `${playerName}がシールド${summary.shield}獲得`
-);
-}
-
-    let matchWinner = null;
-    if (damageResult.hp <= 0) matchWinner = playerRole;
-
-    const updates = {
-      battle_logs: turnLogs,
-      current_player: matchWinner ? playerRole : followingPlayer,
-      turn_number: matchWinner ? match.turn_number : nextTurn,
-      phase: matchWinner ? "finished" : "playing",
-      winner: matchWinner,
-    };
-
-   if (actingIsHost) {
-  updates.host_hp = healedHp;
-  updates.host_shield = newMyShield;
-  updates.host_energy = remainingEnergy;
-
-  updates.guest_hp = damageResult.hp;
-  updates.guest_shield = matchWinner
-    ? damageResult.shield
-    : 0;
-
-  updates.guest_energy = matchWinner
-    ? match.guest_energy
-    : isSecondPlayerFirstTurn
-      ? Number(match.guest_energy)
-      : Math.min(
-          MAX_ENERGY,
-          Number(match.guest_energy) +
-            ENERGY_PER_TURN
-        );
-} else {
-  updates.guest_hp = healedHp;
-  updates.guest_shield = newMyShield;
-  updates.guest_energy = remainingEnergy;
-
-  updates.host_hp = damageResult.hp;
-  updates.host_shield = matchWinner
-    ? damageResult.shield
-    : 0;
-
-  updates.host_energy = matchWinner
-    ? match.host_energy
-    : isSecondPlayerFirstTurn
-      ? Number(match.host_energy)
-      : Math.min(
-          MAX_ENERGY,
-          Number(match.host_energy) +
-            ENERGY_PER_TURN
-        );
-}
-
-    const { data: updatedMatch, error } = await supabase
-      .from("matches")
-      .update(updates)
-      .eq("id", matchId)
-      .eq("current_player", playerRole)
-      .eq("turn_number", match.turn_number)
-      .select("*")
-      .maybeSingle();
-
-    if (error) {
-      addLogs([`❌ ターン更新エラー：${error.message}`]);
-      setIsProcessing(false);
-      return;
-    }
-
-    if (!updatedMatch) {
-      addLogs(["⚠️ 相手側で先に状態が更新されました。再同期します"]);
-      const { data } = await supabase.from("matches").select("*").eq("id", matchId).single();
-      if (data) syncMatchToView(data);
-      setIsProcessing(false);
-      return;
-    }
-
-    consumeSelectedCards();
-    setPlayedCards([]);
-    syncMatchToView(updatedMatch);
-    addLogs(turnLogs);
-
-    if (damageResult.hpDamage > 0) showEnemyEffect(`-${damageResult.hpDamage}`, "damage");
-    if (actualHeal > 0) showPlayerEffect(`+${actualHeal}`, "heal");
-    if (summary.shield > 0) {
-  showPlayerEffect(
-    `🛡 +${summary.shield}`,
-    "shield"
-  );
-}
-
-    setIsProcessing(false);
-  }
-async function surrender() {
-  if (!window.confirm("本当に降参しますか？")) {
     return;
   }
 
-  // CPU戦
-  if (mode === "cpu") {
-    finishBattle("enemy");
+  if (
+    currentMatch.current_player !==
+    playerRole
+  ) {
+    addLogs([
+      "⏳ 今は相手のターンです",
+    ]);
+
     return;
   }
 
-  // オンライン戦
-  const { error } = await supabase
+  setIsProcessing(true);
+
+  const actingIsHost =
+    playerRole === "host";
+
+  const actorPrefix =
+    actingIsHost
+      ? "host"
+      : "guest";
+
+  const targetPrefix =
+    actingIsHost
+      ? "guest"
+      : "host";
+
+  const followingPlayer =
+    nextRole(playerRole);
+
+  const usedSelections = [
+    ...selectedRef.current,
+  ];
+
+  setPlayedCards(
+    usedSelections.map(
+      (selected) =>
+        selected.handIndex,
+    ),
+  );
+
+  showCardAnimation(
+    "player",
+
+    usedSelections.map(
+      (selected) =>
+        selected.card,
+    ),
+  );
+
+  await new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        650,
+      );
+    },
+  );
+
+  const spentEnergy =
+    usedSelections.reduce(
+      (total, selected) =>
+        total +
+        Number(
+          selected.card?.cost ||
+            0,
+        ),
+      0,
+    );
+
+  const actorServerEnergy =
+    Number(
+      currentMatch[
+        `${actorPrefix}_energy`
+      ] || 0,
+    );
+
+  const actorEnergyAfterCost =
+    Math.max(
+      0,
+      actorServerEnergy -
+        spentEnergy,
+    );
+
+  const result =
+    resolveTurnEffects({
+      selectedCards:
+        usedSelections,
+
+      actorHp:
+        Number(
+          currentMatch[
+            `${actorPrefix}_hp`
+          ] || 0,
+        ),
+
+      actorShield:
+        Number(
+          currentMatch[
+            `${actorPrefix}_shield`
+          ] || 0,
+        ),
+
+      actorEnergy:
+        actorEnergyAfterCost,
+
+      actorBurnDamage:
+        Number(
+          currentMatch[
+            `${actorPrefix}_burn_damage`
+          ] || 0,
+        ),
+
+      actorBurnTurns:
+        Number(
+          currentMatch[
+            `${actorPrefix}_burn_turns`
+          ] || 0,
+        ),
+
+      actorWeaken:
+        Number(
+          currentMatch[
+            `${actorPrefix}_weaken`
+          ] || 0,
+        ),
+
+      targetHp:
+        Number(
+          currentMatch[
+            `${targetPrefix}_hp`
+          ] || 0,
+        ),
+
+      targetShield:
+        Number(
+          currentMatch[
+            `${targetPrefix}_shield`
+          ] || 0,
+        ),
+
+      targetEnergy:
+        Number(
+          currentMatch[
+            `${targetPrefix}_energy`
+          ] || 0,
+        ),
+
+      targetBurnDamage:
+        Number(
+          currentMatch[
+            `${targetPrefix}_burn_damage`
+          ] || 0,
+        ),
+
+      targetBurnTurns:
+        Number(
+          currentMatch[
+            `${targetPrefix}_burn_turns`
+          ] || 0,
+        ),
+
+      targetWeaken:
+        Number(
+          currentMatch[
+            `${targetPrefix}_weaken`
+          ] || 0,
+        ),
+    });
+
+  const actorDied =
+    result.actorHp <= 0;
+
+  const targetDied =
+    result.targetHp <= 0;
+
+  let matchWinner = null;
+
+  if (
+    actorDied &&
+    targetDied
+  ) {
+    matchWinner = "draw";
+  } else if (targetDied) {
+    matchWinner =
+      playerRole;
+  } else if (actorDied) {
+    matchWinner =
+      followingPlayer;
+  }
+
+  const isSecondPlayerFirstTurn =
+    Number(
+      currentMatch.turn_number,
+    ) === 1 &&
+    currentMatch.current_player ===
+      currentMatch.first_player;
+
+  /*
+    エネルギー妨害を先に行い、
+    その後でターン開始分を追加する。
+  */
+  const nextTargetEnergy =
+    matchWinner
+      ? result.targetEnergy
+      : isSecondPlayerFirstTurn
+        ? result.targetEnergy
+        : Math.min(
+            MAX_ENERGY,
+            result.targetEnergy +
+              ENERGY_PER_TURN,
+          );
+
+  const turnLogs =
+    createCardEffectLogs(
+      playerName,
+      opponentName,
+      usedSelections,
+      result,
+    );
+
+  const updates = {
+    battle_logs:
+      turnLogs,
+
+    current_player:
+      matchWinner
+        ? playerRole
+        : followingPlayer,
+
+    turn_number:
+      matchWinner
+        ? currentMatch.turn_number
+        : Number(
+            currentMatch.turn_number,
+          ) + 1,
+
+    phase:
+      matchWinner
+        ? "finished"
+        : "playing",
+
+    winner:
+      matchWinner,
+
+    finish_reason:
+      matchWinner
+        ? "knockout"
+        : null,
+
+    [`${actorPrefix}_hp`]:
+      result.actorHp,
+
+    [`${actorPrefix}_shield`]:
+      result.actorShield,
+
+    [`${actorPrefix}_energy`]:
+      result.actorEnergy,
+
+    [`${actorPrefix}_burn_damage`]:
+      result.actorBurnDamage,
+
+    [`${actorPrefix}_burn_turns`]:
+      result.actorBurnTurns,
+
+    [`${actorPrefix}_weaken`]:
+      result.actorWeaken,
+
+    [`${targetPrefix}_hp`]:
+      result.targetHp,
+
+    /*
+      相手側のシールドは、
+      このターン終了時に期限切れ。
+    */
+    [`${targetPrefix}_shield`]:
+      matchWinner
+        ? result.targetShield
+        : 0,
+
+    [`${targetPrefix}_energy`]:
+      nextTargetEnergy,
+
+    [`${targetPrefix}_burn_damage`]:
+      result.targetBurnDamage,
+
+    [`${targetPrefix}_burn_turns`]:
+      result.targetBurnTurns,
+
+    [`${targetPrefix}_weaken`]:
+      result.targetWeaken,
+  };
+
+  const {
+    data: updatedMatch,
+    error,
+  } = await supabase
     .from("matches")
-    .update({
-      winner: nextRole(playerRole),
-      phase: "finished",
-      finish_reason: "surrender",
-    })
+    .update(updates)
     .eq("id", matchId)
-    .eq("phase", "playing");
+    .eq(
+      "current_player",
+      playerRole,
+    )
+    .eq(
+      "turn_number",
+      currentMatch.turn_number,
+    )
+    .select("*")
+    .maybeSingle();
 
   if (error) {
-    addLogs([`❌ 降参エラー：${error.message}`]);
+    addLogs([
+      `❌ ターン更新エラー：${error.message}`,
+    ]);
+
+    setIsProcessing(false);
     return;
   }
 
-  setIsSettingsOpen(false);
+  if (!updatedMatch) {
+    addLogs([
+      "⚠️ 相手側で先に状態が更新されました。再同期します",
+    ]);
+
+    const { data } =
+      await supabase
+        .from("matches")
+        .select("*")
+        .eq("id", matchId)
+        .single();
+
+    if (data) {
+      syncMatchToView(data);
+    }
+
+    setIsProcessing(false);
+    return;
+  }
+
+  consumeSelectedCards(
+    result.summary.draw,
+  );
+
+  setPlayedCards([]);
+
+  syncMatchToView(
+    updatedMatch,
+  );
+
+  addLogs(turnLogs);
+
+  if (
+    result.damageResult
+      .hpDamage > 0
+  ) {
+    playSound("damage");
+
+    showEnemyEffect(
+      `-${result.damageResult.hpDamage}`,
+      "damage",
+    );
+
+    if (
+      gameSettings.screenShake
+    ) {
+      setScreenShake(true);
+
+      window.setTimeout(
+        () => {
+          setScreenShake(false);
+        },
+        300,
+      );
+    }
+  }
+
+  if (
+    result.actualHeal > 0
+  ) {
+    playSound("heal");
+
+    showPlayerEffect(
+      `+${result.actualHeal}`,
+      "heal",
+    );
+  }
+
+  if (
+    result.summary.shield > 0
+  ) {
+    playSound("shield");
+
+    showPlayerEffect(
+      `🛡 +${result.summary.shield}`,
+      "shield",
+    );
+  }
+
+  const playerSelfDamage =
+    result.recoilDamage +
+    result.burnTickDamage;
+
+  if (
+    playerSelfDamage > 0
+  ) {
+    showPlayerEffect(
+      `-${playerSelfDamage}`,
+      "damage",
+    );
+  }
+
+  setIsProcessing(false);
 }
 async function requestRematch() {
   if (
@@ -2347,22 +4194,23 @@ return (
     <div className="battle-status-grid">
       <BattleStatus
   name={opponentName}
-
   icon={
     mode === "online"
       ? "🌐"
       : "🤖"
   }
-
   avatarUrl={
     mode === "online"
       ? opponentAvatarUrl
       : ""
   }
-
   hp={enemyHP}
   maxHp={MAX_HP}
   shield={enemyShield}
+  energy={opponentEnergy}
+  maxEnergy={MAX_ENERGY}
+  burn={enemyBurn}
+  weaken={enemyWeaken}
   active={!isMyTurn}
   effect={enemyEffect}
   enemy
@@ -2375,6 +4223,10 @@ return (
   hp={playerHP}
   maxHp={MAX_HP}
   shield={playerShield}
+  energy={energy}
+  maxEnergy={MAX_ENERGY}
+  burn={playerBurn}
+  weaken={playerWeaken}
   active={isMyTurn}
   effect={playerEffect}
 />

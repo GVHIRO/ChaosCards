@@ -638,3 +638,203 @@
   color: #ffffff;
   font-size: 16px;
 }
+
+/* =========================================================
+   ENERGY / STATUS EFFECTS
+========================================================= */
+
+.battle-hp-header-values {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.battle-status-energy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  min-height: 28px;
+  padding: 4px 9px;
+
+  color: #ffe78a;
+
+  border:
+    1px solid
+    rgba(250, 204, 21, 0.3);
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(113, 63, 18, 0.3),
+      rgba(69, 45, 10, 0.2)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.05),
+    0 0 14px
+      rgba(250, 204, 21, 0.1);
+}
+
+.battle-status-energy-icon {
+  font-size: 14px;
+
+  filter:
+    drop-shadow(
+      0 0 5px
+      rgba(250, 204, 21, 0.55)
+    );
+}
+
+.battle-status-energy-value {
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.battle-status-energy-value small {
+  color: #bca968;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.battle-status-effects {
+  display: grid;
+  gap: 8px;
+
+  margin-top: 11px;
+}
+
+.battle-status-effects-label {
+  color: #7185a4;
+
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.battle-status-effect-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.battle-status-effect-badge {
+  display: flex;
+  flex: 1 1 135px;
+  align-items: center;
+  gap: 8px;
+
+  min-width: 0;
+  padding: 8px 10px;
+
+  border-radius: 12px;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.04);
+}
+
+.battle-status-effect-icon {
+  flex: 0 0 auto;
+
+  font-size: 18px;
+}
+
+.battle-status-effect-badge > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.battle-status-effect-badge strong {
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.battle-status-effect-badge small {
+  overflow: hidden;
+
+  font-size: 9px;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-status-effect-burn {
+  color: #ffb38a;
+
+  border:
+    1px solid
+    rgba(249, 115, 22, 0.3);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(154, 52, 18, 0.28),
+      rgba(67, 24, 10, 0.2)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.04),
+    0 0 15px
+      rgba(249, 115, 22, 0.1);
+}
+
+.battle-status-effect-burn small {
+  color: #d9906e;
+}
+
+.battle-status-effect-weaken {
+  color: #c4b5fd;
+
+  border:
+    1px solid
+    rgba(139, 92, 246, 0.3);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(91, 33, 182, 0.25),
+      rgba(46, 16, 101, 0.19)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.04),
+    0 0 15px
+      rgba(139, 92, 246, 0.1);
+}
+
+.battle-status-effect-weaken small {
+  color: #9584ce;
+}
+
+@media (max-width: 600px) {
+  .battle-hp-header-values {
+    gap: 7px;
+  }
+
+  .battle-status-energy {
+    padding: 4px 7px;
+  }
+
+  .battle-status-energy-value {
+    font-size: 12px;
+  }
+
+  .battle-status-effect-list {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .battle-status-effect-badge {
+    flex: none;
+  }
+}
