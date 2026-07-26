@@ -285,6 +285,35 @@ if (
 
     setScreen("online");
   }
+  function openFriends() {
+  /*
+    フレンド機能は正式アカウントのみ使用可能。
+    匿名ユーザーの場合はログイン・登録画面を開く。
+  */
+  if (
+    !currentUser ||
+    currentUser.is_anonymous
+  ) {
+    setShowAuthMenu(true);
+    return;
+  }
+
+  /*
+    正式アカウントでもプロフィールが未設定なら、
+    先にプロフィール設定画面へ移動する。
+  */
+  const hasCompletedProfile =
+    Boolean(
+      currentProfile?.username?.trim()
+    );
+
+  if (!hasCompletedProfile) {
+    setScreen("profile-setup");
+    return;
+  }
+
+  setScreen("friends");
+}
 
   async function startOnlineBattle(
   roomId,
@@ -491,14 +520,20 @@ playerAvatarUrl={
 playerAvatarUrl={
   currentProfile?.avatar_url ?? ""
 }
-  restartGame={() => {
-    setOnlineRoom(null);
-    setScreen("online");
-  }}
-  goToMenu={() => {
-    setOnlineRoom(null);
-    setScreen("menu");
-  }}
+ restartGame={() => {
+  setOnlineRoom(null);
+  setScreen("online");
+}}
+onRematchStart={() => {
+  setBattleKey(
+    (currentKey) =>
+      currentKey + 1
+  );
+}}
+goToMenu={() => {
+  setOnlineRoom(null);
+  setScreen("menu");
+}}
 />
       );
     }
@@ -530,10 +565,16 @@ avatarUrl={
      <Menu
   onStart={startCpuBattle}
   onOnline={openOnlineMenu}
-  onDeckBuilder={() => setScreen("deck-builder")}
-  onFriends={() => setScreen("friends")}
-  onSettings={() => setScreen("settings")}
-  openAuthMenu={() => setShowAuthMenu(true)}
+  onDeckBuilder={() =>
+    setScreen("deck-builder")
+  }
+  onFriends={openFriends}
+  onSettings={() =>
+    setScreen("settings")
+  }
+  openAuthMenu={() =>
+    setShowAuthMenu(true)
+  }
   currentUser={currentUser}
   handleLogout={handleLogout}
 />

@@ -276,6 +276,7 @@ export default function Battle({
   playerName = "YOU",
   playerAvatarUrl = "",
   restartGame,
+  onRematchStart,
   goToMenu,
 }) {
   const [playerHP, setPlayerHP] = useState(INITIAL_HP);
@@ -288,6 +289,11 @@ export default function Battle({
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [firstPlayer, setFirstPlayer] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRequestingRematch, setIsRequestingRematch] =
+  useState(false);
+
+const [rematchError, setRematchError] =
+  useState("");
   const [isLoadingMatch, setIsLoadingMatch] = useState(mode === "online");
   const [coinVisible, setCoinVisible] = useState(true);
   const [drawnIndex, setDrawnIndex] = useState(null);
@@ -434,7 +440,8 @@ export default function Battle({
   const battleEndingRef = useRef(false);
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
-
+const rematchResettingRef = useRef(false);
+const rematchNavigatingRef = useRef(false);
 const RESULT_DELAY = 1150;
 
 function finishBattle(result) {
@@ -912,15 +919,37 @@ setEnergy(nextEnergy);
   );
 
   const previous =
-    matchRef.current;
+  matchRef.current;
 
-  const next =
-    payload.new;
+const next =
+  payload.new;
 
-  const previousLogs =
-    Array.isArray(previous?.battle_logs)
-      ? previous.battle_logs
-      : [];
+const previousRematchCount =
+  Number(previous?.rematch_count || 0);
+
+const nextRematchCount =
+  Number(next?.rematch_count || 0);
+
+const rematchStarted =
+  previous?.phase === "finished" &&
+  next.phase === "playing" &&
+  nextRematchCount > previousRematchCount;
+
+if (rematchStarted) {
+  matchRef.current = next;
+
+  if (!rematchNavigatingRef.current) {
+    rematchNavigatingRef.current = true;
+    onRematchStart?.();
+  }
+
+  return;
+}
+
+const previousLogs =
+  Array.isArray(previous?.battle_logs)
+    ? previous.battle_logs
+    : [];
 
   const nextLogs =
     Array.isArray(next?.battle_logs)
@@ -1126,7 +1155,140 @@ const gainedEnemyShield =
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, [addLogs, matchId, mode, playerRole, syncMatchToView]);
+  }, [
+  addLogs,
+  matchId,
+  mode,
+  onRematchStart,
+  playerRole,
+  syncMatchToView,
+]);
+useEffect(() => {
+  /*
+    再戦開始処理はホスト端末だけが行う。
+    両方の端末から同時に試合初期化されるのを防ぐ。
+  */
+  if (
+    mode !== "online" ||
+    playerRole !== "host" ||
+    !matchId ||
+    match?.phase !== "finished" ||
+    !match?.host_rematch ||
+    !match?.guest_rematch ||
+    rematchResettingRef.current
+  ) {
+    return undefined;
+  }
+
+  rematchResettingRef.current = true;
+
+  async function startOnlineRematch() {
+    const firstPlayer =
+      Math.random() < 0.5
+        ? "host"
+        : "guest";
+
+    const now =
+      new Date().toISOString();
+
+    const nextRematchCount =
+      Number(match.rematch_count || 0) + 1;
+
+    const {
+      data: restartedMatch,
+      error,
+    } = await supabase
+      .from("matches")
+      .update({
+        host_hp: INITIAL_HP,
+        guest_hp: INITIAL_HP,
+
+        host_energy: INITIAL_ENERGY,
+        guest_energy: INITIAL_ENERGY,
+
+        host_shield: 0,
+        guest_shield: 0,
+
+        turn_number: 1,
+        phase: "playing",
+
+        first_player: firstPlayer,
+        current_player: firstPlayer,
+
+        winner: null,
+        finish_reason: null,
+
+        battle_logs: [
+          `🪙 ${firstPlayer}が先攻`,
+        ],
+
+        host_last_seen: now,
+        guest_last_seen: now,
+
+        host_rematch: false,
+        guest_rematch: false,
+
+        rematch_count:
+          nextRematchCount,
+      })
+      .eq("id", matchId)
+      .eq("phase", "finished")
+      .eq("host_rematch", true)
+      .eq("guest_rematch", true)
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        "再戦開始エラー:",
+        error
+      );
+
+      setRematchError(
+        `再戦を開始できませんでした：${error.message}`
+      );
+
+      rematchResettingRef.current =
+        false;
+
+      return;
+    }
+
+    if (!restartedMatch) {
+      setRematchError(
+        "再戦の開始条件が変わりました。もう一度試してください。"
+      );
+
+      rematchResettingRef.current =
+        false;
+
+      return;
+    }
+
+    /*
+      ホスト側はDB更新成功後、すぐ画面を作り直す。
+      ゲスト側はRealtime更新から同じ処理が呼ばれる。
+    */
+    if (
+      !rematchNavigatingRef.current
+    ) {
+      rematchNavigatingRef.current =
+        true;
+
+      onRematchStart?.();
+    }
+  }
+
+  startOnlineRematch();
+
+  return undefined;
+}, [
+  match,
+  matchId,
+  mode,
+  onRematchStart,
+  playerRole,
+]);
 // 自分が対戦画面を開いていることを5秒ごとに通知
 useEffect(() => {
   if (
@@ -1796,6 +1958,113 @@ async function surrender() {
 
   setIsSettingsOpen(false);
 }
+async function requestRematch() {
+  if (
+    mode !== "online" ||
+    !matchId ||
+    !playerRole ||
+    match?.phase !== "finished" ||
+    isRequestingRematch
+  ) {
+    return;
+  }
+
+  const rematchColumn =
+    playerRole === "host"
+      ? "host_rematch"
+      : "guest_rematch";
+
+  const alreadyRequested =
+    playerRole === "host"
+      ? Boolean(match.host_rematch)
+      : Boolean(match.guest_rematch);
+
+  if (alreadyRequested) {
+    return;
+  }
+
+  setIsRequestingRematch(true);
+  setRematchError("");
+
+  const {
+    data: updatedMatch,
+    error,
+  } = await supabase
+    .from("matches")
+    .update({
+      [rematchColumn]: true,
+    })
+    .eq("id", matchId)
+    .eq("phase", "finished")
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    console.error(
+      "再戦申請エラー:",
+      error
+    );
+
+    setRematchError(
+      `再戦を申し込めませんでした：${error.message}`
+    );
+
+    setIsRequestingRematch(false);
+    return;
+  }
+
+  if (!updatedMatch) {
+    setRematchError(
+      "再戦申請を反映できませんでした。画面を開き直してください。"
+    );
+
+    setIsRequestingRematch(false);
+    return;
+  }
+
+  syncMatchToView(updatedMatch);
+
+  setIsRequestingRematch(false);
+}
+
+async function leaveBattleResult() {
+  /*
+    再戦申請後に退出した場合、
+    自分の再戦希望を取り消しておく。
+  */
+  if (
+    mode === "online" &&
+    matchId &&
+    playerRole &&
+    match?.phase === "finished"
+  ) {
+    const rematchColumn =
+      playerRole === "host"
+        ? "host_rematch"
+        : "guest_rematch";
+
+    const { error } = await supabase
+      .from("matches")
+      .update({
+        [rematchColumn]: false,
+      })
+      .eq("id", matchId)
+      .eq("phase", "finished");
+
+    if (error) {
+      console.error(
+        "再戦申請の解除エラー:",
+        error
+      );
+    }
+  }
+
+  if (mode === "online") {
+    restartGame();
+  } else {
+    goToMenu();
+  }
+}
   async function endTurn() {
     if (!isMyTurn || isProcessing || winner) return;
     setIsProcessing(true);
@@ -1821,7 +2090,34 @@ async function surrender() {
       : playerWon
         ? "result-player-loser"
         : "result-player-winner";
+const myRematchRequested =
+  mode === "online" && match
+    ? playerRole === "host"
+      ? Boolean(match.host_rematch)
+      : Boolean(match.guest_rematch)
+    : false;
 
+const opponentRematchRequested =
+  mode === "online" && match
+    ? playerRole === "host"
+      ? Boolean(match.guest_rematch)
+      : Boolean(match.host_rematch)
+    : false;
+
+const bothRematchRequested =
+  myRematchRequested &&
+  opponentRematchRequested;
+
+const rematchStatusText =
+  rematchError
+    ? rematchError
+    : bothRematchRequested
+      ? "両者が再戦を希望しました。試合を準備しています…"
+      : myRematchRequested
+        ? "相手の返事を待っています…"
+        : opponentRematchRequested
+          ? `${opponentName}が再戦を希望しています`
+          : "両者が希望すると再戦が始まります";
     return (
       <div className="app battle-page">
         <div className="result-screen">
@@ -1930,15 +2226,62 @@ async function surrender() {
                     : "次の戦いで取り返そう！"}
           </p>
 
-          <div className="result-buttons">
-            <button type="button" onClick={restartGame}>
-              🔄 もう一回
-            </button>
+          {mode === "online" && (
+  <div
+    className={`result-rematch-status ${
+      rematchError
+        ? "result-rematch-status-error"
+        : ""
+    }`}
+    aria-live="polite"
+  >
+    {rematchStatusText}
+  </div>
+)}
 
-            <button type="button" onClick={goToMenu}>
-              🏠 メニューへ戻る
-            </button>
-          </div>
+<div className="result-buttons">
+  {mode === "online" ? (
+    <button
+      type="button"
+      onClick={requestRematch}
+      disabled={
+        isRequestingRematch ||
+        myRematchRequested ||
+        bothRematchRequested
+      }
+    >
+      {isRequestingRematch
+        ? "⏳ 送信中…"
+        : bothRematchRequested
+          ? "⚔️ 再戦準備中…"
+          : myRematchRequested
+            ? "✅ 再戦申請済み"
+            : opponentRematchRequested
+              ? "🔄 再戦を受ける"
+              : "🔄 再戦を申し込む"}
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={restartGame}
+    >
+      🔄 もう一回
+    </button>
+  )}
+
+  <button
+    type="button"
+    onClick={leaveBattleResult}
+    disabled={
+      mode === "online" &&
+      bothRematchRequested
+    }
+  >
+    {mode === "online"
+      ? "🌐 オンラインへ戻る"
+      : "🏠 メニューへ戻る"}
+  </button>
+</div>
         </div>
       </div>
     );
