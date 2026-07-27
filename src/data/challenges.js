@@ -1,6 +1,9 @@
 export const CHALLENGE_PROGRESS_KEY =
   "chaosCardsChallengeClears";
 
+export const CHALLENGE_FIRST_CLEAR_REWARD =
+  100;
+
 const challenges = [
   {
     id: "rookie-trial",
@@ -9,7 +12,8 @@ const challenges = [
     english: "ROOKIE TRIAL",
     title: "新人試験",
     difficulty: "EASY",
-
+firstClearReward:
+  CHALLENGE_FIRST_CLEAR_REWARD,
     description:
       "少し弱ったCPUを倒して、基本的な戦い方を確認しよう。",
 
@@ -38,7 +42,8 @@ const challenges = [
     english: "IRON FORTRESS",
     title: "鉄壁要塞",
     difficulty: "NORMAL",
-
+firstClearReward:
+  CHALLENGE_FIRST_CLEAR_REWARD,
     description:
       "大量のシールドを持つCPUを突破しよう。",
 
@@ -67,7 +72,8 @@ const challenges = [
     english: "ENERGY CRISIS",
     title: "エネルギー危機",
     difficulty: "HARD",
-
+firstClearReward:
+  CHALLENGE_FIRST_CLEAR_REWARD,
     description:
       "少ない初期エネルギーで、全力状態のCPUに挑め。",
 
@@ -96,7 +102,8 @@ const challenges = [
     english: "CHAOS FINAL",
     title: "混沌の最終試験",
     difficulty: "EXTREME",
-
+firstClearReward:
+  CHALLENGE_FIRST_CLEAR_REWARD,
     description:
       "不利な状態から、強化されたCPUを撃破せよ。",
 

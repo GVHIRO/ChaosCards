@@ -2,7 +2,9 @@ import cards from "../data/cards";
 import packs, {
   RARITY_RANK,
 } from "../data/packs";
-
+import {
+  CHALLENGE_FIRST_CLEAR_REWARD,
+} from "../data/challenges";
 export const COLLECTION_CHANGE_EVENT =
   "chaos-card-collection-change";
 
@@ -1087,7 +1089,8 @@ export function recordBattleCoinReward({
       return 0;
     }
 
-    reward = 100;
+    reward =
+  CHALLENGE_FIRST_CLEAR_REWARD;
 
     markRewardedBattle(
       challengeRewardKey,

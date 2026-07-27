@@ -141,67 +141,96 @@ export default function ChallengeMenu({
                   </div>
 
                   <div className="challenge-content">
-                    <div className="challenge-title-row">
-                      <div>
-                        <small>
-                          {challenge.english}
-                        </small>
+  <div className="challenge-title-row">
+    <div>
+      <small>
+        {challenge.english}
+      </small>
 
-                        <h2>
-                          {challenge.title}
-                        </h2>
-                      </div>
+      <h2>
+        {challenge.title}
+      </h2>
+    </div>
 
-                      <span
-                        className={[
-                          "challenge-difficulty",
-                          `difficulty-${challenge.difficulty.toLowerCase()}`,
-                        ].join(" ")}
-                      >
-                        {challenge.difficulty}
-                      </span>
-                    </div>
+    <span
+      className={[
+        "challenge-difficulty",
+        `difficulty-${challenge.difficulty.toLowerCase()}`,
+      ].join(" ")}
+    >
+      {challenge.difficulty}
+    </span>
+  </div>
 
-                    <p>
-                      {isUnlocked
-                        ? challenge.description
-                        : "前のミッションをクリアすると解放されます"}
-                    </p>
+  <p>
+    {isUnlocked
+      ? challenge.description
+      : "前のミッションをクリアすると解放されます"}
+  </p>
 
-                    {isUnlocked && (
-                      <div className="challenge-rules">
-                        {challenge.rules.map(
-                          (rule) => (
-                            <span key={rule}>
-                              {rule}
-                            </span>
-                          ),
-                        )}
-                      </div>
-                    )}
-                  </div>
+  {isUnlocked && (
+    <>
+      <div className="challenge-rules">
+        {challenge.rules.map(
+          (rule) => (
+            <span key={rule}>
+              {rule}
+            </span>
+          ),
+        )}
+      </div>
 
-                  <div className="challenge-actions">
-                    {isCleared && (
-                      <span className="challenge-cleared-label">
-                        ✓ CLEAR
-                      </span>
-                    )}
+      <div
+        className={[
+          "challenge-first-clear-reward",
+          isCleared
+            ? "is-received"
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <span aria-hidden="true">
+          {isCleared
+            ? "✓"
+            : "🎁"}
+        </span>
 
-                    <button
-                      type="button"
-                      disabled={!isUnlocked}
-                      onClick={() => {
-                        onStart(challenge);
-                      }}
-                    >
-                      {isUnlocked
-                        ? isCleared
-                          ? "再挑戦"
-                          : "挑戦する"
-                        : "未解放"}
-                    </button>
-                  </div>
+        <small>
+          初回クリア報酬
+        </small>
+
+        <strong>
+          {isCleared
+            ? "受取済み"
+            : `🪙 ${challenge.firstClearReward}`}
+        </strong>
+      </div>
+    </>
+  )}
+</div>
+
+<div className="challenge-actions">
+  {isCleared && (
+    <span className="challenge-cleared-label">
+      ✓ CLEAR
+    </span>
+  )}
+
+  <button
+    type="button"
+    disabled={!isUnlocked}
+    onClick={() => {
+      onStart(challenge);
+    }}
+  >
+    {isUnlocked
+      ? isCleared
+        ? "再挑戦"
+        : "挑戦する"
+      : "未解放"}
+  </button>
+</div>
                 </article>
               );
             },

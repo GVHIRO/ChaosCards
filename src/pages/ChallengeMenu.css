@@ -234,8 +234,8 @@
 .challenge-card {
   position: relative;
 
-  min-height: 178px;
-  padding: 22px;
+  min-height: 150px;
+  padding: 18px 20px;
 
   display: grid;
   grid-template-columns:
@@ -581,4 +581,114 @@
     flex-direction: column;
     gap: 7px;
   }
+}
+
+/* =========================================================
+   コンパクトな初回クリア報酬
+========================================================= */
+
+.challenge-first-clear-reward {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  box-sizing: border-box;
+
+  border:
+    1px solid
+    rgba(255, 196, 67, 0.34);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 185, 45, 0.09);
+
+  white-space: nowrap;
+}
+
+.challenge-first-clear-reward
+> span {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+
+  border-radius: 7px;
+
+  color: #ffe08a;
+  background:
+    rgba(255, 190, 50, 0.14);
+
+  font-size: 0.76rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.challenge-first-clear-reward
+> small {
+  margin: 0;
+
+  color: #c6a054;
+
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.challenge-first-clear-reward
+> strong {
+  margin: 0;
+
+  color: #ffd56a;
+
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+/* 受取済み */
+
+.challenge-first-clear-reward.is-received {
+  border-color:
+    rgba(73, 218, 141, 0.32);
+
+  background:
+    rgba(45, 161, 102, 0.1);
+}
+
+.challenge-first-clear-reward.is-received
+> span {
+  color: #143323;
+
+  background: #5ce39b;
+}
+
+.challenge-first-clear-reward.is-received
+> small,
+.challenge-first-clear-reward.is-received
+> strong {
+  color: #63dfa0;
+}
+
+.challenge-content {
+  min-width: 0;
+  align-self: center;
+}
+
+.challenge-actions {
+  align-self: center;
+}
+
+.challenge-first-clear-reward {
+  margin-top: 9px;
 }
