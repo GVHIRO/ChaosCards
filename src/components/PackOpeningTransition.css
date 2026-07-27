@@ -1,0 +1,1146 @@
+/* =========================================================
+   CHAOS CARDS — PACK OPENING TRANSITION
+========================================================= */
+
+.pack-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+  pointer-events: all;
+
+  background:
+    #050916;
+
+  animation:
+    packTransitionOverlay
+    1.18s ease both;
+}
+
+.pack-transition-background {
+  position: absolute;
+  inset: -15%;
+
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(116, 63, 255, 0.34),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(37, 161, 255, 0.18),
+      transparent 52%
+    ),
+    linear-gradient(
+      145deg,
+      #050816,
+      #11123a 55%,
+      #050916
+    );
+
+  animation:
+    packTransitionBackground
+    1.2s ease-out both;
+}
+
+.pack-transition-background::before {
+  position: absolute;
+  inset: 0;
+
+  content: "";
+
+  opacity: 0.25;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    52px 52px;
+
+  transform:
+    perspective(700px)
+    rotateX(63deg)
+    scale(1.4);
+
+  animation:
+    packTransitionGrid
+    1.2s ease-out both;
+}
+
+.pack-transition-stage {
+  position: relative;
+  z-index: 3;
+
+  width:
+    min(720px, 92vw);
+  height:
+    min(520px, 72vh);
+
+  display: grid;
+  place-items: center;
+
+  perspective: 1200px;
+}
+
+/* =========================================================
+   放射状の光
+========================================================= */
+
+.pack-transition-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 450px;
+  height: 450px;
+
+  border-radius: 50%;
+
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(206, 173, 255, 0.22)
+        0deg 3deg,
+      transparent
+        3deg 14deg
+    );
+
+  opacity: 0;
+
+  transform:
+    translate(-50%, -50%)
+    scale(0.15)
+    rotate(-20deg);
+
+  animation:
+    packTransitionBurst
+    0.85s 0.1s ease-out both;
+}
+
+.pack-transition-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 100px;
+  height: 100px;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.pack-transition-rings span {
+  position: absolute;
+  inset: 0;
+
+  border:
+    2px solid
+    rgba(170, 120, 255, 0.55);
+
+  border-radius: 50%;
+
+  opacity: 0;
+
+  box-shadow:
+    0 0 22px
+    rgba(132, 82, 255, 0.36);
+
+  animation:
+    packTransitionRing
+    0.85s ease-out both;
+}
+
+.pack-transition-rings
+span:nth-child(2) {
+  animation-delay: 0.13s;
+}
+
+.pack-transition-rings
+span:nth-child(3) {
+  animation-delay: 0.26s;
+}
+
+/* =========================================================
+   カード
+========================================================= */
+
+.pack-transition-cards {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 154px;
+  height: 220px;
+
+  transform:
+    translate(-50%, -50%);
+
+  transform-style:
+    preserve-3d;
+}
+
+.pack-transition-card {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border:
+    2px solid
+    rgba(180, 135, 255, 0.74);
+
+  border-radius: 16px;
+
+  color: #eadcff;
+
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(147, 79, 255, 0.33),
+      transparent 43%
+    ),
+    linear-gradient(
+      145deg,
+      #2e1e66,
+      #131c46 55%,
+      #09142d
+    );
+
+  box-shadow:
+    0 28px 60px
+      rgba(0, 0, 0, 0.5),
+    0 0 28px
+      rgba(126, 69, 255, 0.24),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.16);
+
+  opacity: 0;
+
+  transform:
+    translate3d(
+      0,
+      100px,
+      -200px
+    )
+    rotateY(70deg)
+    scale(0.55);
+
+  transform-origin:
+    50% 100%;
+
+  animation-duration:
+    1.05s;
+
+  animation-timing-function:
+    cubic-bezier(
+      0.18,
+      0.8,
+      0.24,
+      1
+    );
+
+  animation-fill-mode:
+    both;
+}
+
+.pack-transition-card::before {
+  position: absolute;
+  inset: 9px;
+
+  content: "";
+
+  border:
+    1px solid
+    rgba(229, 209, 255, 0.19);
+
+  border-radius: 11px;
+}
+
+.pack-transition-card::after {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -80%;
+
+  width: 38%;
+
+  content: "";
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    );
+
+  transform:
+    rotate(15deg);
+
+  animation:
+    packTransitionCardShine
+    0.7s 0.34s ease-out both;
+}
+
+.pack-transition-card i {
+  font-size: 3.7rem;
+  font-style: normal;
+
+  filter:
+    drop-shadow(
+      0 0 21px
+      rgba(186, 129, 255, 0.72)
+    );
+}
+
+.pack-transition-card strong {
+  margin-top: 14px;
+
+  font-size: 1.05rem;
+  letter-spacing: 0.17em;
+}
+
+.pack-transition-card small {
+  margin-top: 4px;
+
+  color: #988db4;
+
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.23em;
+}
+
+/*
+  左端
+*/
+.pack-transition-card-1 {
+  animation-name:
+    packTransitionCardOne;
+}
+
+/*
+  左
+*/
+.pack-transition-card-2 {
+  animation-name:
+    packTransitionCardTwo;
+}
+
+/*
+  中央。
+  最後に画面手前へ飛んでくる。
+*/
+.pack-transition-card-3 {
+  z-index: 5;
+
+  animation-name:
+    packTransitionCardCenter;
+}
+
+/*
+  右
+*/
+.pack-transition-card-4 {
+  animation-name:
+    packTransitionCardFour;
+}
+
+/*
+  右端
+*/
+.pack-transition-card-5 {
+  animation-name:
+    packTransitionCardFive;
+}
+
+/* =========================================================
+   テキスト
+========================================================= */
+
+.pack-transition-text {
+  position: absolute;
+  top:
+    calc(50% + 150px);
+  left: 50%;
+
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  opacity: 0;
+
+  transform:
+    translate(-50%, 16px);
+
+  animation:
+    packTransitionText
+    0.7s 0.12s ease-out both;
+}
+
+.pack-transition-text small {
+  color: #b785ff;
+
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.27em;
+}
+
+.pack-transition-text strong {
+  margin-top: 5px;
+
+  color: #f3ebff;
+
+  font-size:
+    clamp(1.35rem, 4vw, 2.3rem);
+
+  letter-spacing: 0.08em;
+
+  text-shadow:
+    0 0 20px
+    rgba(169, 106, 255, 0.45);
+}
+
+.pack-transition-text span {
+  margin-top: 7px;
+
+  color: #8795b1;
+
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   速度線
+========================================================= */
+
+.pack-transition-speed-lines {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 170vw;
+  height: 170vh;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  background:
+    repeating-conic-gradient(
+      transparent 0deg 3deg,
+      rgba(179, 143, 255, 0.12)
+        3deg 3.5deg,
+      transparent
+        3.5deg 9deg
+    );
+
+  transform:
+    translate(-50%, -50%)
+    scale(0.2);
+
+  animation:
+    packTransitionSpeedLines
+    0.5s 0.48s ease-in both;
+}
+
+/* =========================================================
+   フラッシュ・画面切替
+========================================================= */
+
+.pack-transition-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      #ffffff 0%,
+      rgba(224, 207, 255, 0.94) 18%,
+      rgba(125, 75, 255, 0.55) 42%,
+      transparent 72%
+    );
+
+  mix-blend-mode: screen;
+
+  animation:
+    packTransitionFlash
+    0.55s 0.59s ease-out both;
+}
+
+.pack-transition-wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.94) 45%,
+      rgba(185, 145, 255, 0.8) 50%,
+      transparent 76%
+    );
+
+  opacity: 0;
+
+  transform:
+    translateX(-120%);
+
+  animation:
+    packTransitionWipe
+    0.7s 0.55s ease-in-out both;
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes packTransitionOverlay {
+  0% {
+    opacity: 0;
+  }
+
+  12%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes packTransitionBackground {
+  from {
+    transform:
+      scale(1.2)
+      rotate(-3deg);
+
+    filter:
+      brightness(0.6);
+  }
+
+  to {
+    transform:
+      scale(1)
+      rotate(0);
+
+    filter:
+      brightness(1);
+  }
+}
+
+@keyframes packTransitionGrid {
+  from {
+    background-position:
+      0 90px;
+  }
+
+  to {
+    background-position:
+      0 -120px;
+  }
+}
+
+@keyframes packTransitionBurst {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(0.12)
+      rotate(-25deg);
+  }
+
+  35% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.8)
+      rotate(35deg);
+  }
+}
+
+@keyframes packTransitionRing {
+  0% {
+    opacity: 0.8;
+
+    transform:
+      scale(0.2);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      scale(5);
+  }
+}
+
+@keyframes packTransitionCardOne {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        95px,
+        -180px
+      )
+      rotateY(70deg)
+      scale(0.55);
+  }
+
+  42% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        -250px,
+        0,
+        -90px
+      )
+      rotateZ(-18deg)
+      rotateY(0)
+      scale(0.88);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        -330px,
+        -20px,
+        -180px
+      )
+      rotateZ(-27deg)
+      scale(0.65);
+  }
+}
+
+@keyframes packTransitionCardTwo {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        95px,
+        -180px
+      )
+      rotateY(70deg)
+      scale(0.55);
+  }
+
+  42% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        -128px,
+        -28px,
+        -45px
+      )
+      rotateZ(-9deg)
+      rotateY(0)
+      scale(0.94);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        -190px,
+        -60px,
+        -130px
+      )
+      rotateZ(-16deg)
+      scale(0.72);
+  }
+}
+
+@keyframes packTransitionCardCenter {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        95px,
+        -180px
+      )
+      rotateY(70deg)
+      scale(0.55);
+  }
+
+  38% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        0,
+        -42px,
+        0
+      )
+      rotateY(0)
+      scale(1);
+  }
+
+  62% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        0,
+        -42px,
+        30px
+      )
+      scale(1.06);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        -24px,
+        750px
+      )
+      scale(4.8);
+
+    filter:
+      brightness(2.7)
+      saturate(1.8);
+  }
+}
+
+@keyframes packTransitionCardFour {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        95px,
+        -180px
+      )
+      rotateY(-70deg)
+      scale(0.55);
+  }
+
+  42% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        128px,
+        -28px,
+        -45px
+      )
+      rotateZ(9deg)
+      rotateY(0)
+      scale(0.94);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        190px,
+        -60px,
+        -130px
+      )
+      rotateZ(16deg)
+      scale(0.72);
+  }
+}
+
+@keyframes packTransitionCardFive {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        0,
+        95px,
+        -180px
+      )
+      rotateY(-70deg)
+      scale(0.55);
+  }
+
+  42% {
+    opacity: 1;
+
+    transform:
+      translate3d(
+        250px,
+        0,
+        -90px
+      )
+      rotateZ(18deg)
+      rotateY(0)
+      scale(0.88);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate3d(
+        330px,
+        -20px,
+        -180px
+      )
+      rotateZ(27deg)
+      scale(0.65);
+  }
+}
+
+@keyframes packTransitionCardShine {
+  from {
+    left: -80%;
+  }
+
+  to {
+    left: 145%;
+  }
+}
+
+@keyframes packTransitionText {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, 16px);
+  }
+
+  25%,
+  70% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -12px);
+  }
+}
+
+@keyframes packTransitionSpeedLines {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(0.2);
+  }
+
+  55% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.2);
+  }
+}
+
+@keyframes packTransitionFlash {
+  0% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes packTransitionWipe {
+  0% {
+    opacity: 0;
+
+    transform:
+      translateX(-120%);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translateX(120%);
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+  .pack-transition-stage {
+    height: 450px;
+  }
+
+  .pack-transition-cards {
+    width: 118px;
+    height: 172px;
+  }
+
+  .pack-transition-card {
+    border-radius: 13px;
+  }
+
+  .pack-transition-card i {
+    font-size: 2.7rem;
+  }
+
+  .pack-transition-card strong {
+    font-size: 0.77rem;
+  }
+
+  .pack-transition-card small {
+    font-size: 0.44rem;
+  }
+
+  .pack-transition-text {
+    top:
+      calc(50% + 125px);
+  }
+
+  @keyframes packTransitionCardOne {
+    0% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          0,
+          80px,
+          -150px
+        )
+        scale(0.55);
+    }
+
+    42% {
+      opacity: 1;
+
+      transform:
+        translate3d(
+          -135px,
+          0,
+          -70px
+        )
+        rotateZ(-16deg)
+        scale(0.82);
+    }
+
+    100% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          -190px,
+          -20px,
+          -150px
+        )
+        rotateZ(-24deg)
+        scale(0.62);
+    }
+  }
+
+  @keyframes packTransitionCardTwo {
+    0% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          0,
+          80px,
+          -150px
+        )
+        scale(0.55);
+    }
+
+    42% {
+      opacity: 1;
+
+      transform:
+        translate3d(
+          -70px,
+          -20px,
+          -35px
+        )
+        rotateZ(-8deg)
+        scale(0.9);
+    }
+
+    100% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          -100px,
+          -50px,
+          -100px
+        )
+        rotateZ(-13deg)
+        scale(0.68);
+    }
+  }
+
+  @keyframes packTransitionCardFour {
+    0% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          0,
+          80px,
+          -150px
+        )
+        scale(0.55);
+    }
+
+    42% {
+      opacity: 1;
+
+      transform:
+        translate3d(
+          70px,
+          -20px,
+          -35px
+        )
+        rotateZ(8deg)
+        scale(0.9);
+    }
+
+    100% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          100px,
+          -50px,
+          -100px
+        )
+        rotateZ(13deg)
+        scale(0.68);
+    }
+  }
+
+  @keyframes packTransitionCardFive {
+    0% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          0,
+          80px,
+          -150px
+        )
+        scale(0.55);
+    }
+
+    42% {
+      opacity: 1;
+
+      transform:
+        translate3d(
+          135px,
+          0,
+          -70px
+        )
+        rotateZ(16deg)
+        scale(0.82);
+    }
+
+    100% {
+      opacity: 0;
+
+      transform:
+        translate3d(
+          190px,
+          -20px,
+          -150px
+        )
+        rotateZ(24deg)
+        scale(0.62);
+    }
+  }
+}
+
+/*
+  端末側でアニメーションを減らす設定の場合。
+*/
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .pack-transition-overlay,
+  .pack-transition-background,
+  .pack-transition-background::before,
+  .pack-transition-burst,
+  .pack-transition-rings span,
+  .pack-transition-card,
+  .pack-transition-card::after,
+  .pack-transition-text,
+  .pack-transition-speed-lines,
+  .pack-transition-flash,
+  .pack-transition-wipe {
+    animation-duration:
+      0.15s !important;
+
+    animation-delay:
+      0s !important;
+  }
+}

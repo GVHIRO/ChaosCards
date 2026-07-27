@@ -3,7 +3,6 @@ import AppLoading from "./components/AppLoading";
 import PackOpening from "./pages/PackOpening";
 import UpdateNotice from
   "./components/UpdateNotice";
-
 import {
   APP_VERSION,
 } from "./data/updates";
@@ -76,7 +75,6 @@ const [
   showUpdateNotice,
   setShowUpdateNotice,
 ] = useState(false);
-
 const [
   hasUnreadUpdate,
   setHasUnreadUpdate,
@@ -658,6 +656,7 @@ function recordChallengeResult(
     );
   }
 }
+
 function closeUpdateNotice() {
   markCurrentUpdateAsSeen();
 
@@ -1003,6 +1002,8 @@ playerEmail={
  return (
   <>
     {renderScreen()}
+
+    
 
     <AchievementToast />
     <RewardToast />

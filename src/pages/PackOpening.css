@@ -510,7 +510,8 @@
   transform: rotateY(0deg);
 }
 
-.pack-card-back span {
+.pack-card-back
+.pack-card-back-symbol {
   font-size: 3.5rem;
 }
 
@@ -726,4 +727,747 @@ button:disabled {
   .pack-result-card {
     min-height: 300px;
   }
+}
+
+/* =========================================================
+   タップ開封
+========================================================= */
+
+.pack-result-card {
+  position: relative;
+
+  width: 100%;
+  min-height: 300px;
+  padding: 0;
+
+  appearance: none;
+
+  border: 0;
+  outline: none;
+
+  color: inherit;
+  background: transparent;
+
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.pack-result-card.is-revealed {
+  cursor: default;
+}
+
+.pack-card-back-symbol {
+  font-size: 3.5rem;
+
+  filter:
+    drop-shadow(
+      0 0 18px
+      rgba(171, 116, 255, 0.52)
+    );
+
+  animation:
+    packBackSymbolPulse
+    1.8s ease-in-out infinite;
+}
+
+.pack-card-tap-hint {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  left: 15px;
+
+  padding: 7px 8px;
+
+  border:
+    1px solid
+    rgba(194, 160, 255, 0.25);
+
+  border-radius: 999px;
+
+  color: #d7c0ff;
+  background:
+    rgba(15, 19, 47, 0.62);
+
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+
+  animation:
+    packTapHintPulse
+    1.3s ease-in-out infinite;
+}
+
+.pack-result-card:hover:not(.is-revealed)
+.pack-card-back {
+  border-color:
+    rgba(196, 158, 255, 0.95);
+
+  box-shadow:
+    0 0 32px
+      rgba(151, 83, 255, 0.32);
+
+  transform:
+    rotateY(0deg)
+    translateY(-5px);
+}
+
+/* =========================================================
+   レアリティ共通演出
+========================================================= */
+
+.pack-result-card.rarity-common {
+  --pack-rarity-main:
+    #bcc8d5;
+
+  --pack-rarity-soft:
+    rgba(188, 200, 213, 0.16);
+
+  --pack-rarity-glow:
+    rgba(188, 200, 213, 0.3);
+}
+
+.pack-result-card.rarity-rare {
+  --pack-rarity-main:
+    #52bdff;
+
+  --pack-rarity-soft:
+    rgba(44, 164, 255, 0.23);
+
+  --pack-rarity-glow:
+    rgba(45, 171, 255, 0.55);
+}
+
+.pack-result-card.rarity-epic {
+  --pack-rarity-main:
+    #cf6fff;
+
+  --pack-rarity-soft:
+    rgba(185, 71, 255, 0.27);
+
+  --pack-rarity-glow:
+    rgba(191, 67, 255, 0.65);
+}
+
+.pack-result-card.rarity-legend {
+  --pack-rarity-main:
+    #ffd45d;
+
+  --pack-rarity-soft:
+    rgba(255, 188, 44, 0.3);
+
+  --pack-rarity-glow:
+    rgba(255, 193, 48, 0.78);
+}
+
+.pack-result-card
+.pack-card-front {
+  overflow: hidden;
+
+  border:
+    2px solid
+    transparent;
+
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      var(--pack-rarity-soft),
+      transparent 48%
+    )
+    padding-box,
+    linear-gradient(
+      150deg,
+      #1c2941,
+      #0b1425
+    )
+    padding-box,
+    linear-gradient(
+      135deg,
+      var(--pack-rarity-main),
+      rgba(255, 255, 255, 0.75),
+      var(--pack-rarity-main)
+    )
+    border-box;
+
+  box-shadow:
+    0 22px 50px
+      rgba(0, 0, 0, 0.42),
+    0 0 25px
+      var(--pack-rarity-glow);
+}
+
+.pack-result-card.is-revealed
+.pack-card-front {
+  animation:
+    packFrontReveal
+    0.72s ease-out;
+}
+
+.pack-result-card.is-revealed
+.pack-card-front::after {
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: -75%;
+
+  width: 42%;
+
+  content: "";
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.78),
+      transparent
+    );
+
+  transform:
+    rotate(16deg);
+
+  animation:
+    packCardShine
+    0.9s 0.22s ease-out forwards;
+}
+
+.pack-rarity-badge {
+  position: relative;
+  z-index: 3;
+
+  padding: 5px 10px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--pack-rarity-main)
+      65%,
+      white
+    );
+
+  border-radius: 999px;
+
+  color:
+    var(--pack-rarity-main);
+
+  background:
+    rgba(5, 12, 24, 0.68);
+
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.13em;
+
+  box-shadow:
+    0 0 13px
+      var(--pack-rarity-glow);
+}
+
+.pack-rarity-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+
+  width: 155px;
+  height: 155px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      var(--pack-rarity-soft),
+      transparent 70%
+    );
+
+  opacity: 0;
+
+  transform:
+    translate(-50%, -50%)
+    scale(0.35);
+}
+
+.pack-result-card.is-revealed
+.pack-rarity-aura {
+  animation:
+    packRarityAura
+    1.15s ease-out forwards;
+}
+
+.pack-result-card.is-revealed
+.pack-card-emoji {
+  position: relative;
+  z-index: 2;
+
+  animation:
+    packEmojiReveal
+    0.72s 0.12s
+    cubic-bezier(
+      0.18,
+      0.85,
+      0.3,
+      1.3
+    )
+    both;
+}
+
+.pack-result-card-name,
+.pack-owned-label,
+.pack-card-front > p {
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================================================
+   Rare
+========================================================= */
+
+.pack-result-card.rarity-rare
+.pack-card-front {
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      rgba(60, 183, 255, 0.36),
+      transparent 50%
+    )
+    padding-box,
+    linear-gradient(
+      150deg,
+      #163b60,
+      #09192e
+    )
+    padding-box,
+    linear-gradient(
+      135deg,
+      #4bc0ff,
+      #d4f5ff,
+      #248fff
+    )
+    border-box;
+}
+
+/* =========================================================
+   Epic
+========================================================= */
+
+.pack-result-card.rarity-epic
+.pack-card-front {
+  background:
+    radial-gradient(
+      circle at 50% 36%,
+      rgba(207, 84, 255, 0.44),
+      transparent 51%
+    )
+    padding-box,
+    linear-gradient(
+      150deg,
+      #4b176d,
+      #171036 65%,
+      #090e21
+    )
+    padding-box,
+    linear-gradient(
+      120deg,
+      #d56cff,
+      #7b68ff,
+      #f5c5ff,
+      #ba4dff
+    )
+    border-box;
+
+  box-shadow:
+    0 25px 55px
+      rgba(0, 0, 0, 0.48),
+    0 0 42px
+      rgba(192, 67, 255, 0.52);
+}
+
+/* =========================================================
+   Legend
+========================================================= */
+
+.pack-result-card.rarity-legend
+.pack-card-front {
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 229, 117, 0.52),
+      transparent 48%
+    )
+    padding-box,
+    linear-gradient(
+      150deg,
+      #704914,
+      #2d1f13 58%,
+      #121329
+    )
+    padding-box,
+    linear-gradient(
+      115deg,
+      #fff4a8,
+      #ffad26,
+      #ffffff,
+      #ff77c8,
+      #7fdcff,
+      #fff4a8
+    )
+    border-box;
+
+  box-shadow:
+    0 27px 60px
+      rgba(0, 0, 0, 0.5),
+    0 0 52px
+      rgba(255, 195, 47, 0.7);
+
+  animation:
+    packLegendGlow
+    1.5s ease-in-out infinite;
+}
+
+.pack-result-card.rarity-legend
+.pack-rarity-badge {
+  color: #251908;
+
+  border-color: #fff1a0;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff0a0,
+      #ffbd3e
+    );
+
+  text-shadow: none;
+}
+
+/* =========================================================
+   粒子
+========================================================= */
+
+.pack-rarity-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  pointer-events: none;
+}
+
+.pack-rarity-particles i {
+  position: absolute;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  opacity: 0;
+
+  background:
+    var(--pack-rarity-main);
+
+  box-shadow:
+    0 0 9px
+      var(--pack-rarity-main);
+}
+
+.pack-result-card.is-revealed
+.pack-rarity-particles i {
+  animation:
+    packParticleBurst
+    1.1s ease-out forwards;
+}
+
+.pack-rarity-particles i:nth-child(1) {
+  top: 20%;
+  left: 20%;
+}
+
+.pack-rarity-particles i:nth-child(2) {
+  top: 17%;
+  right: 22%;
+  animation-delay: 0.08s;
+}
+
+.pack-rarity-particles i:nth-child(3) {
+  top: 46%;
+  left: 10%;
+  animation-delay: 0.15s;
+}
+
+.pack-rarity-particles i:nth-child(4) {
+  top: 45%;
+  right: 10%;
+  animation-delay: 0.2s;
+}
+
+.pack-rarity-particles i:nth-child(5) {
+  bottom: 22%;
+  left: 19%;
+  animation-delay: 0.12s;
+}
+
+.pack-rarity-particles i:nth-child(6) {
+  right: 18%;
+  bottom: 24%;
+  animation-delay: 0.24s;
+}
+
+.pack-rarity-particles i:nth-child(7) {
+  top: 31%;
+  left: 48%;
+  animation-delay: 0.18s;
+}
+
+.pack-rarity-particles i:nth-child(8) {
+  bottom: 14%;
+  left: 50%;
+  animation-delay: 0.28s;
+}
+
+/* =========================================================
+   画面全体のレアリティフラッシュ
+========================================================= */
+
+.pack-rarity-screen-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  mix-blend-mode: screen;
+
+  animation:
+    packScreenFlash
+    0.9s ease-out;
+}
+
+.pack-rarity-screen-flash.rarity-common {
+  background:
+    radial-gradient(
+      circle,
+      rgba(214, 227, 240, 0.23),
+      transparent 65%
+    );
+}
+
+.pack-rarity-screen-flash.rarity-rare {
+  background:
+    radial-gradient(
+      circle,
+      rgba(45, 177, 255, 0.48),
+      transparent 68%
+    );
+}
+
+.pack-rarity-screen-flash.rarity-epic {
+  background:
+    radial-gradient(
+      circle,
+      rgba(195, 63, 255, 0.62),
+      transparent 68%
+    );
+}
+
+.pack-rarity-screen-flash.rarity-legend {
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 226, 102, 0.88),
+      rgba(255, 118, 211, 0.24),
+      transparent 72%
+    );
+
+  animation-duration:
+    1.3s;
+}
+
+/* =========================================================
+   アニメーション
+========================================================= */
+
+@keyframes packBackSymbolPulse {
+  50% {
+    transform: scale(1.09);
+
+    filter:
+      drop-shadow(
+        0 0 28px
+        rgba(191, 136, 255, 0.8)
+      );
+  }
+}
+
+@keyframes packTapHintPulse {
+  50% {
+    color: #ffffff;
+
+    border-color:
+      rgba(220, 194, 255, 0.55);
+  }
+}
+
+@keyframes packFrontReveal {
+  0% {
+    filter:
+      brightness(2.2)
+      saturate(1.8);
+  }
+
+  100% {
+    filter:
+      brightness(1)
+      saturate(1);
+  }
+}
+
+@keyframes packEmojiReveal {
+  0% {
+    opacity: 0;
+    transform:
+      scale(0.25)
+      rotate(-12deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform:
+      scale(1.2)
+      rotate(3deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      scale(1)
+      rotate(0);
+  }
+}
+
+@keyframes packRarityAura {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      scale(0.25);
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.42;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.65);
+  }
+}
+
+@keyframes packCardShine {
+  from {
+    left: -75%;
+  }
+
+  to {
+    left: 145%;
+  }
+}
+
+@keyframes packParticleBurst {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(12px)
+      scale(0.2);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translateY(-34px)
+      scale(1.35);
+  }
+}
+
+@keyframes packLegendGlow {
+  50% {
+    box-shadow:
+      0 27px 60px
+        rgba(0, 0, 0, 0.5),
+      0 0 72px
+        rgba(255, 198, 45, 0.95);
+  }
+}
+
+@keyframes packScreenFlash {
+  0% {
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.pack-card-back
+.pack-card-tap-hint {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+
+  width: auto;
+  margin: 0;
+  padding: 7px 6px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(194, 160, 255, 0.25);
+
+  border-radius: 999px;
+
+  color: #d7c0ff;
+
+  background:
+    rgba(15, 19, 47, 0.68);
+
+  font-size: 0.56rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0.12em;
+
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pack-card-back {
+  padding: 18px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-card-back
+> strong {
+  margin-top: 12px;
+
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
 }
