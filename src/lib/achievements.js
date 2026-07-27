@@ -5,7 +5,9 @@ import { supabase } from "./supabase";
 import challenges, {
   CHALLENGE_PROGRESS_KEY,
 } from "../data/challenges";
-
+import {
+  notifyProgressChanged,
+} from "./progressStorage";
 export const ACHIEVEMENT_UNLOCK_EVENT =
   "chaos-achievements-unlocked";
 
@@ -147,12 +149,16 @@ export function getAchievementStats() {
   }
 }
 
-function saveAchievementStats(stats) {
+function saveAchievementStats(
+  stats,
+) {
   try {
     localStorage.setItem(
       ACHIEVEMENT_STATS_KEY,
       JSON.stringify(stats),
     );
+
+    notifyProgressChanged();
   } catch (error) {
     console.error(
       "実績統計保存エラー:",
@@ -216,6 +222,7 @@ export function unlockAchievements(
         nextUnlockedIds,
       ),
     );
+    notifyProgressChanged();
   } catch (error) {
     console.error(
       "実績保存エラー:",

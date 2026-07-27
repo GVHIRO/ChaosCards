@@ -7,6 +7,9 @@ import {
   getCardCollection,
   getOwnedCardCount,
 } from "../lib/collection";
+import {
+  notifyDeckChanged,
+} from "../lib/deckStorage";
 const DECK_SIZE = 20;
 const PRESET_COUNT = 3;
 
@@ -418,7 +421,7 @@ useEffect(() => {
         PRESET_STORAGE_KEY,
         JSON.stringify(nextPresets)
       );
-
+notifyDeckChanged();
       localStorage.setItem(
         ACTIVE_PRESET_KEY,
         initialPreset.id
@@ -446,7 +449,7 @@ useEffect(() => {
         ACTIVE_PRESET_KEY,
         "preset-1"
       );
-
+notifyDeckChanged();
       setMessage(
         "デッキプリセットを初期化しました"
       );
@@ -519,41 +522,62 @@ const currentPreset =
     typeFilter,
     searchText,
   ]);
-function persistPresets(nextPresets) {
-  setPresets(nextPresets);
+function persistPresets(
+  nextPresets,
+) {
+  setPresets(
+    nextPresets,
+  );
 
   localStorage.setItem(
     PRESET_STORAGE_KEY,
-    JSON.stringify(nextPresets)
+    JSON.stringify(
+      nextPresets,
+    ),
   );
+
+  notifyDeckChanged();
 }
 
 function updateCurrentPresetDeck(
-  nextDeck
+  nextDeck,
 ) {
   const nextCardIds =
-    deckToCardIds(nextDeck);
-
-  setDeck(nextDeck);
-
-  setPresets((currentPresets) => {
-    const nextPresets =
-      currentPresets.map((preset) =>
-        preset.id === selectedPresetId
-          ? {
-              ...preset,
-              cardIds: nextCardIds,
-            }
-          : preset
-      );
-
-    localStorage.setItem(
-      PRESET_STORAGE_KEY,
-      JSON.stringify(nextPresets)
+    deckToCardIds(
+      nextDeck,
     );
 
-    return nextPresets;
-  });
+  setDeck(
+    nextDeck,
+  );
+
+  setPresets(
+    (currentPresets) => {
+      const nextPresets =
+        currentPresets.map(
+          (preset) =>
+            preset.id ===
+            selectedPresetId
+              ? {
+                  ...preset,
+                  cardIds:
+                    nextCardIds,
+                }
+              : preset,
+        );
+
+      localStorage.setItem(
+        PRESET_STORAGE_KEY,
+        JSON.stringify(
+          nextPresets,
+        ),
+      );
+
+      notifyDeckChanged();
+
+      return nextPresets;
+    },
+  );
 }
 
 function selectPreset(presetId) {
@@ -735,16 +759,19 @@ function toggleCatalogCard(card) {
 
   addCard(card);
 }
-  function removeCard(index) {
-    setMessage("");
+function removeCard(index) {
+  setMessage("");
 
-    setDeck((currentDeck) =>
-      currentDeck.filter(
-        (_, cardIndex) =>
-          cardIndex !== index
-      )
+  const nextDeck =
+    deck.filter(
+      (_, cardIndex) =>
+        cardIndex !== index,
     );
-  }
+
+  updateCurrentPresetDeck(
+    nextDeck,
+  );
+}
 
   function saveDeck() {
   if (deck.length !== DECK_SIZE) {

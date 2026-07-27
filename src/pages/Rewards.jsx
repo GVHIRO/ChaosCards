@@ -4,7 +4,9 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import {
+  PROGRESS_CHANGE_EVENT,
+} from "../lib/progressStorage";
 import {
   COLLECTION_CHANGE_EVENT,
   COIN_CHANGE_EVENT,
@@ -49,11 +51,12 @@ export default function Rewards({
     refresh();
 
     const events = [
-      REWARD_CHANGE_EVENT,
-      COIN_CHANGE_EVENT,
-      COLLECTION_CHANGE_EVENT,
-      ACHIEVEMENT_UNLOCK_EVENT,
-    ];
+  REWARD_CHANGE_EVENT,
+  COIN_CHANGE_EVENT,
+  COLLECTION_CHANGE_EVENT,
+  ACHIEVEMENT_UNLOCK_EVENT,
+  PROGRESS_CHANGE_EVENT,
+];
 
     events.forEach(
       (eventName) => {

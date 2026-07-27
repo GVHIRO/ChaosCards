@@ -1,12 +1,21 @@
 import ProfileSetup from "./pages/ProfileSetup";
 import AppLoading from "./components/AppLoading";
 import PackOpening from "./pages/PackOpening";
+import CloudSaveStatus from
+  "./components/CloudSaveStatus";
 import UpdateNotice from
   "./components/UpdateNotice";
+  import {
+  PROGRESS_CHANGE_EVENT,
+  notifyProgressChanged,
+} from "./lib/progressStorage";
 import {
   APP_VERSION,
 } from "./data/updates";
-
+import {
+  initializeCloudSave,
+  stopCloudSave,
+} from "./lib/cloudSave";
 import {
   hasUnreadUpdates,
   markCurrentUpdateAsSeen,
@@ -207,7 +216,10 @@ useEffect(() => {
     COIN_CHANGE_EVENT,
     refreshRewards,
   );
-
+window.addEventListener(
+  PROGRESS_CHANGE_EVENT,
+  refreshRewards,
+);
   window.addEventListener(
     REWARD_CHANGE_EVENT,
     refreshRewards,
@@ -218,7 +230,10 @@ useEffect(() => {
       COIN_CHANGE_EVENT,
       refreshRewards,
     );
-
+window.removeEventListener(
+  PROGRESS_CHANGE_EVENT,
+  refreshRewards,
+);
     window.removeEventListener(
       REWARD_CHANGE_EVENT,
       refreshRewards,
@@ -280,14 +295,32 @@ useEffect(() => {
         throw userError;
       }
 
-      if (!isMounted) {
-        return;
-      }
+      if (!user) {
+  throw new Error(
+    "ユーザー情報を取得できませんでした",
+  );
+}
 
-      setCurrentUser(user);
+const cloudSyncResult =
+  await initializeCloudSave(
+    user,
+  );
 
-      const profile =
-        await fetchUserProfile(user);
+if (!cloudSyncResult.ok) {
+  console.warn(
+    "クラウド同期を開始できませんでした:",
+    cloudSyncResult.message,
+  );
+}
+
+if (!isMounted) {
+  return;
+}
+
+setCurrentUser(user);
+
+const profile =
+  await fetchUserProfile(user);
 
       if (!isMounted) {
         return;
@@ -374,11 +407,23 @@ if (
         }
 
         if (
-          event === "SIGNED_IN" ||
-          event === "USER_UPDATED"
-        ) {
-          const profile =
-            await fetchUserProfile(user);
+  event === "SIGNED_IN" ||
+  event === "USER_UPDATED"
+) {
+  const cloudSyncResult =
+    await initializeCloudSave(
+      user,
+    );
+
+  if (!cloudSyncResult.ok) {
+    console.warn(
+      "クラウド同期を開始できませんでした:",
+      cloudSyncResult.message,
+    );
+  }
+
+  const profile =
+    await fetchUserProfile(user);
 
           const hasCompletedProfile =
   Boolean(profile?.username?.trim());
@@ -399,9 +444,11 @@ if (
         }
 
         if (event === "SIGNED_OUT") {
-          setCurrentProfile(null);
-          setScreen("menu");
-        }
+  stopCloudSave();
+
+  setCurrentProfile(null);
+  setScreen("menu");
+}
       } catch (error) {
         console.error(
           "認証状態変更エラー:",
@@ -412,9 +459,12 @@ if (
   );
 
   return () => {
-    isMounted = false;
-    subscription.unsubscribe();
-  };
+  isMounted = false;
+
+  stopCloudSave();
+
+  subscription.unsubscribe();
+};
 }, []);
   function hasValidDeck() {
     const savedDeck =
@@ -516,6 +566,7 @@ function recordChallengeResult(
         nextClearedIds,
       ),
     );
+    notifyProgressChanged();
   } catch (error) {
     console.error(
       "チャレンジ進行保存エラー:",
@@ -999,11 +1050,15 @@ playerEmail={
     return <AppLoading />;
   }
 
- return (
+return (
   <>
     {renderScreen()}
 
-    
+    <CloudSaveStatus
+      currentUser={
+        currentUser
+      }
+    />
 
     <AchievementToast />
     <RewardToast />

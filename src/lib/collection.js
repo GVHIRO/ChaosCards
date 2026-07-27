@@ -8,7 +8,8 @@ export const COLLECTION_CHANGE_EVENT =
 
 export const COIN_CHANGE_EVENT =
   "chaos-card-coins-change";
-
+export const PACK_PITY_CHANGE_EVENT =
+  "chaos-card-pack-pity-change";
 const COLLECTION_STORAGE_KEY =
   "chaosCardsCollection";
 
@@ -325,6 +326,15 @@ function savePackPity(pity) {
   localStorage.setItem(
     PACK_PITY_STORAGE_KEY,
     String(safePity),
+  );
+
+  window.dispatchEvent(
+    new CustomEvent(
+      PACK_PITY_CHANGE_EVENT,
+      {
+        detail: safePity,
+      },
+    ),
   );
 
   return safePity;
@@ -737,7 +747,13 @@ export function getCoins() {
     ),
   );
 }
-
+export function replaceCoins(
+  nextCoins,
+) {
+  return saveCoins(
+    nextCoins,
+  );
+}
 export function addCoins(amount) {
   const safeAmount =
     Math.max(
@@ -766,7 +782,13 @@ export function getPackPity() {
     ),
   );
 }
-
+export function replacePackPity(
+  nextPity,
+) {
+  return savePackPity(
+    nextPity,
+  );
+}
 function rollRarity(
   odds,
   minimumRarity = "Common",

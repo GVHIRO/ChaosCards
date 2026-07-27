@@ -3,6 +3,9 @@ import achievements from
   "../data/achievements";
 import challenges from
   "../data/challenges";
+  import {
+  notifyProgressChanged,
+} from "./progressStorage";
 import {
   ACHIEVEMENT_COIN_REWARDS,
   CHALLENGE_BONUSES,
@@ -87,6 +90,8 @@ function saveJson(
       key,
       JSON.stringify(value),
     );
+
+    notifyProgressChanged();
 
     return true;
   } catch (error) {
@@ -1326,7 +1331,7 @@ export function recordBattleRewards({
         FIRST_WIN_DATE_KEY,
         today,
       );
-
+notifyProgressChanged();
       const amount =
         grantCoins(
           DAILY_FIRST_WIN_REWARD,
