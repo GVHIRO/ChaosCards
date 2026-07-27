@@ -36,28 +36,33 @@ export default function UpdateNotice({
     ]);
 
   useEffect(() => {
-    function handleKeyDown(event) {
-      if (
-        event.key === "Escape"
-      ) {
-        onClose();
-      }
-    }
+  const previousOverflow =
+    document.body.style.overflow;
 
-    window.addEventListener(
+  document.body.style.overflow =
+    "hidden";
+
+  function handleKeyDown(event) {
+    if (event.key === "Escape") {
+      onClose();
+    }
+  }
+
+  window.addEventListener(
+    "keydown",
+    handleKeyDown,
+  );
+
+  return () => {
+    document.body.style.overflow =
+      previousOverflow;
+
+    window.removeEventListener(
       "keydown",
       handleKeyDown,
     );
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
-    };
-  }, [
-    onClose,
-  ]);
+  };
+}, [onClose]);
 
   if (!selectedUpdate) {
     return null;
