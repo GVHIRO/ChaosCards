@@ -2063,3 +2063,112 @@ span:last-child {
 
   font-weight: 900;
 }
+
+/* =========================================================
+   スマホ版デッキ保存バー
+========================================================= */
+
+.deck-mobile-savebar {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .deck-builder.deck-builder-v2 {
+    padding-bottom:
+      calc(
+        120px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .deck-mobile-savebar {
+    position: fixed;
+    right: 12px;
+    bottom:
+      calc(
+        12px +
+        env(safe-area-inset-bottom)
+      );
+    left: 12px;
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    border:
+      1px solid
+      rgba(83, 188, 255, 0.45);
+
+    border-radius: 16px;
+
+    background: rgba(5, 16, 35, 0.96);
+
+    box-shadow:
+      0 16px 45px
+      rgba(0, 0, 0, 0.58);
+
+    backdrop-filter: blur(18px);
+
+    pointer-events: auto;
+  }
+
+  .deck-mobile-savebar > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .deck-mobile-savebar > div strong {
+    color: #ffffff;
+    font-size: 16px;
+  }
+
+  .deck-mobile-savebar > div span {
+    color: #91a8c4;
+    font-size: 12px;
+  }
+
+  .deck-mobile-save-button {
+    min-width: 135px;
+    min-height: 48px;
+    padding: 0 16px;
+
+    border: 0;
+    border-radius: 12px;
+
+    color: #ffffff;
+
+    background:
+      linear-gradient(
+        135deg,
+        #2589f5,
+        #655bff
+      );
+
+    font-size: 14px;
+    font-weight: 900;
+
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+
+    -webkit-tap-highlight-color:
+      transparent;
+  }
+
+  .deck-mobile-save-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .deck-mobile-save-button:not(:disabled) {
+    box-shadow:
+      0 0 20px
+      rgba(52, 151, 255, 0.35);
+  }
+}

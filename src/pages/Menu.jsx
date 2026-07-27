@@ -5,6 +5,7 @@ export default function Menu({
   onDeckBuilder,
   onFriends,
   onSettings,
+  onCardLibrary,
   openAuthMenu,
   currentUser,
   handleLogout,
@@ -169,24 +170,38 @@ export default function Menu({
           </div>
 
           <div className="home-account-actions">
-            {isAnonymous ? (
-              <button
-                type="button"
-                className="home-secondary-button"
-                onClick={openAuthMenu}
-              >
-                ログイン・アカウント登録
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="home-secondary-button danger"
-                onClick={handleLogout}
-              >
-                ログアウト
-              </button>
-            )}
-          </div>
+  <button
+    type="button"
+    className="
+      home-secondary-button
+      home-library-button
+    "
+    onClick={onCardLibrary}
+  >
+    📚 カード図鑑
+  </button>
+
+  {isAnonymous ? (
+    <button
+      type="button"
+      className="home-secondary-button"
+      onClick={openAuthMenu}
+    >
+      ログイン・アカウント登録
+    </button>
+  ) : (
+    <button
+      type="button"
+      className="
+        home-secondary-button
+        danger
+      "
+      onClick={handleLogout}
+    >
+      ログアウト
+    </button>
+  )}
+</div>
         </footer>
       </section>
     </main>

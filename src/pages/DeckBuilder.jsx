@@ -1095,12 +1095,11 @@ function toggleCatalogCard(card) {
         </div>
         <button
   type="button"
-  className="deck-save-top"
+  className="deck-mobile-save-button"
   onClick={saveDeck}
   disabled={deck.length !== DECK_SIZE}
 >
-  {selectedPresetId ===
-  activePresetId
+  {selectedPresetId === activePresetId
     ? "上書き保存"
     : "保存して使用"}
 </button>

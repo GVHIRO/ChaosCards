@@ -10,6 +10,7 @@ import Battle from "./pages/Battle";
 import DeckBuilder from "./pages/DeckBuilder";
 import Friends from "./pages/Friends";
 import Settings from "./pages/Settings";
+import CardLibrary from "./pages/CardLibrary";
 
 function App() {
   const [authReady, setAuthReady] = useState(false);
@@ -452,6 +453,15 @@ if (
     />
   );
 }
+if (screen === "card-library") {
+  return (
+    <CardLibrary
+      onBack={() =>
+        setScreen("menu")
+      }
+    />
+  );
+}
  if (screen === "friends") {
   return (
     <Friends
@@ -572,6 +582,9 @@ avatarUrl={
   onSettings={() =>
     setScreen("settings")
   }
+  onCardLibrary={() =>
+  setScreen("card-library")
+}
   openAuthMenu={() =>
     setShowAuthMenu(true)
   }
