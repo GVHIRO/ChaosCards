@@ -2172,3 +2172,37 @@ span:last-child {
       rgba(52, 151, 255, 0.35);
   }
 }
+
+/* =========================================================
+   未所持カード
+========================================================= */
+
+.deck-card-v2.is-unowned {
+  opacity: 0.42;
+  filter:
+    grayscale(0.9)
+    brightness(0.72);
+}
+
+.deck-card-v2.is-unowned::after {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  pointer-events: none;
+
+  content: "🔒 未所持";
+
+  color: #d7e2f0;
+  background:
+    rgba(4, 10, 20, 0.58);
+
+  font-size: 14px;
+  font-weight: 950;
+
+  border-radius: inherit;
+
+  backdrop-filter: blur(2px);
+}

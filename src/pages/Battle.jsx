@@ -1,5 +1,8 @@
 import "./Battle.css";
 import { getSettings } from "../lib/settings";
+import {
+  recordBattleCoinReward,
+} from "../lib/collection";
 import Settings from "./Settings";
 import {
   startBattleBgm,
@@ -1519,9 +1522,40 @@ useEffect(() => {
     challengeId:
       challenge?.id ?? null,
   });
+
+  const onlineRewardKey =
+    mode === "online" &&
+    matchId
+      ? `online:${matchId}:${
+          Number(
+            match?.rematch_count || 0,
+          )
+        }`
+      : null;
+
+  const coinReward =
+    recordBattleCoinReward({
+      result: winner,
+      mode,
+      challengeId:
+        challenge?.id ?? null,
+      rewardKey:
+        onlineRewardKey,
+    });
+
+  if (coinReward > 0) {
+    setLogs(
+      (currentLogs) => [
+        `🪙 バトル報酬：${coinReward}コイン獲得！`,
+        ...currentLogs,
+      ].slice(0, 12),
+    );
+  }
 }, [
   winner,
   mode,
+  matchId,
+  match?.rematch_count,
   challenge?.id,
 ]);
   const isMyTurn = useMemo(() => {

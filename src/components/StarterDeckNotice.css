@@ -1,0 +1,301 @@
+/* =========================================================
+   STARTER DECK MIGRATION NOTICE
+========================================================= */
+
+.starter-notice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  padding: 20px;
+
+  display: grid;
+  place-items: center;
+
+  background:
+    rgba(2, 7, 16, 0.78);
+
+  backdrop-filter:
+    blur(9px);
+}
+
+.starter-notice {
+  position: relative;
+
+  width:
+    min(470px, 100%);
+  padding:
+    30px 28px 26px;
+
+  overflow: hidden;
+
+  color: #eef7ff;
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(88, 185, 255, 0.38);
+
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0,
+      rgba(47, 164, 255, 0.2),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(19, 39, 68, 0.98),
+      rgba(7, 17, 33, 0.99)
+    );
+
+  box-shadow:
+    0 35px 90px
+      rgba(0, 0, 0, 0.58),
+    0 0 40px
+      rgba(41, 153, 255, 0.14),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.06);
+
+  animation:
+    starterNoticeAppear
+    0.32s ease-out;
+}
+
+.starter-notice::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  content: "";
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.06),
+      transparent 80%
+    );
+
+  transform:
+    translateX(-100%);
+
+  animation:
+    starterNoticeSweep
+    1.2s 0.25s ease-out;
+}
+
+.starter-notice-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(86, 188, 255, 0.4);
+
+  border-radius: 21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(54, 166, 255, 0.24),
+      rgba(99, 77, 255, 0.13)
+    );
+
+  font-size: 2.4rem;
+
+  box-shadow:
+    0 0 25px
+      rgba(52, 169, 255, 0.17);
+}
+
+.starter-notice > small {
+  color: #67c4ff;
+
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+}
+
+.starter-notice h2 {
+  margin: 7px 0 13px;
+
+  color: #f3f9ff;
+
+  font-size:
+    clamp(1.65rem, 5vw, 2.25rem);
+}
+
+.starter-notice > p {
+  margin:
+    0 auto;
+
+  max-width: 390px;
+
+  color: #9cadc3;
+
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.starter-notice-change {
+  margin: 20px 0;
+  padding: 15px 17px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(255, 204, 77, 0.27);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(95, 67, 17, 0.4),
+      rgba(45, 38, 28, 0.38)
+    );
+}
+
+.starter-notice-change span {
+  color: #a99567;
+
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.starter-notice-change strong {
+  margin-top: 3px;
+
+  color: #ffdc7c;
+
+  font-size: 1.18rem;
+}
+
+.starter-notice-change small {
+  margin-top: 3px;
+
+  color: #b5a77e;
+
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.starter-notice
+.starter-notice-subtext {
+  color: #788da8;
+
+  font-size: 0.75rem;
+}
+
+.starter-notice-actions {
+  margin-top: 24px;
+
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.starter-notice-actions button {
+  min-height: 46px;
+  padding: 0 15px;
+
+  border-radius: 13px;
+
+  font-size: 0.8rem;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.starter-notice-actions
+button:hover {
+  transform:
+    translateY(-2px);
+}
+
+.starter-notice-deck-button {
+  color: #dceeff;
+
+  border:
+    1px solid
+    rgba(92, 175, 255, 0.28);
+
+  background:
+    rgba(29, 64, 105, 0.68);
+}
+
+.starter-notice-close-button {
+  color: #ffffff;
+
+  border: 0;
+
+  background:
+    linear-gradient(
+      135deg,
+      #278edb,
+      #5368ed
+    );
+
+  box-shadow:
+    0 0 20px
+      rgba(51, 139, 255, 0.2);
+}
+
+@keyframes starterNoticeAppear {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(16px)
+      scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes starterNoticeSweep {
+  from {
+    transform:
+      translateX(-100%);
+  }
+
+  to {
+    transform:
+      translateX(100%);
+  }
+}
+
+@media (max-width: 500px) {
+  .starter-notice {
+    padding:
+      25px 18px 20px;
+  }
+
+  .starter-notice-actions {
+    grid-template-columns:
+      1fr;
+  }
+}

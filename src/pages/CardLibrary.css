@@ -1176,3 +1176,51 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   カード所持状態
+========================================================= */
+
+.library-card.is-unowned {
+  opacity: 0.58;
+  filter:
+    grayscale(0.72)
+    brightness(0.78);
+}
+
+.library-card.is-unowned:hover {
+  opacity: 0.78;
+}
+
+.library-card-owned {
+  color: #8191a6 !important;
+}
+
+.library-card-owned.is-owned {
+  color: #72e7aa !important;
+
+  border-color:
+    rgba(67, 220, 143, 0.24) !important;
+
+  background:
+    rgba(39, 154, 101, 0.12) !important;
+}
+
+.card-detail-owned {
+  width: fit-content;
+  margin-top: 12px;
+  padding: 6px 10px;
+
+  border:
+    1px solid
+    rgba(94, 205, 155, 0.24);
+
+  border-radius: 999px;
+
+  color: #83e9b8;
+  background:
+    rgba(39, 143, 99, 0.12);
+
+  font-size: 0.7rem;
+  font-weight: 850;
+}

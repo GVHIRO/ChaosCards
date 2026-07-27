@@ -5,7 +5,12 @@ import {
   useState,
 } from "react";
 import cards from "../data/cards";
-
+import {
+  COLLECTION_CHANGE_EVENT,
+  ensureCollectionInitialized,
+  getCardCollection,
+  getOwnedCardCount,
+} from "../lib/collection";
 const ELEMENTS = {
   physical: {
     icon: "⚔️",
@@ -394,6 +399,11 @@ export default function CardLibrary({
   const [searchText, setSearchText] =
     useState("");
 
+  const [
+    collection,
+    setCollection,
+  ] = useState({});
+
   const [rarityFilter, setRarityFilter] =
     useState("all");
 
@@ -507,7 +517,29 @@ export default function CardLibrary({
     typeFilter,
     sortMode,
   ]);
+useEffect(() => {
+  ensureCollectionInitialized();
 
+  function refreshCollection() {
+    setCollection(
+      getCardCollection(),
+    );
+  }
+
+  refreshCollection();
+
+  window.addEventListener(
+    COLLECTION_CHANGE_EVENT,
+    refreshCollection,
+  );
+
+  return () => {
+    window.removeEventListener(
+      COLLECTION_CHANGE_EVENT,
+      refreshCollection,
+    );
+  };
+}, []);
   useEffect(() => {
     if (!selectedCard) {
       return undefined;
@@ -735,7 +767,11 @@ export default function CardLibrary({
             {filteredCards.map((card) => {
               const element =
                 getElement(card);
-
+const ownedCopies =
+  getOwnedCardCount(
+    card.id,
+    collection,
+  );
               const type =
                 getCardType(card);
 
@@ -747,11 +783,16 @@ export default function CardLibrary({
                   type="button"
                   key={card.id}
                   className={[
-                    "library-card",
-                    `rarity-${String(
-                      card.rarity,
-                    ).toLowerCase()}`,
-                  ].join(" ")}
+  "library-card",
+  `rarity-${String(
+    card.rarity,
+  ).toLowerCase()}`,
+  ownedCopies <= 0
+    ? "is-unowned"
+    : "",
+]
+  .filter(Boolean)
+  .join(" ")}
                   style={{
                     "--element-color":
                       element.color,
@@ -802,6 +843,20 @@ export default function CardLibrary({
                       {type.icon}{" "}
                       {type.label}
                     </span>
+                    <span
+  className={[
+    "library-card-owned",
+    ownedCopies > 0
+      ? "is-owned"
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ")}
+>
+  {ownedCopies > 0
+    ? `所持 ×${ownedCopies}`
+    : "未所持"}
+</span>
                   </div>
 
                   <p>
@@ -851,7 +906,6 @@ export default function CardLibrary({
             </button>
           </div>
         )}
-
         <section className="card-effect-glossary">
           <div className="glossary-heading">
             <small>
@@ -986,9 +1040,33 @@ export default function CardLibrary({
                 </span>
               </div>
 
-              <p className="card-detail-description">
-                {selectedCard.description}
-              </p>
+              <span
+  className={[
+    "card-detail-owned",
+    getOwnedCardCount(
+      selectedCard.id,
+      collection,
+    ) > 0
+      ? "is-owned"
+      : "is-unowned",
+  ]
+    .filter(Boolean)
+    .join(" ")}
+>
+  {getOwnedCardCount(
+    selectedCard.id,
+    collection,
+  ) > 0
+    ? `所持枚数：${getOwnedCardCount(
+        selectedCard.id,
+        collection,
+      )}枚`
+    : "未所持"}
+</span>
+
+<p className="card-detail-description">
+  {selectedCard.description}
+</p>
 
               <div className="card-detail-stats">
                 {createCardStats(

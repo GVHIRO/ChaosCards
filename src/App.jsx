@@ -1,5 +1,20 @@
 import ProfileSetup from "./pages/ProfileSetup";
 import AppLoading from "./components/AppLoading";
+import PackOpening from "./pages/PackOpening";
+import UpdateNotice from
+  "./components/UpdateNotice";
+
+import {
+  APP_VERSION,
+} from "./data/updates";
+
+import {
+  hasUnreadUpdates,
+  markCurrentUpdateAsSeen,
+} from "./lib/updates";
+import {
+  forceStarterDeckMigration,
+} from "./lib/collection";
 import {
   useCallback,
   useEffect,
@@ -44,7 +59,15 @@ const [
 );
   const [showAuthMenu, setShowAuthMenu] =
     useState(false);
+const [
+  showUpdateNotice,
+  setShowUpdateNotice,
+] = useState(false);
 
+const [
+  hasUnreadUpdate,
+  setHasUnreadUpdate,
+] = useState(false);
   const [currentUser, setCurrentUser] =
   useState(null);
 
@@ -110,6 +133,40 @@ setCurrentProfile(
 
 return profile ?? null;
 }
+useEffect(() => {
+  /*
+    スターターデッキへの移行自体は
+    今までどおり一度だけ実行する。
+  */
+  const migrationResult =
+    forceStarterDeckMigration();
+
+  if (
+    migrationResult.error
+  ) {
+    console.error(
+      "スターターデッキへの変更に失敗しました:",
+      migrationResult.error,
+    );
+  }
+
+  /*
+    現在のバージョンをまだ確認していない場合、
+    未読バッジを付けてお知らせを自動表示する。
+  */
+  const unread =
+    hasUnreadUpdates();
+
+  setHasUnreadUpdate(
+    unread,
+  );
+
+  if (unread) {
+    setShowUpdateNotice(
+      true,
+    );
+  }
+}, []);
 useEffect(() => {
   function refreshEquippedTitle() {
     setEquippedAchievement(
@@ -541,7 +598,17 @@ function recordChallengeResult(
     );
   }
 }
+function closeUpdateNotice() {
+  markCurrentUpdateAsSeen();
 
+  setHasUnreadUpdate(
+    false,
+  );
+
+  setShowUpdateNotice(
+    false,
+  );
+}
   async function handleLogout() {
     const { error } =
       await supabase.auth.signOut();
@@ -639,6 +706,15 @@ if (screen === "challenge-battle") {
 if (screen === "card-library") {
   return (
     <CardLibrary
+      onBack={() =>
+        setScreen("menu")
+      }
+    />
+  );
+}
+if (screen === "pack-opening") {
+  return (
+    <PackOpening
       onBack={() =>
         setScreen("menu")
       }
@@ -775,6 +851,9 @@ avatarUrl={
   onDeckBuilder={() =>
     setScreen("deck-builder")
   }
+  onPackOpening={() =>
+  setScreen("pack-opening")
+}
   onFriends={openFriends}
   onSettings={() =>
     setScreen("settings")
@@ -785,7 +864,17 @@ avatarUrl={
 onAchievements={() =>
   setScreen("achievements")
 }
-
+appVersion={
+  APP_VERSION
+}
+hasUnreadUpdate={
+  hasUnreadUpdate
+}
+onOpenUpdates={() => {
+  setShowUpdateNotice(
+    true,
+  );
+}}
      playerName={
   currentProfile?.username?.trim() ||
   currentProfile?.nickname?.trim() ||
@@ -833,11 +922,20 @@ playerEmail={
     return <AppLoading />;
   }
 
-  return (
+ return (
   <>
     {renderScreen()}
 
     <AchievementToast />
+
+    {showUpdateNotice &&
+  screen === "menu" && (
+    <UpdateNotice
+      onClose={
+        closeUpdateNotice
+      }
+    />
+  )}
 
     {showAuthMenu && (
       <AuthMenu

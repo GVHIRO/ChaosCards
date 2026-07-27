@@ -1,7 +1,12 @@
 import "./DeckBuilder.css";
 import { useEffect, useMemo, useState } from "react";
 import cards from "../data/cards";
-
+import {
+  COLLECTION_CHANGE_EVENT,
+  ensureCollectionInitialized,
+  getCardCollection,
+  getOwnedCardCount,
+} from "../lib/collection";
 const DECK_SIZE = 20;
 const PRESET_COUNT = 3;
 
@@ -267,7 +272,33 @@ export default function DeckBuilder({
     searchText,
     setSearchText,
   ] = useState("");
+const [
+  collection,
+  setCollection,
+] = useState({});
+useEffect(() => {
+  ensureCollectionInitialized();
 
+  function refreshCollection() {
+    setCollection(
+      getCardCollection(),
+    );
+  }
+
+  refreshCollection();
+
+  window.addEventListener(
+    COLLECTION_CHANGE_EVENT,
+    refreshCollection,
+  );
+
+  return () => {
+    window.removeEventListener(
+      COLLECTION_CHANGE_EVENT,
+      refreshCollection,
+    );
+  };
+}, []);
   useEffect(() => {
     try {
       const defaultPresets =
@@ -602,37 +633,68 @@ function restoreDefaultPresetName() {
     };
   }
 
-  function addCard(card) {
-    setMessage("");
+ function addCard(card) {
+  setMessage("");
 
-    if (deck.length >= DECK_SIZE) {
-      setMessage(
-        `デッキは${DECK_SIZE}枚までです`
-      );
-      return;
-    }
+  const ownedCopies =
+    getOwnedCardCount(
+      card.id,
+      collection,
+    );
 
-    const rule = getRarityRule(card);
+  if (ownedCopies <= 0) {
+    setMessage(
+      `${card.name}を所持していません`,
+    );
 
-    if (countCard(card.id) >= rule.maxCopies) {
-      setMessage(
-        `${card.rarity}の同じカードは${rule.maxCopies}枚までです`
-      );
-      return;
-    }
-
-    if (countRarity(card.rarity) >= rule.deckLimit) {
-      setMessage(
-        `${card.rarity}カードはデッキに${rule.deckLimit}枚までです`
-      );
-      return;
-    }
-
-    updateCurrentPresetDeck([
-  ...deck,
-  card,
-]);
+    return;
   }
+
+  if (deck.length >= DECK_SIZE) {
+    setMessage(
+      `デッキは${DECK_SIZE}枚までです`,
+    );
+
+    return;
+  }
+
+  const rule =
+    getRarityRule(card);
+
+  const usableCopies =
+    Math.min(
+      rule.maxCopies,
+      ownedCopies,
+    );
+
+  if (
+    countCard(card.id) >=
+    usableCopies
+  ) {
+    setMessage(
+      `${card.name}は所持枚数または編成上限に達しています`,
+    );
+
+    return;
+  }
+
+  if (
+    countRarity(
+      card.rarity,
+    ) >= rule.deckLimit
+  ) {
+    setMessage(
+      `${card.rarity}カードはデッキに${rule.deckLimit}枚までです`,
+    );
+
+    return;
+  }
+
+  updateCurrentPresetDeck([
+    ...deck,
+    card,
+  ]);
+}
 function toggleCatalogCard(card) {
   setMessage("");
 
@@ -1023,7 +1085,17 @@ function toggleCatalogCard(card) {
           {filteredCards.map((card) => {
   const copies = countCard(card.id);
   const rule = getRarityRule(card);
+const ownedCopies =
+  getOwnedCardCount(
+    card.id,
+    collection,
+  );
 
+const usableCopies =
+  Math.min(
+    rule.maxCopies,
+    ownedCopies,
+  );
   const rarityCount =
     countRarity(card.rarity);
 
@@ -1036,9 +1108,10 @@ function toggleCatalogCard(card) {
     copies > 0;
 
   const cannotAdd =
-    deck.length >= DECK_SIZE ||
-    copies >= rule.maxCopies ||
-    rarityCount >= rule.deckLimit;
+  ownedCopies <= 0 ||
+  deck.length >= DECK_SIZE ||
+  copies >= usableCopies ||
+  rarityCount >= rule.deckLimit;
 
   /*
     追加上限に達していても、
@@ -1057,6 +1130,9 @@ function toggleCatalogCard(card) {
         canRemove
           ? "is-selected-card"
           : "",
+          ownedCopies <= 0
+  ? "is-unowned"
+  : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -1073,7 +1149,15 @@ function toggleCatalogCard(card) {
                 <span className="deck-card-type">{getCardTypeLabel(card)}</span>
                 <span className="deck-card-effect">{getCardEffectText(card)}</span>
                 <span className="deck-card-footer">
-                  <span>同名 {copies}/{rule.maxCopies}</span>
+                  <span>
+  {canRemove
+    ? "− 選択解除"
+    : ownedCopies <= 0
+      ? "未所持"
+      : isDisabled
+        ? "追加不可"
+        : "+ 追加"}
+</span>
                   <span>
   {canRemove
     ? "− 選択解除"

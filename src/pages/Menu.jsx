@@ -5,10 +5,16 @@ export default function Menu({
   onChallenge,
   onOnline,
   onDeckBuilder,
+  onPackOpening,
   onFriends,
   onSettings,
   onCardLibrary,
   onAchievements,
+
+  onOpenUpdates,
+  appVersion = "1.0.0",
+  hasUnreadUpdate = false,
+
   openAuthMenu,
   currentUser,
   handleLogout,
@@ -52,6 +58,15 @@ export default function Menu({
             <p className="home-subtitle">
               戦略と混沌がぶつかるカードバトル
             </p>
+            <div className="home-version-row">
+  <span className="home-version-badge">
+    Ver.{appVersion}
+  </span>
+
+  <span className="home-version-status">
+    OFFICIAL RELEASE
+  </span>
+</div>
           </div>
 
           <div className="home-account-panel">
@@ -220,6 +235,36 @@ export default function Menu({
           </button>
           <button
   type="button"
+  className="
+    home-mode-card
+    home-mode-pack
+  "
+  onClick={onPackOpening}
+>
+  <span className="home-mode-icon">
+    🎁
+  </span>
+
+  <span className="home-mode-content">
+    <small>
+      CARD PACK
+    </small>
+
+    <strong>
+      パック開封
+    </strong>
+
+    <span>
+      コインを使ってカードを入手する
+    </span>
+  </span>
+
+  <span className="home-mode-arrow">
+    ›
+  </span>
+</button>
+          <button
+  type="button"
   className="home-mode-card"
   onClick={onSettings}
 >
@@ -258,6 +303,32 @@ export default function Menu({
           </div>
 
           <div className="home-account-actions">
+            <button
+  type="button"
+  className="
+    home-secondary-button
+    home-updates-button
+  "
+  onClick={
+    onOpenUpdates
+  }
+  aria-label={
+    hasUnreadUpdate
+      ? "未読のお知らせがあります"
+      : "お知らせを開く"
+  }
+>
+  <span>
+    🔔 お知らせ
+  </span>
+
+  {hasUnreadUpdate && (
+    <i
+      className="home-update-unread"
+      aria-label="未読"
+    />
+  )}
+</button>
   <button
     type="button"
     className="
