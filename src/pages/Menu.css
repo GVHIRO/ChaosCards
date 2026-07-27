@@ -608,3 +608,65 @@
     letter-spacing: 0.02em;
   }
 }
+
+/* =========================================================
+   チャレンジモード
+========================================================= */
+
+.home-mode-challenge {
+  grid-column: span 2;
+
+  min-height: 155px;
+
+  border-color:
+    rgba(185, 104, 255, 0.38);
+
+  background:
+    radial-gradient(
+      circle at 12% 50%,
+      rgba(151, 65, 255, 0.2),
+      transparent 36%
+    ),
+    linear-gradient(
+      140deg,
+      rgba(56, 35, 94, 0.95),
+      rgba(16, 23, 51, 0.96)
+    );
+}
+
+.home-mode-challenge
+.home-mode-icon {
+  border-color:
+    rgba(192, 116, 255, 0.32);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(157, 71, 255, 0.22),
+      rgba(56, 94, 255, 0.1)
+    );
+}
+
+.home-mode-challenge
+.home-mode-content small,
+.home-mode-challenge
+.home-mode-arrow {
+  color: #c38aff;
+}
+
+.home-mode-challenge:hover {
+  border-color:
+    rgba(196, 118, 255, 0.72);
+
+  box-shadow:
+    0 23px 50px
+      rgba(0, 0, 0, 0.36),
+    0 0 30px
+      rgba(164, 76, 255, 0.17);
+}
+
+@media (max-width: 800px) {
+  .home-mode-challenge {
+    grid-column: auto;
+  }
+}

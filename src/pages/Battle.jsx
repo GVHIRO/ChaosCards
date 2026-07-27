@@ -959,13 +959,86 @@ export default function Battle({
   restartGame,
   onRematchStart,
   goToMenu,
+
+  /* チャレンジ用 */
+  challenge = null,
+  onBattleEnd,
 }) {
-  const [playerHP, setPlayerHP] = useState(INITIAL_HP);
-  const [enemyHP, setEnemyHP] = useState(INITIAL_HP);
-  const [playerShield, setPlayerShield] = useState(0);
-  const [enemyShield, setEnemyShield] = useState(0);
-  const [energy, setEnergy] = useState(INITIAL_ENERGY);
-  const [cpuEnergy, setCpuEnergy] = useState(INITIAL_ENERGY);
+  const initialPlayerHp = Math.max(
+    1,
+    Math.min(
+      MAX_HP,
+      Number(
+        challenge?.playerHp ??
+          INITIAL_HP,
+      ),
+    ),
+  );
+
+  const initialEnemyHp = Math.max(
+    1,
+    Math.min(
+      MAX_HP,
+      Number(
+        challenge?.enemyHp ??
+          INITIAL_HP,
+      ),
+    ),
+  );
+
+  const initialPlayerShield = Math.max(
+    0,
+    Number(
+      challenge?.playerShield ?? 0,
+    ),
+  );
+
+  const initialEnemyShield = Math.max(
+    0,
+    Number(
+      challenge?.enemyShield ?? 0,
+    ),
+  );
+
+  const initialPlayerEnergy = Math.max(
+    0,
+    Math.min(
+      MAX_ENERGY,
+      Number(
+        challenge?.playerEnergy ??
+          INITIAL_ENERGY,
+      ),
+    ),
+  );
+
+  const initialCpuEnergy = Math.max(
+    0,
+    Math.min(
+      MAX_ENERGY,
+      Number(
+        challenge?.enemyEnergy ??
+          INITIAL_ENERGY,
+      ),
+    ),
+  );
+
+  const [playerHP, setPlayerHP] =
+    useState(initialPlayerHp);
+
+  const [enemyHP, setEnemyHP] =
+    useState(initialEnemyHp);
+
+  const [playerShield, setPlayerShield] =
+    useState(initialPlayerShield);
+
+  const [enemyShield, setEnemyShield] =
+    useState(initialEnemyShield);
+
+  const [energy, setEnergy] =
+    useState(initialPlayerEnergy);
+
+  const [cpuEnergy, setCpuEnergy] =
+    useState(initialCpuEnergy);
   const [turnNumber, setTurnNumber] = useState(1);
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [firstPlayer, setFirstPlayer] = useState(null);
@@ -1043,116 +1116,145 @@ const [
   const [turnPopup, setTurnPopup] = useState(null);
   const [battleUiScale, setBattleUiScale] =
     useState(1);
-  const [opponentName, setOpponentName] = useState(
-    mode === "online" ? "ENEMY" : "CPU",
+  const [opponentName, setOpponentName] =
+  useState(
+    mode === "online"
+      ? "ENEMY"
+      : challenge?.enemyName ??
+        "CPU",
   );
   const [opponentAvatarUrl, setOpponentAvatarUrl] =
     useState("");
 
   useEffect(() => {
-    let cancelled = false;
+  let cancelled = false;
 
-    async function loadOpponentProfile() {
-      if (mode !== "online") {
-        setOpponentName("CPU");
-        setOpponentAvatarUrl("");
-        return;
+  async function loadOpponentProfile() {
+    /*
+      CPU戦・チャレンジ戦では
+      Supabaseから相手を取得しない。
+    */
+    if (mode !== "online") {
+      setOpponentName(
+        challenge?.enemyName ??
+          "CPU",
+      );
+
+      setOpponentAvatarUrl("");
+      return;
+    }
+
+    if (!roomId || !currentUserId) {
+      setOpponentName("ENEMY");
+      setOpponentAvatarUrl("");
+      return;
+    }
+
+    try {
+      const {
+        data: room,
+        error: roomError,
+      } = await supabase
+        .from("rooms")
+        .select(
+          "host_id, guest_id",
+        )
+        .eq("id", roomId)
+        .maybeSingle();
+
+      if (roomError) {
+        throw roomError;
       }
 
-      if (!roomId || !currentUserId) {
+      if (!room) {
+        throw new Error(
+          "対戦部屋を取得できませんでした",
+        );
+      }
+
+      let opponentUserId = null;
+
+      if (
+        String(room.host_id) ===
+        String(currentUserId)
+      ) {
+        opponentUserId =
+          room.guest_id;
+      } else if (
+        String(room.guest_id) ===
+        String(currentUserId)
+      ) {
+        opponentUserId =
+          room.host_id;
+      } else {
+        throw new Error(
+          "この対戦部屋の参加者ではありません",
+        );
+      }
+
+      if (!opponentUserId) {
         setOpponentName("ENEMY");
         setOpponentAvatarUrl("");
         return;
       }
 
-      try {
-        const { data: room, error: roomError } =
-          await supabase
-            .from("rooms")
-            .select("host_id, guest_id")
-            .eq("id", roomId)
-            .maybeSingle();
+      const {
+        data: opponentProfile,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select(
+          "username, nickname, avatar_url",
+        )
+        .eq("id", opponentUserId)
+        .maybeSingle();
 
-        if (roomError) {
-          throw roomError;
-        }
+      if (profileError) {
+        throw profileError;
+      }
 
-        if (!room) {
-          throw new Error(
-            "対戦部屋を取得できませんでした",
-          );
-        }
+      if (cancelled) {
+        return;
+      }
 
-        let opponentUserId = null;
+      setOpponentName(
+        opponentProfile
+          ?.username
+          ?.trim() ||
+          opponentProfile
+            ?.nickname
+            ?.trim() ||
+          "ENEMY",
+      );
 
-        if (
-          String(room.host_id) ===
-          String(currentUserId)
-        ) {
-          opponentUserId = room.guest_id;
-        } else if (
-          String(room.guest_id) ===
-          String(currentUserId)
-        ) {
-          opponentUserId = room.host_id;
-        } else {
-          throw new Error(
-            "この対戦部屋の参加者ではありません",
-          );
-        }
+      setOpponentAvatarUrl(
+        opponentProfile
+          ?.avatar_url ?? "",
+      );
+    } catch (error) {
+      console.error(
+        "相手プロフィール取得エラー:",
+        error,
+      );
 
-        if (!opponentUserId) {
-          setOpponentName("ENEMY");
-          setOpponentAvatarUrl("");
-          return;
-        }
-
-        const {
-          data: opponentProfile,
-          error: profileError,
-        } = await supabase
-          .from("profiles")
-          .select(
-            "username, nickname, avatar_url",
-          )
-          .eq("id", opponentUserId)
-          .maybeSingle();
-
-        if (profileError) {
-          throw profileError;
-        }
-
-        if (cancelled) {
-          return;
-        }
-
-        setOpponentName(
-          opponentProfile?.username?.trim() ||
-            opponentProfile?.nickname?.trim() ||
-            "ENEMY",
-        );
-        setOpponentAvatarUrl(
-          opponentProfile?.avatar_url ?? "",
-        );
-      } catch (error) {
-        console.error(
-          "相手プロフィール取得エラー:",
-          error,
-        );
-
-        if (!cancelled) {
-          setOpponentName("ENEMY");
-          setOpponentAvatarUrl("");
-        }
+      if (!cancelled) {
+        setOpponentName("ENEMY");
+        setOpponentAvatarUrl("");
       }
     }
+  }
 
-    loadOpponentProfile();
+  loadOpponentProfile();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, roomId, currentUserId]);
+  return () => {
+    cancelled = true;
+  };
+}, [
+  mode,
+  roomId,
+  currentUserId,
+  challenge?.enemyName,
+]);
 
   const cardAnimationTimerRef = useRef(null);
   const handRef =
@@ -1193,10 +1295,8 @@ function finishBattle(result) {
 
   battleEndingRef.current = true;
 
-  /*
-    HPを0にするReactの更新が画面へ描画されてから、
-    結果画面への切り替えを開始する。
-  */
+  onBattleEnd?.(result);
+
   resultFrameRef.current =
     window.requestAnimationFrame(() => {
       resultFrameRef.current =
@@ -4249,6 +4349,27 @@ return (
   <span>CHAOS</span>
   <strong>CARDS</strong>
 </h1>
+
+{challenge && (
+  <div className="battle-challenge-label">
+    <span>
+      {challenge.icon}
+    </span>
+
+    <div>
+      <small>
+        CHALLENGE MISSION{" "}
+        {String(
+          challenge.number,
+        ).padStart(2, "0")}
+      </small>
+
+      <strong>
+        {challenge.title}
+      </strong>
+    </div>
+  </div>
+)}
 
         {coinVisible && firstPlayer && (
           <div className="coin-toss-overlay">

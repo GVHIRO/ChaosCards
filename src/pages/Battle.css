@@ -5084,3 +5084,75 @@ small {
     font-size: 19px;
   }
 }
+
+/* =========================================================
+   チャレンジミッション表示
+========================================================= */
+
+.battle-challenge-label {
+  width: fit-content;
+  max-width: calc(100% - 100px);
+
+  margin:
+    -8px auto
+    10px;
+
+  padding: 8px 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  border:
+    1px solid
+    rgba(194, 118, 255, 0.38);
+
+  border-radius: 999px;
+
+  color: #f0e5ff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(93, 47, 145, 0.68),
+      rgba(29, 47, 92, 0.72)
+    );
+
+  box-shadow:
+    0 0 20px
+      rgba(155, 69, 255, 0.13);
+}
+
+.battle-challenge-label > span {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+}
+
+.battle-challenge-label > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.battle-challenge-label small {
+  color: #bd8cff;
+
+  font-size: 0.5rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.battle-challenge-label strong {
+  color: #ffffff;
+
+  font-size: 0.78rem;
+}
+
+@media (max-width: 768px) {
+  .battle-challenge-label {
+    max-width:
+      calc(100% - 28px);
+
+    margin-bottom: 8px;
+    padding: 7px 11px;
+  }
+}

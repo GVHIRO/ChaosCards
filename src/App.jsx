@@ -2,6 +2,10 @@ import ProfileSetup from "./pages/ProfileSetup";
 import AppLoading from "./components/AppLoading";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
+import ChallengeMenu from "./pages/ChallengeMenu";
+import {
+  CHALLENGE_PROGRESS_KEY,
+} from "./data/challenges";
 
 import AuthMenu from "./pages/AuthMenu";
 import Menu from "./pages/Menu";
@@ -19,7 +23,10 @@ function App() {
   const [screen, setScreen] = useState("menu");
   const [battleKey, setBattleKey] = useState(0);
   const [onlineRoom, setOnlineRoom] = useState(null);
-
+const [
+  selectedChallenge,
+  setSelectedChallenge,
+] = useState(null);
   const [showAuthMenu, setShowAuthMenu] =
     useState(false);
 
@@ -277,7 +284,77 @@ if (
 
     setScreen("battle");
   }
+function openChallengeMenu() {
+  setScreen("challenge");
+}
 
+function startChallengeBattle(
+  challenge,
+) {
+  if (!hasValidDeck()) {
+    moveToDeckBuilder();
+    return;
+  }
+
+  setSelectedChallenge(
+    challenge,
+  );
+
+  setBattleKey(
+    (currentKey) =>
+      currentKey + 1,
+  );
+
+  setScreen(
+    "challenge-battle",
+  );
+}
+
+function recordChallengeResult(
+  result,
+) {
+  if (
+    result !== "player" ||
+    !selectedChallenge
+  ) {
+    return;
+  }
+
+  try {
+    const saved =
+      localStorage.getItem(
+        CHALLENGE_PROGRESS_KEY,
+      );
+
+    const parsed = saved
+      ? JSON.parse(saved)
+      : [];
+
+    const clearedIds =
+      Array.isArray(parsed)
+        ? parsed
+        : [];
+
+    const nextClearedIds = [
+      ...new Set([
+        ...clearedIds,
+        selectedChallenge.id,
+      ]),
+    ];
+
+    localStorage.setItem(
+      CHALLENGE_PROGRESS_KEY,
+      JSON.stringify(
+        nextClearedIds,
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "チャレンジ進行保存エラー:",
+      error,
+    );
+  }
+}
   function openOnlineMenu() {
     if (!hasValidDeck()) {
       moveToDeckBuilder();
@@ -436,6 +513,50 @@ if (
   }
 
   function renderScreen() {
+    if (screen === "challenge") {
+  return (
+    <ChallengeMenu
+      onBack={() => {
+        setScreen("menu");
+      }}
+      onStart={
+        startChallengeBattle
+      }
+    />
+  );
+}
+
+if (screen === "challenge-battle") {
+  return (
+    <Battle
+      key={`challenge-${
+        selectedChallenge?.id ??
+        "unknown"
+      }-${battleKey}`}
+      mode="cpu"
+      challenge={selectedChallenge}
+      onBattleEnd={recordChallengeResult}
+      currentUserId={currentUser?.id}
+      playerName={
+        currentProfile?.username ??
+        "YOU"
+      }
+      playerAvatarUrl={
+        currentProfile?.avatar_url ??
+        ""
+      }
+      restartGame={() => {
+        setBattleKey(
+          (currentKey) =>
+            currentKey + 1,
+        );
+      }}
+      goToMenu={() => {
+        setScreen("challenge");
+      }}
+    />
+  );
+}
     if (screen === "profile-setup") {
   return (
     <ProfileSetup
@@ -574,6 +695,9 @@ avatarUrl={
     return (
      <Menu
   onStart={startCpuBattle}
+  onChallenge={
+  openChallengeMenu
+}
   onOnline={openOnlineMenu}
   onDeckBuilder={() =>
     setScreen("deck-builder")

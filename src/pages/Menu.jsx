@@ -1,6 +1,7 @@
 import "./Menu.css";
 export default function Menu({
   onStart,
+  onChallenge,
   onOnline,
   onDeckBuilder,
   onFriends,
@@ -76,7 +77,36 @@ export default function Menu({
 
             <span className="home-mode-arrow">›</span>
           </button>
+<button
+  type="button"
+  className="
+    home-mode-card
+    home-mode-challenge
+  "
+  onClick={onChallenge}
+>
+  <span className="home-mode-icon">
+    🎯
+  </span>
 
+  <span className="home-mode-content">
+    <small>
+      CHALLENGE MODE
+    </small>
+
+    <strong>
+      チャレンジ
+    </strong>
+
+    <span>
+      特殊ルールのCPU戦を攻略する
+    </span>
+  </span>
+
+  <span className="home-mode-arrow">
+    ›
+  </span>
+</button>
           <button
             type="button"
             className="home-mode-card"
