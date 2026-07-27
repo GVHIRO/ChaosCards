@@ -1332,3 +1332,52 @@ strong {
     display: none;
   }
 }
+
+/* =========================================================
+   チャレンジ報酬・右上チェック位置修正
+========================================================= */
+
+.challenge-reward-grid > article {
+  position: relative;
+}
+
+.challenge-reward-grid
+> article
+> .challenge-reward-check {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  z-index: 5 !important;
+
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  border: 0 !important;
+  border-radius: 50% !important;
+
+  color: #102719 !important;
+  background: #64e6a0 !important;
+
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+
+  text-align: center !important;
+
+  box-sizing: border-box !important;
+
+  transform: none !important;
+
+  box-shadow:
+    0 0 12px
+    rgba(77, 226, 151, 0.38) !important;
+}
