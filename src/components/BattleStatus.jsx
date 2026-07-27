@@ -2,6 +2,7 @@ import "./BattleStatus.css";
 
 export default function BattleStatus({
   name,
+  title = "",
   icon,
   avatarUrl = "",
   hp,
@@ -22,7 +23,10 @@ export default function BattleStatus({
     1,
     Number(maxHp) || 1,
   );
-
+const safeTitle =
+  typeof title === "string"
+    ? title.trim()
+    : "";
   const safeHp = Math.max(
     0,
     Number(hp) || 0,
@@ -125,6 +129,12 @@ export default function BattleStatus({
             </small>
 
             <h2>{name}</h2>
+
+{safeTitle && (
+  <span className="battle-status-player-title">
+    ［{safeTitle}］
+  </span>
+)}
           </div>
         </div>
 

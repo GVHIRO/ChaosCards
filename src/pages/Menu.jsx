@@ -1,4 +1,5 @@
 import "./Menu.css";
+
 export default function Menu({
   onStart,
   onChallenge,
@@ -7,11 +8,29 @@ export default function Menu({
   onFriends,
   onSettings,
   onCardLibrary,
+  onAchievements,
   openAuthMenu,
   currentUser,
   handleLogout,
+  playerName = "PLAYER",
+  playerAvatarUrl = "",
+  playerEmail = "",
+  playerTitle = "",
 }) {
-  const isAnonymous = currentUser?.is_anonymous;
+  const isAnonymous =
+    currentUser?.is_anonymous;
+
+  const displayName =
+    isAnonymous
+      ? "GUEST PLAYER"
+      : playerName?.trim() ||
+        "PLAYER";
+
+  const avatarFallback =
+    displayName
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "P";
 
   return (
     <main className="home-page">
@@ -36,27 +55,66 @@ export default function Menu({
           </div>
 
           <div className="home-account-panel">
-            <span className="home-account-label">
-              PLAYER
-            </span>
+  <div className="home-account-profile">
+    <div className="home-account-avatar">
+      {playerAvatarUrl ? (
+        <img
+          src={playerAvatarUrl}
+          alt={`${displayName}のアイコン`}
+        />
+      ) : (
+        <span>
+          {avatarFallback}
+        </span>
+      )}
+    </div>
 
-            <strong className="home-account-name">
-              {isAnonymous
-                ? "GUEST PLAYER"
-                : currentUser?.email || "PLAYER"}
-            </strong>
+    <div className="home-account-identity">
+      <span className="home-account-label">
+        PLAYER
+      </span>
 
-            <span
-              className={`home-account-status ${
-                isAnonymous ? "guest" : "online"
-              }`}
-            >
-              <i />
-              {isAnonymous
-                ? "ゲストプレイ中"
-                : "ログイン中"}
-            </span>
-          </div>
+      <strong
+        className="home-account-name"
+        title={displayName}
+      >
+        {displayName}
+      </strong>
+
+      {playerTitle && (
+        <span
+          className="home-account-title"
+          title={playerTitle}
+        >
+          ［{playerTitle}］
+        </span>
+      )}
+
+      {!isAnonymous && playerEmail && (
+        <span
+          className="home-account-email"
+          title={playerEmail}
+        >
+          {playerEmail}
+        </span>
+      )}
+
+      <span
+        className={`home-account-status ${
+          isAnonymous
+            ? "guest"
+            : "online"
+        }`}
+      >
+        <i />
+
+        {isAnonymous
+          ? "ゲストプレイ中"
+          : "ログイン中"}
+      </span>
+    </div>
+  </div>
+</div>
         </header>
 
         <section className="home-menu-grid">
@@ -210,7 +268,16 @@ export default function Menu({
   >
     📚 カード図鑑
   </button>
-
+<button
+  type="button"
+  className="
+    home-secondary-button
+    home-achievements-button
+  "
+  onClick={onAchievements}
+>
+  🏆 実績
+</button>
   {isAnonymous ? (
     <button
       type="button"

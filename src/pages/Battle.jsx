@@ -15,7 +15,10 @@ import { supabase } from "../lib/supabase";
 import BattleLog from "../components/BattleLog";
 import Card from "../components/Card";
 import cards from "../data/cards";
-
+import {
+  getAchievementById,
+  recordBattleAchievements,
+} from "../lib/achievements";
 
 const INITIAL_HP = 40;
 const MAX_HP = 40;
@@ -955,6 +958,7 @@ export default function Battle({
   playerRole,
   currentUserId,
   playerName = "YOU",
+  playerTitle = "",
   playerAvatarUrl = "",
   restartGame,
   onRematchStart,
@@ -1125,7 +1129,10 @@ const [
   );
   const [opponentAvatarUrl, setOpponentAvatarUrl] =
     useState("");
-
+const [
+  opponentTitle,
+  setOpponentTitle,
+] = useState("");
   useEffect(() => {
   let cancelled = false;
 
@@ -1135,20 +1142,24 @@ const [
       Supabaseから相手を取得しない。
     */
     if (mode !== "online") {
-      setOpponentName(
-        challenge?.enemyName ??
-          "CPU",
-      );
+  setOpponentName(
+    challenge?.enemyName ??
+      "CPU",
+  );
 
-      setOpponentAvatarUrl("");
-      return;
-    }
+  setOpponentAvatarUrl("");
+  setOpponentTitle("");
 
-    if (!roomId || !currentUserId) {
-      setOpponentName("ENEMY");
-      setOpponentAvatarUrl("");
-      return;
-    }
+  return;
+}
+
+   if (!roomId || !currentUserId) {
+  setOpponentName("ENEMY");
+  setOpponentAvatarUrl("");
+  setOpponentTitle("");
+
+  return;
+}
 
     try {
       const {
@@ -1203,9 +1214,12 @@ const [
         error: profileError,
       } = await supabase
         .from("profiles")
-        .select(
-          "username, nickname, avatar_url",
-        )
+        .select(`
+  username,
+  nickname,
+  avatar_url,
+  equipped_title_id
+`)
         .eq("id", opponentUserId)
         .maybeSingle();
 
@@ -1228,9 +1242,20 @@ const [
       );
 
       setOpponentAvatarUrl(
-        opponentProfile
-          ?.avatar_url ?? "",
-      );
+  opponentProfile
+    ?.avatar_url ?? "",
+);
+
+const opponentAchievement =
+  getAchievementById(
+    opponentProfile
+      ?.equipped_title_id,
+  );
+
+setOpponentTitle(
+  opponentAchievement
+    ?.title ?? "",
+);
     } catch (error) {
       console.error(
         "相手プロフィール取得エラー:",
@@ -1238,9 +1263,10 @@ const [
       );
 
       if (!cancelled) {
-        setOpponentName("ENEMY");
-        setOpponentAvatarUrl("");
-      }
+  setOpponentName("ENEMY");
+  setOpponentAvatarUrl("");
+  setOpponentTitle("");
+}
     }
   }
 
@@ -1291,6 +1317,8 @@ const previousTurnRef = useRef(null);
 const coinAnimationShownRef =
   useRef(false);
   const battleEndingRef = useRef(false);
+  const achievementRecordedRef =
+  useRef(false);
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
 const rematchResettingRef = useRef(false);
@@ -1474,7 +1502,28 @@ useEffect(() => {
     playSound("defeat");
   }
 }, [winner]);
+useEffect(() => {
+  if (
+    !winner ||
+    achievementRecordedRef.current
+  ) {
+    return;
+  }
 
+  achievementRecordedRef.current =
+    true;
+
+  recordBattleAchievements({
+    result: winner,
+    mode,
+    challengeId:
+      challenge?.id ?? null,
+  });
+}, [
+  winner,
+  mode,
+  challenge?.id,
+]);
   const isMyTurn = useMemo(() => {
   if (mode === "cpu") {
     return currentPlayer === "player";
@@ -4201,7 +4250,11 @@ const rematchStatusText =
               <strong className="result-player-name">
                 {playerName}
               </strong>
-
+{playerTitle && (
+  <span className="result-player-title">
+    ［{playerTitle}］
+  </span>
+)}
               <span className="result-player-hp">
                 HP {Math.max(0, playerHP)} / {MAX_HP}
               </span>
@@ -4238,9 +4291,11 @@ const rematchStatusText =
                 )}
               </div>
 
-              <strong className="result-player-name">
-                {opponentName}
-              </strong>
+             {opponentTitle && (
+  <span className="result-player-title">
+    ［{opponentTitle}］
+  </span>
+)}
 
               <span className="result-player-hp">
                 HP {Math.max(0, enemyHP)} / {MAX_HP}
@@ -4413,6 +4468,11 @@ return (
     <div className="battle-status-grid">
       <BattleStatus
   name={opponentName}
+  title={
+    mode === "online"
+      ? opponentTitle
+      : ""
+  }
   icon={
     mode === "online"
       ? "🌐"
@@ -4437,6 +4497,7 @@ return (
 
       <BattleStatus
   name={playerName}
+  title={playerTitle}
   icon="😀"
   avatarUrl={playerAvatarUrl}
   hp={playerHP}

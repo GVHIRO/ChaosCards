@@ -10,7 +10,11 @@ import ChallengeMenu from "./pages/ChallengeMenu";
 import {
   CHALLENGE_PROGRESS_KEY,
 } from "./data/challenges";
-
+import {
+  EQUIPPED_TITLE_CHANGE_EVENT,
+  applyEquippedAchievementFromProfile,
+  getEquippedAchievement,
+} from "./lib/achievements";
 import AuthMenu from "./pages/AuthMenu";
 import Menu from "./pages/Menu";
 import OnlineMenu from "./pages/OnlineMenu";
@@ -19,7 +23,8 @@ import DeckBuilder from "./pages/DeckBuilder";
 import Friends from "./pages/Friends";
 import Settings from "./pages/Settings";
 import CardLibrary from "./pages/CardLibrary";
-
+import Achievements from "./pages/Achievements";
+import AchievementToast from "./components/AchievementToast";
 function App() {
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -31,6 +36,12 @@ const [
   selectedChallenge,
   setSelectedChallenge,
 ] = useState(null);
+const [
+  equippedAchievement,
+  setEquippedAchievement,
+] = useState(
+  getEquippedAchievement,
+);
   const [showAuthMenu, setShowAuthMenu] =
     useState(false);
 
@@ -46,9 +57,18 @@ const [currentProfile, setCurrentProfile] =
 */
 async function fetchUserProfile(user) {
   if (!user || user.is_anonymous) {
-    setCurrentProfile(null);
-    return null;
-  }
+  setCurrentProfile(null);
+
+  /*
+    ゲストは今までどおり、
+    端末内に保存された称号を使用する。
+  */
+  setEquippedAchievement(
+    getEquippedAchievement(),
+  );
+
+  return null;
+}
 
   const {
     data: profile,
@@ -56,30 +76,59 @@ async function fetchUserProfile(user) {
   } = await supabase
     .from("profiles")
     .select(`
-      id,
-      username,
-      nickname,
-      friend_code,
-      avatar_id,
-      avatar_url,
-      avatar_path,
-      bio,
-      status
-    `)
+  id,
+  username,
+  nickname,
+  friend_code,
+  avatar_id,
+  avatar_url,
+  avatar_path,
+  bio,
+  status,
+  equipped_title_id
+`)
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) {
-    throw profileError;
-  }
-
-  setCurrentProfile(
-    profile ?? null
-  );
-
-  return profile ?? null;
+  throw profileError;
 }
 
+const serverEquippedAchievement =
+  applyEquippedAchievementFromProfile(
+    profile?.equipped_title_id ??
+      null,
+  );
+
+setEquippedAchievement(
+  serverEquippedAchievement,
+);
+
+setCurrentProfile(
+  profile ?? null,
+);
+
+return profile ?? null;
+}
+useEffect(() => {
+  function refreshEquippedTitle() {
+    setEquippedAchievement(
+      getEquippedAchievement(),
+    );
+  }
+
+  window.addEventListener(
+    EQUIPPED_TITLE_CHANGE_EVENT,
+    refreshEquippedTitle,
+  );
+
+  return () => {
+    window.removeEventListener(
+      EQUIPPED_TITLE_CHANGE_EVENT,
+      refreshEquippedTitle,
+    );
+  };
+}, []);
 useEffect(() => {
   let isMounted = true;
 
@@ -544,6 +593,9 @@ if (screen === "challenge-battle") {
         "unknown"
       }-${battleKey}`}
       mode="cpu"
+      playerTitle={
+  equippedAchievement?.title ?? ""
+}
       challenge={selectedChallenge}
       onBattleEnd={recordChallengeResult}
       currentUserId={currentUser?.id}
@@ -593,6 +645,15 @@ if (screen === "card-library") {
     />
   );
 }
+if (screen === "achievements") {
+  return (
+    <Achievements
+      onBack={() =>
+        setScreen("menu")
+      }
+    />
+  );
+}
  if (screen === "friends") {
   return (
     <Friends
@@ -622,7 +683,9 @@ if (screen === "card-library") {
         <Battle
   key={battleKey}
   mode="cpu"
-
+playerTitle={
+  equippedAchievement?.title ?? ""
+}
   currentUserId={currentUser?.id}
   playerName={
     currentProfile?.username ??
@@ -649,6 +712,9 @@ playerAvatarUrl={
         <Battle
   key={`${onlineRoom?.matchId}-${battleKey}`}
   mode="online"
+  playerTitle={
+  equippedAchievement?.title ?? ""
+}
   roomId={onlineRoom?.roomId}
   matchId={onlineRoom?.matchId}
   playerRole={onlineRoom?.role}
@@ -716,6 +782,26 @@ avatarUrl={
   onCardLibrary={() =>
   setScreen("card-library")
 }
+onAchievements={() =>
+  setScreen("achievements")
+}
+
+     playerName={
+  currentProfile?.username?.trim() ||
+  currentProfile?.nickname?.trim() ||
+  "PLAYER"
+}
+playerAvatarUrl={
+  currentProfile?.avatar_url ?? ""
+}
+  playerTitle={
+    equippedAchievement?.title ?? ""
+  }
+playerEmail={
+  currentUser?.is_anonymous
+    ? ""
+    : currentUser?.email ?? ""
+}
   openAuthMenu={() =>
     setShowAuthMenu(true)
   }
@@ -748,18 +834,20 @@ avatarUrl={
   }
 
   return (
-    <>
-      {renderScreen()}
+  <>
+    {renderScreen()}
 
-      {showAuthMenu && (
-        <AuthMenu
-          onClose={() =>
-            setShowAuthMenu(false)
-          }
-        />
-      )}
-    </>
-  );
+    <AchievementToast />
+
+    {showAuthMenu && (
+      <AuthMenu
+        onClose={() =>
+          setShowAuthMenu(false)
+        }
+      />
+    )}
+  </>
+);
 }
 
 export default App;

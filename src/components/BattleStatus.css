@@ -838,3 +838,45 @@
     flex: none;
   }
 }
+
+/* =========================================================
+   PLAYER TITLE
+========================================================= */
+
+.battle-status-player-title {
+  display: block;
+
+  max-width: 260px;
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #ffd978;
+
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.3;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  text-shadow:
+    0 0 10px
+    rgba(255, 197, 58, 0.2);
+}
+
+.battle-status-enemy
+.battle-status-player-title {
+  color: #c59aff;
+
+  text-shadow:
+    0 0 10px
+    rgba(168, 97, 255, 0.22);
+}
+
+@media (max-width: 600px) {
+  .battle-status-player-title {
+    max-width: 190px;
+    font-size: 9px;
+  }
+}

@@ -1,0 +1,189 @@
+/* =========================================================
+   ACHIEVEMENT TOAST
+========================================================= */
+
+.achievement-toast {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 50000;
+
+  width: min(
+    390px,
+    calc(100vw - 28px)
+  );
+
+  min-height: 96px;
+  padding: 16px 18px;
+
+  display: grid;
+  grid-template-columns:
+    58px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 208, 89, 0.5);
+
+  border-radius: 18px;
+
+  color: #ffffff;
+
+  background:
+    radial-gradient(
+      circle at 10% 50%,
+      rgba(255, 194, 49, 0.2),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(43, 35, 18, 0.98),
+      rgba(15, 22, 39, 0.98)
+    );
+
+  box-shadow:
+    0 25px 65px
+      rgba(0, 0, 0, 0.55),
+    0 0 26px
+      rgba(255, 190, 46, 0.16);
+
+  animation:
+    achievement-toast-enter
+    0.45s
+    cubic-bezier(
+      0.2,
+      0.9,
+      0.3,
+      1.2
+    );
+}
+
+.achievement-toast-icon {
+  width: 58px;
+  height: 58px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255, 218, 110, 0.45);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 205, 74, 0.22),
+      rgba(255, 147, 34, 0.08)
+    );
+
+  font-size: 2rem;
+
+  box-shadow:
+    0 0 20px
+      rgba(255, 191, 47, 0.18);
+}
+
+.achievement-toast-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.achievement-toast-content small {
+  color: #ffc94f;
+
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.achievement-toast-content strong {
+  margin-top: 3px;
+
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.achievement-toast-content p {
+  margin: 4px 0 0;
+
+  color: #c1cada;
+
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.achievement-toast-shine {
+  position: absolute;
+  top: -40%;
+  left: -35%;
+
+  width: 28%;
+  height: 180%;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18),
+      transparent
+    );
+
+  transform:
+    rotate(20deg);
+
+  animation:
+    achievement-toast-shine
+    1.5s ease
+    0.2s;
+}
+
+@keyframes achievement-toast-enter {
+  from {
+    opacity: 0;
+    transform:
+      translateX(45px)
+      scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateX(0)
+      scale(1);
+  }
+}
+
+@keyframes achievement-toast-shine {
+  from {
+    left: -35%;
+  }
+
+  to {
+    left: 125%;
+  }
+}
+
+@media (max-width: 600px) {
+  .achievement-toast {
+    top:
+      calc(
+        12px +
+        env(safe-area-inset-top)
+      );
+
+    right: 14px;
+    left: 14px;
+
+    width: auto;
+  }
+}

@@ -5156,3 +5156,25 @@ small {
     padding: 7px 11px;
   }
 }
+
+/* リザルト画面の称号 */
+
+.result-player-title {
+  width: 100%;
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #ffd979;
+
+  font-size: 10px;
+  font-weight: 850;
+
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  text-shadow:
+    0 0 10px
+    rgba(255, 195, 54, 0.2);
+}
