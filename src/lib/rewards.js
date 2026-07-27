@@ -146,7 +146,12 @@ function emitRewardToast(
 function grantCoins(
   amount,
   label,
+  options = {},
 ) {
+  const {
+    showToast = true,
+  } = options;
+
   const safeAmount =
     Math.max(
       0,
@@ -163,10 +168,12 @@ function grantCoins(
     safeAmount,
   );
 
-  emitRewardToast(
-    label,
-    safeAmount,
-  );
+  if (showToast) {
+    emitRewardToast(
+      label,
+      safeAmount,
+    );
+  }
 
   emitRewardChange();
 
@@ -444,6 +451,7 @@ export function getDailyMissionStatus() {
 
 export function claimDailyMission(
   missionId,
+  options = {},
 ) {
   const state =
     getDailyState();
@@ -488,10 +496,11 @@ export function claimDailyMission(
     ],
   });
 
-  grantCoins(
-    mission.reward,
-    mission.title,
-  );
+grantCoins(
+  mission.reward,
+  mission.title,
+  options,
+);
 
   return {
     ok: true,
@@ -528,7 +537,9 @@ export function getDailyCompletionStatus() {
   };
 }
 
-export function claimDailyCompletionBonus() {
+export function claimDailyCompletionBonus(
+  options = {},
+) {
   const state =
     getDailyState();
 
@@ -558,9 +569,10 @@ export function claimDailyCompletionBonus() {
   });
 
   grantCoins(
-    DAILY_COMPLETION_BONUS,
-    "デイリー全達成",
-  );
+  DAILY_COMPLETION_BONUS,
+  "デイリー全達成",
+  options,
+);
 
   return {
     ok: true,
@@ -728,7 +740,9 @@ export function getDailyLoginStatus() {
   };
 }
 
-export function claimDailyLogin() {
+export function claimDailyLogin(
+  options = {},
+) {
   const state =
     getLoginState();
 
@@ -755,9 +769,10 @@ export function claimDailyLogin() {
   );
 
   grantCoins(
-    status.reward,
-    `ログイン${status.dayNumber}日目`,
-  );
+  status.reward,
+  `ログイン${status.dayNumber}日目`,
+  options,
+);
 
   return {
     ok: true,
@@ -822,6 +837,7 @@ export function getAchievementRewardState(
 
 export function claimAchievementReward(
   achievementId,
+  options = {},
 ) {
   const achievement =
     achievements.find(
@@ -876,9 +892,10 @@ export function claimAchievementReward(
   );
 
   grantCoins(
-    status.amount,
-    `実績「${achievement.title}」`,
-  );
+  status.amount,
+  `実績「${achievement.title}」`,
+  options,
+);
 
   return {
     ok: true,
@@ -929,6 +946,7 @@ export function getCollectionRewardStatus() {
 
 export function claimCollectionReward(
   threshold,
+  options = {},
 ) {
   const target =
     getCollectionRewardStatus()
@@ -976,9 +994,10 @@ export function claimCollectionReward(
   );
 
   grantCoins(
-    target.reward,
-    `カード${target.threshold}種類収集`,
-  );
+  target.reward,
+  `カード${target.threshold}種類収集`,
+  options,
+);
 
   return {
     ok: true,
@@ -1403,7 +1422,181 @@ export function recordBattleRewards({
 
   return rewards;
 }
+export function claimAllAvailableRewards() {
+  const claimedRewards = [];
 
+  /*
+    個別通知を止めて、
+    最後に合計通知を1回だけ表示する。
+  */
+  const silentOptions = {
+    showToast: false,
+  };
+
+  const loginStatus =
+    getDailyLoginStatus();
+
+  if (loginStatus.canClaim) {
+    const result =
+      claimDailyLogin(
+        silentOptions,
+      );
+
+    if (result.ok) {
+      claimedRewards.push({
+        label:
+          "ログインボーナス",
+        amount:
+          result.amount,
+      });
+    }
+  }
+
+  const claimableMissions =
+    getDailyMissionStatus()
+      .filter(
+        (mission) =>
+          mission.canClaim,
+      );
+
+  claimableMissions.forEach(
+    (mission) => {
+      const result =
+        claimDailyMission(
+          mission.id,
+          silentOptions,
+        );
+
+      if (result.ok) {
+        claimedRewards.push({
+          label:
+            mission.title,
+          amount:
+            result.amount,
+        });
+      }
+    },
+  );
+
+  /*
+    ミッション処理後に再取得する。
+  */
+  const completionStatus =
+    getDailyCompletionStatus();
+
+  if (
+    completionStatus.canClaim
+  ) {
+    const result =
+      claimDailyCompletionBonus(
+        silentOptions,
+      );
+
+    if (result.ok) {
+      claimedRewards.push({
+        label:
+          "デイリー全達成",
+        amount:
+          result.amount,
+      });
+    }
+  }
+
+  achievements.forEach(
+    (achievement) => {
+      const status =
+        getAchievementRewardState(
+          achievement.id,
+        );
+
+      if (!status.canClaim) {
+        return;
+      }
+
+      const result =
+        claimAchievementReward(
+          achievement.id,
+          silentOptions,
+        );
+
+      if (result.ok) {
+        claimedRewards.push({
+          label:
+            `実績「${achievement.title}」`,
+          amount:
+            result.amount,
+        });
+      }
+    },
+  );
+
+  getCollectionRewardStatus()
+    .filter(
+      (rewardData) =>
+        rewardData.canClaim,
+    )
+    .forEach(
+      (rewardData) => {
+        const result =
+          claimCollectionReward(
+            rewardData.threshold,
+            silentOptions,
+          );
+
+        if (result.ok) {
+          claimedRewards.push({
+            label:
+              `${rewardData.threshold}種類収集`,
+            amount:
+              result.amount,
+          });
+        }
+      },
+    );
+
+  const totalAmount =
+    claimedRewards.reduce(
+      (total, reward) =>
+        total +
+        Number(
+          reward.amount || 0,
+        ),
+      0,
+    );
+
+  if (
+    claimedRewards.length === 0 ||
+    totalAmount <= 0
+  ) {
+    return {
+      ok: false,
+      amount: 0,
+      count: 0,
+      rewards: [],
+      message:
+        "受け取れる報酬はありません",
+    };
+  }
+
+  emitRewardToast(
+    `${claimedRewards.length}件を一括受取`,
+    totalAmount,
+  );
+
+  emitRewardChange();
+
+  return {
+    ok: true,
+    amount:
+      totalAmount,
+    count:
+      claimedRewards.length,
+    rewards:
+      claimedRewards,
+    message:
+      `${claimedRewards.length}件の報酬から、合計${totalAmount}コインを受け取りました！`,
+  };
+}
 export function getRewardsSnapshot() {
   const dailyMissions =
     getDailyMissionStatus();
@@ -1445,51 +1638,53 @@ export function getRewardsSnapshot() {
     getDuplicateExchangeCards();
 
   const claimableCount =
-    (
-      dailyLogin.canClaim
-        ? 1
-        : 0
-    ) +
-    dailyMissions.filter(
-      (mission) =>
-        mission.canClaim,
-    ).length +
-    (
-      dailyCompletion.canClaim
-        ? 1
-        : 0
-    ) +
-    achievementRewards.filter(
-      (reward) =>
-        reward.canClaim,
-    ).length +
-    collectionRewards.filter(
-      (reward) =>
-        reward.canClaim,
-    ).length +
-    duplicates.length;
+  (
+    dailyLogin.canClaim
+      ? 1
+      : 0
+  ) +
+  dailyMissions.filter(
+    (mission) =>
+      mission.canClaim,
+  ).length +
+  (
+    dailyCompletion.canClaim
+      ? 1
+      : 0
+  ) +
+  achievementRewards.filter(
+    (reward) =>
+      reward.canClaim,
+  ).length +
+  collectionRewards.filter(
+    (reward) =>
+      reward.canClaim,
+  ).length;
 
   return {
-    coins:
-      getCoins(),
+  coins:
+    getCoins(),
 
-    dailyLogin,
-    dailyMissions,
-    dailyCompletion,
+  dailyLogin,
+  dailyMissions,
+  dailyCompletion,
 
-    achievementRewards,
-    collectionRewards,
+  achievementRewards,
+  collectionRewards,
 
-    duplicates,
+  duplicates,
 
-    ownedUniqueCards:
-      getOwnedUniqueCardCount(),
+  exchangeableCount:
+    duplicates.length,
 
-    claimableCount,
+  ownedUniqueCards:
+    getOwnedUniqueCardCount(),
 
-    challengeBonuses:
-  getChallengeRewardProgress(),
-  };
+  claimableCount,
+
+  challengeBonuses:
+    getChallengeRewardProgress(),
+};
 }
 
 export function getClaimableRewardCount() {

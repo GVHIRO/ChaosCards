@@ -298,7 +298,8 @@
   font-size: 0.55rem;
 }
 
-.login-reward-grid span {
+.login-reward-grid
+.login-day-coin {
   margin: 7px 0;
   font-size: 1.35rem;
 }
@@ -964,13 +965,17 @@
       rgba(58, 214, 139, 0.13);
 }
 
+.login-reward-grid
 .login-day-check {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
 
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
+  margin: 0;
+  padding: 0;
 
   display: grid;
   place-items: center;
@@ -980,8 +985,13 @@
   color: #102319;
   background: #67e49e;
 
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 950;
+  line-height: 1;
+
+  box-shadow:
+    0 0 12px
+    rgba(77, 224, 147, 0.32);
 }
 
 .login-day-coin {
@@ -1137,5 +1147,188 @@ article.is-claimed em {
   .login-reward-status button {
     grid-column: 1 / -1;
     width: 100%;
+  }
+}
+
+/* =========================================================
+   一括受け取り
+========================================================= */
+
+.rewards-claim-all-panel {
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  border:
+    1px solid
+    rgba(94, 159, 216, 0.2);
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 39, 65, 0.9),
+      rgba(9, 20, 37, 0.92)
+    );
+}
+
+.rewards-claim-all-panel.has-rewards {
+  border-color:
+    rgba(255, 202, 65, 0.48);
+
+  background:
+    radial-gradient(
+      circle at 5% 50%,
+      rgba(255, 192, 45, 0.15),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(71, 53, 24, 0.88),
+      rgba(14, 27, 48, 0.94)
+    );
+
+  box-shadow:
+    0 0 26px
+      rgba(255, 188, 42, 0.1);
+}
+
+.rewards-claim-all-info {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rewards-claim-all-info
+> span {
+  width: 51px;
+  height: 51px;
+
+  display: grid;
+  place-items: center;
+  flex: 0 0 51px;
+
+  border-radius: 15px;
+
+  background:
+    rgba(255, 196, 53, 0.12);
+
+  font-size: 1.65rem;
+}
+
+.rewards-claim-all-info
+small {
+  color: #c4a45d;
+
+  font-size: 0.55rem;
+  font-weight: 950;
+  letter-spacing: 0.15em;
+}
+
+.rewards-claim-all-info
+strong {
+  display: block;
+  margin-top: 3px;
+
+  color: #eef7ff;
+}
+
+.rewards-claim-all-info p {
+  margin: 4px 0 0;
+
+  color: #8497ae;
+  font-size: 0.7rem;
+}
+
+.rewards-claim-all-panel
+> button {
+  min-width: 210px;
+  min-height: 46px;
+  padding: 0 17px;
+  flex-shrink: 0;
+
+  border: 0;
+  border-radius: 12px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e1a126,
+      #c56b20
+    );
+
+  font-size: 0.78rem;
+  font-weight: 950;
+  cursor: pointer;
+
+  box-shadow:
+    0 0 20px
+      rgba(255, 183, 41, 0.16);
+}
+
+.rewards-claim-all-panel
+> button:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 0 27px
+      rgba(255, 183, 41, 0.25);
+}
+
+.rewards-claim-all-panel
+> button:disabled {
+  color: #83d9ae;
+
+  border:
+    1px solid
+    rgba(73, 214, 143, 0.22);
+
+  background:
+    rgba(35, 108, 75, 0.23);
+
+  box-shadow: none;
+
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .rewards-claim-all-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rewards-claim-all-panel
+  > button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .rewards-claim-all-info {
+    align-items: flex-start;
+  }
+
+  .rewards-claim-all-info
+  > span {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+
+    font-size: 1.4rem;
+  }
+
+  .rewards-claim-all-info p {
+    display: none;
   }
 }

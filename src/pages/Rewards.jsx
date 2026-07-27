@@ -13,6 +13,7 @@ import {
 import {
   REWARD_CHANGE_EVENT,
   claimAchievementReward,
+  claimAllAvailableRewards,
   claimCollectionReward,
   claimDailyCompletionBonus,
   claimDailyLogin,
@@ -129,7 +130,56 @@ export default function Rewards({
             </strong>
           </div>
         </header>
+<section
+  className={[
+    "rewards-claim-all-panel",
+    snapshot.claimableCount > 0
+      ? "has-rewards"
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ")}
+>
+  <div className="rewards-claim-all-info">
+    <span>
+      {snapshot.claimableCount > 0
+        ? "🎁"
+        : "✅"}
+    </span>
 
+    <div>
+      <small>
+        CLAIM ALL REWARDS
+      </small>
+
+      <strong>
+        {snapshot.claimableCount > 0
+          ? `受取可能な報酬が${snapshot.claimableCount}件あります`
+          : "現在受け取れる報酬はありません"}
+      </strong>
+
+      <p>
+        ログイン・デイリー・実績・収集報酬をまとめて受け取ります
+      </p>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    onClick={() => {
+      runAction(
+        claimAllAvailableRewards,
+      );
+    }}
+    disabled={
+      snapshot.claimableCount <= 0
+    }
+  >
+    {snapshot.claimableCount > 0
+      ? `🪙 一括受け取り（${snapshot.claimableCount}件）`
+      : "✓ すべて受取済み"}
+  </button>
+</section>
         {message && (
           <div
             className="rewards-message"
