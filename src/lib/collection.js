@@ -595,7 +595,106 @@ export function getCardCollection() {
 
   return safeCollection;
 }
+export function replaceCardCollection(
+  nextCollection,
+) {
+  const safeCollection = {};
 
+  if (
+    nextCollection &&
+    typeof nextCollection ===
+      "object" &&
+    !Array.isArray(nextCollection)
+  ) {
+    Object.entries(
+      nextCollection,
+    ).forEach(
+      ([cardId, count]) => {
+        if (!cardExists(cardId)) {
+          return;
+        }
+
+        safeCollection[
+          String(cardId)
+        ] = Math.max(
+          0,
+          Math.floor(
+            Number(count) || 0,
+          ),
+        );
+      },
+    );
+  }
+
+  saveCollection(
+    safeCollection,
+  );
+
+  return safeCollection;
+}
+
+export function removeOwnedCardCopies(
+  cardId,
+  requestedAmount,
+) {
+  const collection =
+    getCardCollection();
+
+  const key =
+    String(cardId);
+
+  const currentCount =
+    Math.max(
+      0,
+      Number(
+        collection[key] || 0,
+      ),
+    );
+
+  const safeAmount =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          requestedAmount,
+        ) || 0,
+      ),
+    );
+
+  const removedAmount =
+    Math.min(
+      currentCount,
+      safeAmount,
+    );
+
+  if (removedAmount <= 0) {
+    return {
+      removedAmount: 0,
+      remainingCount:
+        currentCount,
+    };
+  }
+
+  const remainingCount =
+    currentCount -
+    removedAmount;
+
+  if (remainingCount > 0) {
+    collection[key] =
+      remainingCount;
+  } else {
+    delete collection[key];
+  }
+
+  saveCollection(
+    collection,
+  );
+
+  return {
+    removedAmount,
+    remainingCount,
+  };
+}
 export function getOwnedCardCount(
   cardId,
   collection =

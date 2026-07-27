@@ -1,0 +1,104 @@
+.reward-toast-stack {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 15000;
+
+  width: min(310px, calc(100% - 28px));
+
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  pointer-events: none;
+}
+
+.reward-toast {
+  padding: 13px 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border:
+    1px solid
+    rgba(255, 205, 76, 0.4);
+
+  border-radius: 15px;
+
+  color: #fff4cf;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(76, 55, 17, 0.97),
+      rgba(28, 31, 43, 0.97)
+    );
+
+  box-shadow:
+    0 16px 40px
+      rgba(0, 0, 0, 0.42),
+    0 0 24px
+      rgba(255, 189, 51, 0.13);
+
+  animation:
+    rewardToastEnter
+    0.3s ease-out;
+}
+
+.reward-toast > span {
+  font-size: 1.8rem;
+}
+
+.reward-toast div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.reward-toast small {
+  overflow: hidden;
+
+  color: #bba979;
+  font-size: 0.66rem;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reward-toast strong {
+  color: #ffd96e;
+  font-size: 0.95rem;
+}
+
+@keyframes rewardToastEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(22px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .reward-toast-stack {
+    top:
+      calc(
+        10px +
+        env(safe-area-inset-top)
+      );
+    right: 10px;
+    left: 10px;
+
+    width: auto;
+  }
+}

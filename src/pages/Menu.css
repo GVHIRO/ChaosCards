@@ -1080,3 +1080,101 @@
     grid-column: auto;
   }
 }
+
+.home-account-coins {
+  width: fit-content;
+  margin-top: 7px;
+  padding: 5px 9px;
+
+  border:
+    1px solid
+    rgba(255, 205, 73, 0.23);
+
+  border-radius: 999px;
+
+  color: #ffd66e;
+
+  background:
+    rgba(91, 65, 19, 0.3);
+
+  font-size: 0.71rem;
+  font-weight: 900;
+}
+
+.home-mode-rewards {
+  border-color:
+    rgba(255, 197, 61, 0.36);
+
+  background:
+    radial-gradient(
+      circle at 10% 50%,
+      rgba(255, 190, 42, 0.17),
+      transparent 36%
+    ),
+    linear-gradient(
+      140deg,
+      rgba(74, 52, 25, 0.94),
+      rgba(20, 28, 51, 0.96)
+    );
+}
+
+.home-mode-rewards
+.home-mode-icon {
+  border-color:
+    rgba(255, 205, 86, 0.36);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 185, 43, 0.22),
+      rgba(134, 80, 255, 0.1)
+    );
+}
+
+.home-mode-rewards
+.home-mode-content small,
+.home-mode-rewards
+.home-mode-arrow {
+  color: #ffd16b;
+}
+
+.home-mode-rewards:hover {
+  border-color:
+    rgba(255, 209, 105, 0.72);
+
+  box-shadow:
+    0 23px 50px
+      rgba(0, 0, 0, 0.36),
+    0 0 30px
+      rgba(255, 184, 44, 0.16);
+}
+
+.home-reward-badge {
+  position: absolute;
+  top: 13px;
+  right: 16px;
+  z-index: 2;
+
+  min-width: 25px;
+  height: 25px;
+  padding: 0 7px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    2px solid
+    #142038;
+
+  border-radius: 999px;
+
+  color: white;
+  background: #ff4e69;
+
+  font-size: 0.62rem;
+  font-weight: 950;
+
+  box-shadow:
+    0 0 13px
+      rgba(255, 68, 97, 0.65);
+}

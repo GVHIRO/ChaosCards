@@ -1,8 +1,8 @@
 import "./Battle.css";
 import { getSettings } from "../lib/settings";
 import {
-  recordBattleCoinReward,
-} from "../lib/collection";
+  recordBattleRewards,
+} from "../lib/rewards";
 import Settings from "./Settings";
 import {
   startBattleBgm,
@@ -1322,6 +1322,28 @@ const coinAnimationShownRef =
   const battleEndingRef = useRef(false);
   const achievementRecordedRef =
   useRef(false);
+  const cardsPlayedRef =
+  useRef(0);
+
+const usedHealRef =
+  useRef(false);
+
+const battleRewardKeyRef =
+  useRef(null);
+
+if (
+  battleRewardKeyRef.current ===
+  null
+) {
+  battleRewardKeyRef.current =
+    `local:${
+      Date.now()
+    }:${
+      Math.random()
+        .toString(36)
+        .slice(2)
+    }`;
+}
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
 const rematchResettingRef = useRef(false);
@@ -1528,25 +1550,54 @@ useEffect(() => {
     matchId
       ? `online:${matchId}:${
           Number(
-            match?.rematch_count || 0,
+            match?.rematch_count ||
+              0,
           )
         }`
       : null;
 
-  const coinReward =
-    recordBattleCoinReward({
+  const rewardKey =
+    onlineRewardKey ??
+    battleRewardKeyRef.current;
+
+  const rewardItems =
+    recordBattleRewards({
       result: winner,
       mode,
+
       challengeId:
         challenge?.id ?? null,
-      rewardKey:
-        onlineRewardKey,
+
+      remainingHp:
+        Math.max(
+          0,
+          Number(playerHP) || 0,
+        ),
+
+      turnCount:
+        Math.max(
+          1,
+          Number(turnNumber) || 1,
+        ),
+
+      usedHeal:
+        usedHealRef.current,
+
+      cardsPlayed:
+        cardsPlayedRef.current,
+
+      rewardKey,
     });
 
-  if (coinReward > 0) {
+  if (
+    rewardItems.length > 0
+  ) {
     setLogs(
       (currentLogs) => [
-        `🪙 バトル報酬：${coinReward}コイン獲得！`,
+        ...rewardItems.map(
+          (reward) =>
+            `🪙 ${reward.label}：+${reward.amount}コイン`,
+        ),
         ...currentLogs,
       ].slice(0, 12),
     );
@@ -1557,6 +1608,8 @@ useEffect(() => {
   matchId,
   match?.rematch_count,
   challenge?.id,
+  playerHP,
+  turnNumber,
 ]);
   const isMyTurn = useMemo(() => {
   if (mode === "cpu") {
@@ -3343,7 +3396,8 @@ async function endCpuPlayerTurn() {
   const usedSelections = [
     ...selectedRef.current,
   ];
-
+cardsPlayedRef.current +=
+  usedSelections.length;
   setPlayedCards(
     usedSelections.map(
       (selected) =>
@@ -3371,6 +3425,7 @@ async function endCpuPlayerTurn() {
 
   const result =
     resolveTurnEffects({
+      
       selectedCards:
         usedSelections,
 
@@ -3410,7 +3465,12 @@ async function endCpuPlayerTurn() {
       targetWeaken:
         enemyWeaken,
     });
-
+if (
+  result.actualHeal > 0
+) {
+  usedHealRef.current =
+    true;
+}
   const playerDied =
     result.actorHp <= 0;
 
@@ -3635,7 +3695,8 @@ async function endCpuPlayerTurn() {
   const usedSelections = [
     ...selectedRef.current,
   ];
-
+cardsPlayedRef.current +=
+  usedSelections.length;
   setPlayedCards(
     usedSelections.map(
       (selected) =>
@@ -3771,7 +3832,12 @@ async function endCpuPlayerTurn() {
           ] || 0,
         ),
     });
-
+if (
+  result.actualHeal > 0
+) {
+  usedHealRef.current =
+    true;
+}
   const actorDied =
     result.actorHp <= 0;
 

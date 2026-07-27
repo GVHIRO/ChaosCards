@@ -1,5 +1,7 @@
 import "./PackOpening.css";
-
+import {
+  recordRewardActivity,
+} from "../lib/rewards";
 import {
   useEffect,
   useState,
@@ -129,16 +131,21 @@ export default function PackOpening({
       );
 
     if (!outcome.ok) {
-      setMessage(
-        outcome.message,
-      );
+  setMessage(
+    outcome.message,
+  );
 
-      return;
-    }
+  return;
+}
 
-    setResults(
-      outcome.results,
-    );
+recordRewardActivity({
+  type: "packOpened",
+  amount: 1,
+});
+
+setResults(
+  outcome.results,
+);
 
     setCoins(
       outcome.remainingCoins,

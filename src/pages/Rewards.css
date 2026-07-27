@@ -1,0 +1,1141 @@
+.rewards-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 28px;
+  overflow-x: hidden;
+
+  color: #eef7ff;
+
+  background:
+    radial-gradient(
+      circle at 10% 5%,
+      rgba(255, 184, 45, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 90%,
+      rgba(82, 92, 255, 0.14),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #070b16,
+      #0a1426 55%,
+      #060a14
+    );
+}
+
+.rewards-glow {
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  pointer-events: none;
+
+  border-radius: 50%;
+
+  filter: blur(110px);
+  opacity: 0.16;
+}
+
+.rewards-glow-one {
+  top: -190px;
+  left: -160px;
+  background: #ffc342;
+}
+
+.rewards-glow-two {
+  right: -180px;
+  bottom: -180px;
+  background: #5d5cff;
+}
+
+.rewards-shell {
+  position: relative;
+  z-index: 1;
+
+  width: min(1180px, 100%);
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rewards-header {
+  padding: 25px;
+
+  display: grid;
+  grid-template-columns:
+    minmax(170px, 1fr)
+    minmax(300px, 2fr)
+    minmax(150px, 1fr);
+
+  align-items: center;
+  gap: 20px;
+
+  border:
+    1px solid
+    rgba(255, 199, 72, 0.22);
+
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(38, 39, 57, 0.95),
+      rgba(8, 18, 34, 0.94)
+    );
+
+  box-shadow:
+    0 30px 70px
+      rgba(0, 0, 0, 0.4);
+}
+
+.rewards-back {
+  width: fit-content;
+  padding: 11px 15px;
+
+  border:
+    1px solid
+    rgba(97, 171, 255, 0.28);
+
+  border-radius: 12px;
+
+  color: #d8ebff;
+  background:
+    rgba(28, 55, 90, 0.65);
+
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.rewards-header > div:nth-child(2) {
+  text-align: center;
+}
+
+.rewards-header small {
+  color: #ffcd61;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+}
+
+.rewards-header h1 {
+  margin: 5px 0 0;
+
+  font-size:
+    clamp(2rem, 5vw, 3.2rem);
+}
+
+.rewards-header p {
+  margin: 8px 0 0;
+
+  color: #899cb5;
+  font-size: 0.8rem;
+}
+
+.rewards-coins {
+  justify-self: end;
+
+  min-width: 145px;
+  padding: 13px 17px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(255, 203, 66, 0.27);
+
+  border-radius: 16px;
+
+  background:
+    rgba(83, 58, 15, 0.35);
+}
+
+.rewards-coins span {
+  color: #a18a54;
+  font-size: 0.57rem;
+  font-weight: 950;
+  letter-spacing: 0.15em;
+}
+
+.rewards-coins strong {
+  color: #ffdb77;
+  font-size: 1.35rem;
+}
+
+.rewards-message {
+  padding: 12px 16px;
+
+  border:
+    1px solid
+    rgba(83, 210, 147, 0.24);
+
+  border-radius: 13px;
+
+  color: #9bf0c4;
+  background:
+    rgba(35, 125, 84, 0.15);
+
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.reward-section {
+  padding: 23px;
+
+  border:
+    1px solid
+    rgba(109, 153, 207, 0.16);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18, 32, 55, 0.88),
+      rgba(8, 17, 32, 0.9)
+    );
+}
+
+.reward-section-heading {
+  margin-bottom: 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reward-section-heading small {
+  color: #70bfff;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.reward-section-heading h2 {
+  margin: 4px 0 0;
+}
+
+.reward-section-heading > button,
+.daily-completion-bonus > button {
+  min-height: 42px;
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d79a27,
+      #bd6c20
+    );
+
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.reward-section button:disabled {
+  opacity: 0.36;
+  cursor: not-allowed;
+}
+
+.reward-reset-label {
+  color: #71859f;
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.login-reward-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.login-reward-grid > div {
+  min-height: 105px;
+  padding: 11px 6px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(127, 159, 201, 0.14);
+
+  border-radius: 13px;
+
+  background:
+    rgba(13, 27, 47, 0.66);
+}
+
+.login-reward-grid > div.is-current {
+  border-color:
+    rgba(255, 198, 64, 0.55);
+
+  background:
+    rgba(100, 68, 16, 0.35);
+
+  box-shadow:
+    0 0 20px
+      rgba(255, 190, 45, 0.12);
+}
+
+.login-reward-grid small {
+  color: #71849d;
+  font-size: 0.55rem;
+}
+
+.login-reward-grid span {
+  margin: 7px 0;
+  font-size: 1.35rem;
+}
+
+.login-reward-grid strong {
+  color: #ffd771;
+}
+
+.daily-mission-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.daily-mission-card {
+  padding: 15px;
+
+  display: grid;
+  grid-template-columns:
+    46px minmax(0, 1fr);
+  gap: 12px;
+
+  border:
+    1px solid
+    rgba(111, 150, 199, 0.16);
+
+  border-radius: 15px;
+
+  background:
+    rgba(13, 27, 48, 0.7);
+}
+
+.daily-mission-card.is-complete {
+  border-color:
+    rgba(73, 221, 149, 0.3);
+}
+
+.daily-mission-icon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  background:
+    rgba(59, 137, 220, 0.13);
+
+  font-size: 1.45rem;
+}
+
+.daily-mission-content {
+  min-width: 0;
+}
+
+.daily-mission-content small {
+  color: #659dcc;
+  font-size: 0.52rem;
+  font-weight: 900;
+}
+
+.daily-mission-content > strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.daily-mission-content p {
+  min-height: 34px;
+  margin: 5px 0 8px;
+
+  color: #8497af;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.daily-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-progress-row > div {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(113, 144, 182, 0.14);
+}
+
+.daily-progress-row > div span {
+  height: 100%;
+  display: block;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #3ca7ef,
+      #55df9c
+    );
+}
+
+.daily-progress-row strong {
+  color: #87a0bc;
+  font-size: 0.61rem;
+}
+
+.daily-mission-card > button {
+  grid-column: 1 / -1;
+
+  min-height: 38px;
+
+  border:
+    1px solid
+    rgba(85, 184, 255, 0.24);
+
+  border-radius: 10px;
+
+  color: #dff1ff;
+  background:
+    rgba(32, 90, 140, 0.45);
+
+  font-size: 0.7rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.daily-completion-bonus {
+  margin-top: 12px;
+  padding: 14px 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  border:
+    1px solid
+    rgba(255, 199, 66, 0.18);
+
+  border-radius: 14px;
+
+  background:
+    rgba(73, 52, 17, 0.2);
+}
+
+.daily-completion-bonus.is-complete {
+  border-color:
+    rgba(255, 205, 70, 0.5);
+}
+
+.daily-completion-bonus > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.daily-completion-bonus > div > span {
+  font-size: 1.7rem;
+}
+
+.daily-completion-bonus small {
+  color: #b19250;
+  font-size: 0.53rem;
+  font-weight: 900;
+}
+
+.daily-completion-bonus strong {
+  display: block;
+}
+
+.daily-completion-bonus p {
+  margin: 3px 0 0;
+
+  color: #8d815f;
+  font-size: 0.67rem;
+}
+
+.reward-card-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reward-small-card {
+  padding: 13px;
+
+  display: grid;
+  grid-template-columns:
+    46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+
+  border:
+    1px solid
+    rgba(112, 150, 199, 0.14);
+
+  border-radius: 14px;
+
+  background:
+    rgba(13, 26, 46, 0.62);
+}
+
+.reward-small-card.is-locked {
+  opacity: 0.5;
+}
+
+.reward-small-card > span {
+  font-size: 1.7rem;
+}
+
+.reward-small-card small {
+  color: #7288a3;
+  font-size: 0.53rem;
+  font-weight: 900;
+}
+
+.reward-small-card strong {
+  display: block;
+}
+
+.reward-small-card p {
+  margin: 3px 0 0;
+
+  color: #ffd471;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.reward-small-card button,
+.collection-reward-grid button,
+.duplicate-grid button {
+  min-height: 36px;
+  padding: 0 11px;
+
+  border:
+    1px solid
+    rgba(78, 181, 255, 0.24);
+
+  border-radius: 9px;
+
+  color: #ddecff;
+  background:
+    rgba(32, 90, 140, 0.45);
+
+  font-size: 0.66rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.collection-reward-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.collection-reward-grid article {
+  padding: 13px 8px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(112, 150, 199, 0.14);
+
+  border-radius: 13px;
+
+  background:
+    rgba(13, 26, 46, 0.62);
+
+  text-align: center;
+}
+
+.collection-reward-grid article.is-complete {
+  border-color:
+    rgba(73, 221, 149, 0.29);
+}
+
+.collection-reward-grid article > span {
+  font-size: 1.7rem;
+}
+
+.collection-reward-grid small {
+  color: #71869e;
+  font-size: 0.49rem;
+}
+
+.collection-reward-grid strong {
+  margin-top: 4px;
+}
+
+.collection-reward-grid p {
+  color: #ffd471;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.collection-reward-grid button {
+  width: 100%;
+}
+
+.duplicate-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.duplicate-grid article {
+  padding: 13px;
+
+  display: grid;
+  grid-template-columns:
+    48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+
+  border:
+    1px solid
+    rgba(130, 154, 196, 0.15);
+
+  border-radius: 13px;
+
+  background:
+    rgba(13, 26, 46, 0.62);
+}
+
+.duplicate-emoji {
+  font-size: 2rem;
+}
+
+.duplicate-grid small {
+  color: #778ca8;
+  font-size: 0.57rem;
+}
+
+.duplicate-grid strong {
+  display: block;
+}
+
+.duplicate-grid p {
+  margin: 3px 0 0;
+
+  color: #8397b0;
+  font-size: 0.66rem;
+}
+
+.reward-empty {
+  padding: 30px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  color: #788ca6;
+  text-align: center;
+}
+
+.reward-empty > span {
+  font-size: 2.8rem;
+}
+
+.reward-empty strong {
+  margin-top: 8px;
+  color: #aab9cb;
+}
+
+.reward-empty p {
+  margin: 5px 0 0;
+  font-size: 0.72rem;
+}
+
+.challenge-reward-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.challenge-reward-grid article {
+  padding: 15px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(177, 104, 255, 0.2);
+
+  border-radius: 13px;
+
+  background:
+    rgba(54, 28, 87, 0.22);
+
+  text-align: center;
+}
+
+.challenge-reward-grid span {
+  font-size: 1.8rem;
+}
+
+.challenge-reward-grid strong {
+  margin-top: 7px;
+}
+
+.challenge-reward-grid small {
+  margin-top: 4px;
+  color: #8b789f;
+}
+
+.challenge-reward-grid p {
+  margin: 7px 0 0;
+
+  color: #ffd471;
+  font-weight: 850;
+}
+
+@media (max-width: 900px) {
+  .daily-mission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-reward-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .challenge-reward-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .rewards-page {
+    padding: 12px;
+  }
+
+  .rewards-header {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+  }
+
+  .rewards-header > div:nth-child(2) {
+    text-align: left;
+  }
+
+  .rewards-coins {
+    justify-self: stretch;
+  }
+
+  .reward-section {
+    padding: 17px 13px;
+  }
+
+  .reward-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .login-reward-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+
+  .reward-card-grid,
+  .duplicate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-small-card,
+  .duplicate-grid article {
+    grid-template-columns:
+      43px minmax(0, 1fr);
+  }
+
+  .reward-small-card button,
+  .duplicate-grid button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .login-reward-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .collection-reward-grid,
+  .challenge-reward-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-completion-bonus {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .daily-completion-bonus button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   ログインボーナス状態
+========================================================= */
+
+.login-reward-status {
+  margin-bottom: 14px;
+  padding: 15px 17px;
+
+  display: grid;
+  grid-template-columns:
+    50px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+
+  border:
+    1px solid
+    rgba(255, 199, 68, 0.25);
+
+  border-radius: 15px;
+
+  background:
+    rgba(83, 58, 15, 0.22);
+}
+
+.login-reward-status.is-claimable {
+  border-color:
+    rgba(255, 205, 75, 0.55);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(112, 75, 14, 0.38),
+      rgba(49, 39, 27, 0.3)
+    );
+
+  box-shadow:
+    0 0 24px
+      rgba(255, 191, 48, 0.1);
+}
+
+.login-reward-status.is-claimed {
+  border-color:
+    rgba(69, 220, 144, 0.3);
+
+  background:
+    rgba(31, 112, 76, 0.16);
+}
+
+.login-reward-status-icon {
+  width: 50px;
+  height: 50px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+
+  background:
+    rgba(255, 196, 59, 0.12);
+
+  font-size: 1.65rem;
+}
+
+.login-reward-status small {
+  color: #b19555;
+  font-size: 0.55rem;
+  font-weight: 950;
+  letter-spacing: 0.15em;
+}
+
+.login-reward-status strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.login-reward-status p {
+  margin: 4px 0 0;
+
+  color: #95886a;
+  font-size: 0.7rem;
+}
+
+.login-reward-status button {
+  min-height: 43px;
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d99c28,
+      #be7022
+    );
+
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.login-reward-status button:disabled {
+  color: #9ce8bd;
+
+  border:
+    1px solid
+    rgba(73, 220, 145, 0.25);
+
+  background:
+    rgba(36, 116, 79, 0.25);
+
+  opacity: 1;
+}
+
+.login-reward-grid > div {
+  position: relative;
+}
+
+.login-reward-grid > div.is-claimed {
+  border-color:
+    rgba(74, 218, 143, 0.27);
+
+  background:
+    rgba(29, 105, 72, 0.19);
+}
+
+.login-reward-grid > div.is-claimable {
+  border-color:
+    rgba(255, 201, 66, 0.62);
+
+  background:
+    rgba(111, 75, 15, 0.42);
+
+  box-shadow:
+    0 0 20px
+      rgba(255, 190, 43, 0.15);
+}
+
+.login-reward-grid
+> div.is-claimed-today {
+  border-color:
+    rgba(75, 230, 153, 0.57);
+
+  box-shadow:
+    0 0 20px
+      rgba(58, 214, 139, 0.13);
+}
+
+.login-day-check {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+
+  width: 20px;
+  height: 20px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  color: #102319;
+  background: #67e49e;
+
+  font-size: 0.7rem;
+  font-weight: 950;
+}
+
+.login-day-coin {
+  margin: 7px 0;
+  font-size: 1.35rem;
+}
+
+.login-reward-grid em {
+  margin-top: 4px;
+
+  color: #71869d;
+
+  font-size: 0.52rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.login-reward-grid
+.is-claimed em {
+  color: #70c99a;
+}
+
+.login-reward-grid
+.is-claimable em {
+  color: #ffd36d;
+}
+
+/* =========================================================
+   チャレンジ報酬の獲得状態
+========================================================= */
+
+.challenge-reward-grid article {
+  position: relative;
+}
+
+.challenge-reward-grid
+article.is-claimed {
+  border-color:
+    rgba(69, 218, 143, 0.32);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(33, 112, 78, 0.2),
+      rgba(52, 28, 87, 0.2)
+    );
+}
+
+.challenge-reward-grid
+article.is-complete {
+  border-color:
+    rgba(255, 205, 72, 0.5);
+
+  box-shadow:
+    0 0 22px
+      rgba(255, 192, 47, 0.1);
+}
+
+.challenge-reward-check {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+
+  width: 23px;
+  height: 23px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  color: #102319;
+  background: #67e49e;
+
+  font-size: 0.72rem;
+  font-weight: 950;
+
+  box-shadow:
+    0 0 12px
+      rgba(77, 224, 147, 0.32);
+}
+
+.challenge-reward-icon {
+  font-size: 1.8rem;
+}
+
+.challenge-stage-status {
+  margin-top: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.challenge-stage-status span {
+  width: 26px;
+  height: 26px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(131, 146, 177, 0.2);
+
+  border-radius: 8px;
+
+  color: #75869c;
+  background:
+    rgba(12, 22, 39, 0.56);
+
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.challenge-stage-status
+span.is-claimed {
+  color: #102219;
+
+  border-color:
+    rgba(85, 230, 157, 0.45);
+
+  background: #67e49e;
+}
+
+.challenge-reward-grid em {
+  margin-top: 9px;
+
+  color: #75899f;
+
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.challenge-reward-grid
+article.is-claimed em {
+  color: #75d8a5;
+}
+
+@media (max-width: 700px) {
+  .login-reward-status {
+    grid-template-columns:
+      44px minmax(0, 1fr);
+  }
+
+  .login-reward-status-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .login-reward-status button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

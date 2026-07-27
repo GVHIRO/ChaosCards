@@ -1,5 +1,9 @@
 import "./Achievements.css";
-
+import {
+  REWARD_CHANGE_EVENT,
+  claimAchievementReward,
+  getAchievementRewardState,
+} from "../lib/rewards";
 import {
   useEffect,
   useMemo,
@@ -62,45 +66,65 @@ export default function Achievements({
       equippedAchievementId,
     ]);
 
-  useEffect(() => {
-    function refreshAchievements() {
-      setUnlockedAchievementIds(
-        getUnlockedAchievementIds(),
-      );
+useEffect(() => {
+  function refreshAchievements() {
+    setUnlockedAchievementIds(
+      getUnlockedAchievementIds(),
+    );
 
-      setStats(
-        getAchievementStats(),
-      );
-    }
+    setStats(
+      getAchievementStats(),
+    );
+  }
 
-    function refreshEquippedTitle() {
-      setEquippedAchievementId(
-        getEquippedAchievementId(),
-      );
-    }
+  function refreshEquippedTitle() {
+    setEquippedAchievementId(
+      getEquippedAchievementId(),
+    );
+  }
 
-    window.addEventListener(
+  function refreshRewards() {
+    /*
+      新しいオブジェクトを入れて
+      実績報酬の受取状態を再描画する。
+    */
+    setStats(
+      getAchievementStats(),
+    );
+  }
+
+  window.addEventListener(
+    ACHIEVEMENT_UNLOCK_EVENT,
+    refreshAchievements,
+  );
+
+  window.addEventListener(
+    EQUIPPED_TITLE_CHANGE_EVENT,
+    refreshEquippedTitle,
+  );
+
+  window.addEventListener(
+    REWARD_CHANGE_EVENT,
+    refreshRewards,
+  );
+
+  return () => {
+    window.removeEventListener(
       ACHIEVEMENT_UNLOCK_EVENT,
       refreshAchievements,
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       EQUIPPED_TITLE_CHANGE_EVENT,
       refreshEquippedTitle,
     );
 
-    return () => {
-      window.removeEventListener(
-        ACHIEVEMENT_UNLOCK_EVENT,
-        refreshAchievements,
-      );
-
-      window.removeEventListener(
-        EQUIPPED_TITLE_CHANGE_EVENT,
-        refreshEquippedTitle,
-      );
-    };
-  }, []);
+    window.removeEventListener(
+      REWARD_CHANGE_EVENT,
+      refreshRewards,
+    );
+  };
+}, []);
 
   const unlockedCount =
     achievements.filter(
@@ -311,95 +335,122 @@ export default function Achievements({
         </section>
 
         <section className="achievements-grid">
-          {achievements.map(
-            (achievement) => {
-              const isUnlocked =
-                unlockedSet.has(
-                  achievement.id,
-                );
+  {achievements.map(
+    (achievement) => {
+      const isUnlocked =
+        unlockedSet.has(
+          achievement.id,
+        );
 
-              const isEquipped =
-                equippedAchievementId ===
-                achievement.id;
+      const isEquipped =
+        equippedAchievementId ===
+        achievement.id;
 
-              return (
-                <article
-                  key={
-                    achievement.id
+      const rewardState =
+        getAchievementRewardState(
+          achievement.id,
+        );
+
+      return (
+        <article
+          key={achievement.id}
+          className={[
+            "achievement-card",
+            isUnlocked
+              ? "is-unlocked"
+              : "is-locked",
+            isEquipped
+              ? "is-equipped"
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <div className="achievement-card-icon">
+            {isUnlocked
+              ? achievement.icon
+              : "🔒"}
+          </div>
+
+          <div className="achievement-card-content">
+            <small>
+              {achievement.category}
+            </small>
+
+            <h2>
+              {achievement.title}
+            </h2>
+
+            <p>
+              {achievement.description}
+            </p>
+          </div>
+
+          {isUnlocked && (
+            <div className="achievement-card-actions">
+              <button
+                type="button"
+                className={
+                  isEquipped
+                    ? "is-equipped"
+                    : ""
+                }
+                aria-pressed={
+                  isEquipped
+                }
+                onClick={() => {
+                  handleTitleToggle(
+                    achievement,
+                  );
+                }}
+              >
+                {isEquipped
+                  ? "✓ 称号装備中"
+                  : "称号として装備"}
+              </button>
+
+              <button
+                type="button"
+                className="achievement-coin-button"
+                disabled={
+                  !rewardState.canClaim
+                }
+                onClick={() => {
+                  const result =
+                    claimAchievementReward(
+                      achievement.id,
+                    );
+
+                  if (result.ok) {
+                    setStats(
+                      getAchievementStats(),
+                    );
                   }
-                  className={[
-                    "achievement-card",
-                    isUnlocked
-                      ? "is-unlocked"
-                      : "is-locked",
-                    isEquipped
-                      ? "is-equipped"
-                      : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  <div className="achievement-card-icon">
-                    {isUnlocked
-                      ? achievement.icon
-                      : "🔒"}
-                  </div>
-
-                  <div className="achievement-card-content">
-                    <small>
-                      {
-                        achievement.category
-                      }
-                    </small>
-
-                    <h2>
-                      {achievement.title}
-                    </h2>
-
-                    <p>
-                      {
-                        achievement.description
-                      }
-                    </p>
-                  </div>
-
-                  {isUnlocked && (
-                    <div className="achievement-card-actions">
-                      <button
-                        type="button"
-                        className={
-                          isEquipped
-                            ? "is-equipped"
-                            : ""
-                        }
-                        aria-pressed={
-                          isEquipped
-                        }
-                        onClick={() => {
-                          handleTitleToggle(
-                            achievement,
-                          );
-                        }}
-                      >
-                        {isEquipped
-                          ? "✓ 称号装備中"
-                          : "称号として装備"}
-                      </button>
-                    </div>
-                  )}
-
-                  <span className="achievement-card-status">
-                    {isEquipped
-                      ? "★ EQUIPPED"
-                      : isUnlocked
-                        ? "✓ UNLOCKED"
-                        : "LOCKED"}
-                  </span>
-                </article>
-              );
-            },
+                }}
+              >
+                {rewardState.claimed
+                  ? `✓ 🪙 ${rewardState.amount} 受取済み`
+                  : `🪙 ${rewardState.amount} 受け取る`}
+              </button>
+            </div>
           )}
-        </section>
+
+          <span className="achievement-reward-value">
+            🪙 {rewardState.amount}
+          </span>
+
+          <span className="achievement-card-status">
+            {isEquipped
+              ? "★ EQUIPPED"
+              : isUnlocked
+                ? "✓ UNLOCKED"
+                : "LOCKED"}
+          </span>
+        </article>
+      );
+    },
+  )}
+</section>
       </section>
     </main>
   );

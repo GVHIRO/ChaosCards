@@ -706,3 +706,46 @@ button.is-equipped {
     width: 100%;
   }
 }
+.achievement-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.achievement-card-actions
+.achievement-coin-button {
+  border-color:
+    rgba(255, 200, 67, 0.3);
+
+  color: #ffe098;
+
+  background:
+    rgba(102, 70, 15, 0.42);
+}
+
+.achievement-card-actions
+.achievement-coin-button:hover:not(:disabled) {
+  background:
+    rgba(139, 94, 18, 0.62);
+}
+
+.achievement-card-actions
+.achievement-coin-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.achievement-reward-value {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  color: #ffd978;
+  background:
+    rgba(92, 65, 17, 0.26);
+
+  font-size: 0.66rem;
+  font-weight: 900;
+}

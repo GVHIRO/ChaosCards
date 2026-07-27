@@ -13,8 +13,21 @@ import {
   markCurrentUpdateAsSeen,
 } from "./lib/updates";
 import {
+  COIN_CHANGE_EVENT,
   forceStarterDeckMigration,
+  getCoins,
 } from "./lib/collection";
+import Rewards from
+  "./pages/Rewards";
+
+import RewardToast from
+  "./components/RewardToast";
+
+import {
+  REWARD_CHANGE_EVENT,
+  getClaimableRewardCount,
+  initializeRewards,
+} from "./lib/rewards";
 import {
   useCallback,
   useEffect,
@@ -68,6 +81,17 @@ const [
   hasUnreadUpdate,
   setHasUnreadUpdate,
 ] = useState(false);
+const [
+  coins,
+  setCoins,
+] = useState(
+  getCoins,
+);
+
+const [
+  claimableRewardCount,
+  setClaimableRewardCount,
+] = useState(0);
   const [currentUser, setCurrentUser] =
   useState(null);
 
@@ -166,6 +190,42 @@ useEffect(() => {
       true,
     );
   }
+}, []);
+useEffect(() => {
+  function refreshRewards() {
+    setCoins(
+      getCoins(),
+    );
+
+    setClaimableRewardCount(
+      getClaimableRewardCount(),
+    );
+  }
+
+  initializeRewards();
+  refreshRewards();
+
+  window.addEventListener(
+    COIN_CHANGE_EVENT,
+    refreshRewards,
+  );
+
+  window.addEventListener(
+    REWARD_CHANGE_EVENT,
+    refreshRewards,
+  );
+
+  return () => {
+    window.removeEventListener(
+      COIN_CHANGE_EVENT,
+      refreshRewards,
+    );
+
+    window.removeEventListener(
+      REWARD_CHANGE_EVENT,
+      refreshRewards,
+    );
+  };
 }, []);
 useEffect(() => {
   function refreshEquippedTitle() {
@@ -712,6 +772,15 @@ if (screen === "card-library") {
     />
   );
 }
+if (screen === "rewards") {
+  return (
+    <Rewards
+      onBack={() =>
+        setScreen("menu")
+      }
+    />
+  );
+}
 if (screen === "pack-opening") {
   return (
     <PackOpening
@@ -854,6 +923,15 @@ avatarUrl={
   onPackOpening={() =>
   setScreen("pack-opening")
 }
+onRewards={() =>
+  setScreen("rewards")
+}
+
+coins={coins}
+
+claimableRewardCount={
+  claimableRewardCount
+}
   onFriends={openFriends}
   onSettings={() =>
     setScreen("settings")
@@ -927,15 +1005,16 @@ playerEmail={
     {renderScreen()}
 
     <AchievementToast />
+    <RewardToast />
 
     {showUpdateNotice &&
-  screen === "menu" && (
-    <UpdateNotice
-      onClose={
-        closeUpdateNotice
-      }
-    />
-  )}
+      screen === "menu" && (
+        <UpdateNotice
+          onClose={
+            closeUpdateNotice
+          }
+        />
+      )}
 
     {showAuthMenu && (
       <AuthMenu

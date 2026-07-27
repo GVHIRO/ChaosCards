@@ -6,10 +6,14 @@ export default function Menu({
   onOnline,
   onDeckBuilder,
   onPackOpening,
+  onRewards,
   onFriends,
   onSettings,
   onCardLibrary,
   onAchievements,
+
+  coins = 0,
+  claimableRewardCount = 0,
 
   onOpenUpdates,
   appVersion = "1.0.0",
@@ -115,18 +119,22 @@ export default function Menu({
       )}
 
       <span
-        className={`home-account-status ${
-          isAnonymous
-            ? "guest"
-            : "online"
-        }`}
-      >
-        <i />
+  className={`home-account-status ${
+    isAnonymous
+      ? "guest"
+      : "online"
+  }`}
+>
+  <i />
 
-        {isAnonymous
-          ? "ゲストプレイ中"
-          : "ログイン中"}
-      </span>
+  {isAnonymous
+    ? "ゲストプレイ中"
+    : "ログイン中"}
+</span>
+
+<span className="home-account-coins">
+  🪙 {coins}
+</span>
     </div>
   </div>
 </div>
@@ -235,10 +243,10 @@ export default function Menu({
           </button>
           <button
   type="button"
-  className="
-    home-mode-card
-    home-mode-pack
-  "
+  className={[
+    "home-mode-card",
+    "home-mode-pack",
+  ].join(" ")}
   onClick={onPackOpening}
 >
   <span className="home-mode-icon">
@@ -258,6 +266,45 @@ export default function Menu({
       コインを使ってカードを入手する
     </span>
   </span>
+
+  <span className="home-mode-arrow">
+    ›
+  </span>
+</button>
+
+<button
+  type="button"
+  className={[
+    "home-mode-card",
+    "home-mode-rewards",
+  ].join(" ")}
+  onClick={onRewards}
+>
+  <span className="home-mode-icon">
+    🎁
+  </span>
+
+  <span className="home-mode-content">
+    <small>
+      REWARD CENTER
+    </small>
+
+    <strong>
+      報酬センター
+    </strong>
+
+    <span>
+      デイリー・実績・収集報酬を受け取る
+    </span>
+  </span>
+
+  {claimableRewardCount > 0 && (
+    <span className="home-reward-badge">
+      {claimableRewardCount > 99
+        ? "99+"
+        : claimableRewardCount}
+    </span>
+  )}
 
   <span className="home-mode-arrow">
     ›
