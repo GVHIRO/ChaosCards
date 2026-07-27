@@ -1279,8 +1279,17 @@ const selectedRef =
   useRef(selectedCards);
   const energyRef = useRef(energy);
   const matchRef = useRef(null);
-  const initializedRef = useRef(false);
-  const previousTurnRef = useRef(null);
+const initializedRef = useRef(false);
+const previousTurnRef = useRef(null);
+
+/*
+  同じ試合中にコイントス演出が
+  繰り返し表示されるのを防ぐ。
+  再戦時はBattleが再生成されるため、
+  このRefもfalseに戻る。
+*/
+const coinAnimationShownRef =
+  useRef(false);
   const battleEndingRef = useRef(false);
 const resultTimerRef = useRef(null);
 const resultFrameRef = useRef(null);
@@ -2171,19 +2180,30 @@ function getSelectedEnergyCost() {
       }
 
       syncMatchToView(data);
-      setCoinVisible(true);
-      setIsLoadingMatch(false);
-      addLogs([
-        `🪙 コイントス結果：${roleLabel(
-  data.first_player,
-  playerRole,
-  playerName,
-  opponentName
-)}が先攻！`,
-      ]);
-      window.setTimeout(() => setCoinVisible(false), 1700);
-    }
+setIsLoadingMatch(false);
 
+if (
+  !coinAnimationShownRef.current
+) {
+  coinAnimationShownRef.current =
+    true;
+
+  setCoinVisible(true);
+
+  addLogs([
+    `🪙 コイントス結果：${roleLabel(
+      data.first_player,
+      playerRole,
+      playerName,
+      opponentName,
+    )}が先攻！`,
+  ]);
+
+  window.setTimeout(() => {
+    setCoinVisible(false);
+  }, 1700);
+}
+    }
     loadMatch();
 
     const channel = supabase

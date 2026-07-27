@@ -1,6 +1,10 @@
 import ProfileSetup from "./pages/ProfileSetup";
 import AppLoading from "./components/AppLoading";
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { supabase } from "./lib/supabase";
 import ChallengeMenu from "./pages/ChallengeMenu";
 import {
@@ -511,7 +515,13 @@ function recordChallengeResult(
       );
     }
   }
-
+const handleOnlineRematchStart =
+  useCallback(() => {
+    setBattleKey(
+      (currentKey) =>
+        currentKey + 1,
+    );
+  }, []);
   function renderScreen() {
     if (screen === "challenge") {
   return (
@@ -655,12 +665,9 @@ playerAvatarUrl={
   setOnlineRoom(null);
   setScreen("online");
 }}
-onRematchStart={() => {
-  setBattleKey(
-    (currentKey) =>
-      currentKey + 1
-  );
-}}
+onRematchStart={
+  handleOnlineRematchStart
+}
 goToMenu={() => {
   setOnlineRoom(null);
   setScreen("menu");
